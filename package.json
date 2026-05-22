@@ -1,0 +1,44 @@
+{
+  "name": "lets_work",
+  "private": true,
+  "workspaces": {
+    "packages": [
+      "apps/*",
+      "packages/*"
+    ],
+    "catalog": {
+      "dotenv": "^17.2.2",
+      "zod": "^4.1.13",
+      "typescript": "^6",
+      "@types/bun": "^1.3.4",
+      "better-auth": "1.6.9",
+      "next-themes": "^0.4.6",
+      "@polar-sh/better-auth": "^1.8.3",
+      "@types/react-dom": "^19.2.3"
+    }
+  },
+  "type": "module",
+  "scripts": {
+    "dev": "turbo dev",
+    "build": "turbo build",
+    "check-types": "turbo check-types",
+    "dev:web": "turbo -F web dev",
+    "dev:server": "turbo -F server dev",
+    "db:push": "turbo -F @lets_work/db db:push",
+    "db:studio": "turbo -F @lets_work/db db:studio",
+    "db:generate": "turbo -F @lets_work/db db:generate",
+    "db:migrate": "turbo -F @lets_work/db db:migrate"
+  },
+  "dependencies": {
+    "@lets_work/env": "workspace:*",
+    "dotenv": "catalog:",
+    "zod": "catalog:"
+  },
+  "devDependencies": {
+    "@lets_work/config": "workspace:*",
+    "@types/bun": "catalog:",
+    "turbo": "^2.8.12",
+    "typescript": "catalog:"
+  },
+  "packageManager": "bun@1.3.3"
+}
