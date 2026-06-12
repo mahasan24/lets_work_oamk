@@ -14,7 +14,6 @@
     "@hookform/resolvers": "^5.2.2",
     "@lets_work/env": "workspace:*",
     "@lets_work/ui": "workspace:*",
-    "@polar-sh/better-auth": "catalog:",
     "@tailwindcss/vite": "^4.2.2",
     "@tanstack/react-form": "^1.28.0",
     "@tanstack/react-router": "^1.168.22",

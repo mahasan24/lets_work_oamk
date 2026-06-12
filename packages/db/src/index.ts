@@ -1,9 +1,9 @@
 import { env } from "@lets_work/env/server";
-import { drizzle } from "drizzle-orm/node-postgres";
+import { drizzle, type NodePgDatabase } from "drizzle-orm/node-postgres";
 
 import * as schema from "./schema";
 
-export function createDb() {
+export function createDb(): NodePgDatabase<typeof schema> {
   return drizzle(env.DATABASE_URL, { schema });
 }
 

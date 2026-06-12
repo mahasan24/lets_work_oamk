@@ -13,10 +13,9 @@
   "dependencies": {
     "@lets_work/db": "workspace:*",
     "@lets_work/env": "workspace:*",
-    "@polar-sh/better-auth": "catalog:",
-    "@polar-sh/sdk": "^0.42.2",
     "better-auth": "catalog:",
     "dotenv": "catalog:",
+    "stripe": "catalog:",
     "zod": "catalog:"
   },
   "devDependencies": {
