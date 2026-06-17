@@ -1,5 +1,5 @@
 import { Toaster } from "@lets_work/ui/components/sonner";
-import { HeadContent, Outlet, createRootRouteWithContext } from "@tanstack/react-router";
+import { HeadContent, Outlet, createRootRouteWithContext, useRouterState } from "@tanstack/react-router";
 import { TanStackRouterDevtools } from "@tanstack/react-router-devtools";
 
 import Header from "@/components/header";
@@ -9,16 +9,19 @@ import "../index.css";
 
 export interface RouterAppContext {}
 
+const APP_ROUTES = ["/dashboard", "/success"];
+
 export const Route = createRootRouteWithContext<RouterAppContext>()({
   component: RootComponent,
   head: () => ({
     meta: [
       {
-        title: "lets_work",
+        title: "Lets Work — Hire freelancers or find work",
       },
       {
         name: "description",
-        content: "lets_work is a web application",
+        content:
+          "Connect with top freelancers or find your next opportunity. Post jobs, submit proposals, and get paid securely.",
       },
     ],
     links: [
@@ -31,19 +34,32 @@ export const Route = createRootRouteWithContext<RouterAppContext>()({
 });
 
 function RootComponent() {
+  const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const isAppRoute = APP_ROUTES.some(
+    (route) => pathname === route || pathname.startsWith(`${route}/`),
+  );
+  const isMarketingRoute = pathname === "/" || pathname === "/login";
+
   return (
     <>
       <HeadContent />
       <ThemeProvider
         attribute="class"
-        defaultTheme="dark"
+        defaultTheme="light"
         disableTransitionOnChange
         storageKey="vite-ui-theme"
       >
-        <div className="grid grid-rows-[auto_1fr] h-svh">
-          <Header />
-          <Outlet />
-        </div>
+        {isAppRoute ? (
+          <div className="grid h-svh grid-rows-[auto_1fr]">
+            <Header />
+            <Outlet />
+          </div>
+        ) : (
+          <div className={isMarketingRoute ? "min-h-svh" : "grid h-svh grid-rows-[auto_1fr]"}>
+            {!isMarketingRoute && <Header />}
+            <Outlet />
+          </div>
+        )}
         <Toaster richColors />
       </ThemeProvider>
       <TanStackRouterDevtools position="bottom-left" />

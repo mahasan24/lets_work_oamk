@@ -1,1 +1,5 @@
 @import "@lets_work/ui/globals.css";
+
+@theme inline {
+  --font-display: "Syne", var(--font-sans);
+}

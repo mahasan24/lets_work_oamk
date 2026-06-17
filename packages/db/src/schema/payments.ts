@@ -12,6 +12,7 @@ import {
 
 import { user } from "./auth";
 import { contract } from "./contracts";
+import { milestone } from "./milestones";
 
 export const paymentStatusEnum = pgEnum("payment_status", [
   "pending",
@@ -63,6 +64,9 @@ export const payment = pgTable(
     contractId: text("contract_id").references(() => contract.id, {
       onDelete: "set null",
     }),
+    milestoneId: text("milestone_id").references(() => milestone.id, {
+      onDelete: "set null",
+    }),
     payerUserId: text("payer_user_id")
       .notNull()
       .references(() => user.id, { onDelete: "cascade" }),
@@ -87,6 +91,7 @@ export const payment = pgTable(
   },
   (table) => [
     index("payment_contract_id_idx").on(table.contractId),
+    index("payment_milestone_id_idx").on(table.milestoneId),
     index("payment_payer_user_id_idx").on(table.payerUserId),
   ],
 );

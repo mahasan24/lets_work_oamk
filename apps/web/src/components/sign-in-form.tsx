@@ -1,19 +1,23 @@
 import { Button } from "@lets_work/ui/components/button";
+import {
+  Field,
+  FieldError,
+  FieldGroup,
+  FieldLabel,
+} from "@lets_work/ui/components/field";
 import { Input } from "@lets_work/ui/components/input";
-import { Label } from "@lets_work/ui/components/label";
 import { useForm } from "@tanstack/react-form";
-import { useNavigate } from "@tanstack/react-router";
+import { Link, useNavigate } from "@tanstack/react-router";
 import { toast } from "sonner";
 import z from "zod";
 
 import { authClient } from "@/lib/auth-client";
 
 import Loader from "./loader";
+import { OAuthButtons } from "./oauth-buttons";
 
 export default function SignInForm({ onSwitchToSignUp }: { onSwitchToSignUp: () => void }) {
-  const navigate = useNavigate({
-    from: "/",
-  });
+  const navigate = useNavigate({ from: "/" });
   const { isPending } = authClient.useSession();
 
   const form = useForm({
@@ -29,10 +33,8 @@ export default function SignInForm({ onSwitchToSignUp }: { onSwitchToSignUp: () 
         },
         {
           onSuccess: () => {
-            navigate({
-              to: "/dashboard",
-            });
-            toast.success("Sign in successful");
+            navigate({ to: "/dashboard" });
+            toast.success("Welcome back");
           },
           onError: (error) => {
             toast.error(error.error.message || error.error.statusText);
@@ -53,8 +55,16 @@ export default function SignInForm({ onSwitchToSignUp }: { onSwitchToSignUp: () 
   }
 
   return (
-    <div className="mx-auto w-full mt-10 max-w-md p-6">
-      <h1 className="mb-6 text-center text-3xl font-bold">Welcome Back</h1>
+    <div className="flex w-full max-w-sm flex-col gap-8">
+      <div className="flex flex-col gap-2">
+        <h1 className="font-display text-2xl font-bold tracking-tight">Log in</h1>
+        <p className="text-sm text-muted-foreground">
+          New here?{" "}
+          <Button type="button" variant="link" className="h-auto p-0" onClick={onSwitchToSignUp}>
+            Create an account
+          </Button>
+        </p>
+      </div>
 
       <form
         onSubmit={(e) => {
@@ -62,74 +72,73 @@ export default function SignInForm({ onSwitchToSignUp }: { onSwitchToSignUp: () 
           e.stopPropagation();
           form.handleSubmit();
         }}
-        className="space-y-4"
       >
-        <div>
+        <FieldGroup>
           <form.Field name="email">
             {(field) => (
-              <div className="space-y-2">
-                <Label htmlFor={field.name}>Email</Label>
+              <Field data-invalid={field.state.meta.errors.length > 0}>
+                <FieldLabel htmlFor={field.name}>Email</FieldLabel>
                 <Input
                   id={field.name}
                   name={field.name}
                   type="email"
+                  className="h-10"
                   value={field.state.value}
                   onBlur={field.handleBlur}
                   onChange={(e) => field.handleChange(e.target.value)}
+                  aria-invalid={field.state.meta.errors.length > 0}
                 />
-                {field.state.meta.errors.map((error) => (
-                  <p key={error?.message} className="text-red-500">
-                    {error?.message}
-                  </p>
-                ))}
-              </div>
+                <FieldError errors={field.state.meta.errors} />
+              </Field>
             )}
           </form.Field>
-        </div>
 
-        <div>
           <form.Field name="password">
             {(field) => (
-              <div className="space-y-2">
-                <Label htmlFor={field.name}>Password</Label>
+              <Field data-invalid={field.state.meta.errors.length > 0}>
+                <div className="flex items-center justify-between">
+                  <FieldLabel htmlFor={field.name}>Password</FieldLabel>
+                  <Button type="button" variant="link" className="h-auto p-0 text-xs">
+                    Forgot?
+                  </Button>
+                </div>
                 <Input
                   id={field.name}
                   name={field.name}
                   type="password"
+                  className="h-10"
                   value={field.state.value}
                   onBlur={field.handleBlur}
                   onChange={(e) => field.handleChange(e.target.value)}
+                  aria-invalid={field.state.meta.errors.length > 0}
                 />
-                {field.state.meta.errors.map((error) => (
-                  <p key={error?.message} className="text-red-500">
-                    {error?.message}
-                  </p>
-                ))}
-              </div>
+                <FieldError errors={field.state.meta.errors} />
+              </Field>
             )}
           </form.Field>
-        </div>
 
-        <form.Subscribe
-          selector={(state) => ({ canSubmit: state.canSubmit, isSubmitting: state.isSubmitting })}
-        >
-          {({ canSubmit, isSubmitting }) => (
-            <Button type="submit" className="w-full" disabled={!canSubmit || isSubmitting}>
-              {isSubmitting ? "Submitting..." : "Sign In"}
-            </Button>
-          )}
-        </form.Subscribe>
+          <form.Subscribe
+            selector={(state) => ({ canSubmit: state.canSubmit, isSubmitting: state.isSubmitting })}
+          >
+            {({ canSubmit, isSubmitting }) => (
+              <Button
+                type="submit"
+                size="lg"
+                className="h-10 w-full"
+                disabled={!canSubmit || isSubmitting}
+              >
+                {isSubmitting ? "Logging in..." : "Log in"}
+              </Button>
+            )}
+          </form.Subscribe>
+        </FieldGroup>
       </form>
 
-      <div className="mt-4 text-center">
-        <Button
-          variant="link"
-          onClick={onSwitchToSignUp}
-          className="text-indigo-600 hover:text-indigo-800"
-        >
-          Need an account? Sign Up
-        </Button>
-      </div>
+      <OAuthButtons />
+
+      <Link to="/" className="text-sm text-muted-foreground hover:text-primary">
+        ← Back to home
+      </Link>
     </div>
   );
 }

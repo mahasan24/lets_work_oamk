@@ -50,6 +50,12 @@ export const marketplaceUserProfile = pgTable("marketplace_user_profile", {
   companyWebsite: text("company_website"),
   hourlyRate: numeric("hourly_rate", { precision: 12, scale: 2 }),
   currency: text("currency").default("USD").notNull(),
+  location: text("location"),
+  timezone: text("timezone"),
+  avgRating: numeric("avg_rating", { precision: 3, scale: 2 }),
+  reviewCount: integer("review_count").default(0).notNull(),
+  jobsCompleted: integer("jobs_completed").default(0).notNull(),
+  avatarUrl: text("avatar_url"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at")
     .defaultNow()
