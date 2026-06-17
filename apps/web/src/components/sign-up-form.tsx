@@ -1,19 +1,34 @@
 import { Button } from "@lets_work/ui/components/button";
+import {
+  Field,
+  FieldDescription,
+  FieldError,
+  FieldGroup,
+  FieldLabel,
+} from "@lets_work/ui/components/field";
 import { Input } from "@lets_work/ui/components/input";
-import { Label } from "@lets_work/ui/components/label";
+import {
+  ToggleGroup,
+  ToggleGroupItem,
+} from "@lets_work/ui/components/toggle-group";
 import { useForm } from "@tanstack/react-form";
-import { useNavigate } from "@tanstack/react-router";
+import { Link, useNavigate } from "@tanstack/react-router";
 import { toast } from "sonner";
 import z from "zod";
 
 import { authClient } from "@/lib/auth-client";
 
 import Loader from "./loader";
+import { OAuthButtons } from "./oauth-buttons";
 
-export default function SignUpForm({ onSwitchToSignIn }: { onSwitchToSignIn: () => void }) {
-  const navigate = useNavigate({
-    from: "/",
-  });
+type AccountType = "hirer" | "freelancer";
+
+export default function SignUpForm({
+  onSwitchToSignIn,
+}: {
+  onSwitchToSignIn: () => void;
+}) {
+  const navigate = useNavigate({ from: "/" });
   const { isPending } = authClient.useSession();
 
   const form = useForm({
@@ -21,6 +36,7 @@ export default function SignUpForm({ onSwitchToSignIn }: { onSwitchToSignIn: () 
       email: "",
       password: "",
       name: "",
+      accountType: "freelancer" as AccountType,
     },
     onSubmit: async ({ value }) => {
       await authClient.signUp.email(
@@ -31,10 +47,8 @@ export default function SignUpForm({ onSwitchToSignIn }: { onSwitchToSignIn: () 
         },
         {
           onSuccess: () => {
-            navigate({
-              to: "/dashboard",
-            });
-            toast.success("Sign up successful");
+            navigate({ to: "/dashboard" });
+            toast.success("Account created");
           },
           onError: (error) => {
             toast.error(error.error.message || error.error.statusText);
@@ -47,6 +61,7 @@ export default function SignUpForm({ onSwitchToSignIn }: { onSwitchToSignIn: () 
         name: z.string().min(2, "Name must be at least 2 characters"),
         email: z.email("Invalid email address"),
         password: z.string().min(8, "Password must be at least 8 characters"),
+        accountType: z.enum(["hirer", "freelancer"]),
       }),
     },
   });
@@ -56,8 +71,23 @@ export default function SignUpForm({ onSwitchToSignIn }: { onSwitchToSignIn: () 
   }
 
   return (
-    <div className="mx-auto w-full mt-10 max-w-md p-6">
-      <h1 className="mb-6 text-center text-3xl font-bold">Create Account</h1>
+    <div className="flex w-full max-w-sm flex-col gap-8">
+      <div className="flex flex-col gap-2">
+        <h1 className="font-display text-2xl font-bold tracking-tight">
+          Sign up
+        </h1>
+        <p className="text-sm text-muted-foreground">
+          Already have an account?{" "}
+          <Button
+            type="button"
+            variant="link"
+            className="h-auto p-0"
+            onClick={onSwitchToSignIn}
+          >
+            Log in
+          </Button>
+        </p>
+      </div>
 
       <form
         onSubmit={(e) => {
@@ -65,96 +95,124 @@ export default function SignUpForm({ onSwitchToSignIn }: { onSwitchToSignIn: () 
           e.stopPropagation();
           form.handleSubmit();
         }}
-        className="space-y-4"
       >
-        <div>
+        <FieldGroup>
+          <form.Field name="accountType">
+            {(field) => (
+              <Field>
+                <FieldLabel>I want to</FieldLabel>
+                <ToggleGroup
+                  value={[field.state.value]}
+                  onValueChange={(values) => {
+                    const next = values.at(-1) as AccountType | undefined;
+                    if (next) field.handleChange(next);
+                  }}
+                  className="grid w-full grid-cols-2"
+                  spacing={0}
+                  variant="outline"
+                >
+                  <ToggleGroupItem value="hirer" className="h-10 flex-1">
+                    Hire talent
+                  </ToggleGroupItem>
+                  <ToggleGroupItem value="freelancer" className="h-10 flex-1">
+                    Find work
+                  </ToggleGroupItem>
+                </ToggleGroup>
+              </Field>
+            )}
+          </form.Field>
+
           <form.Field name="name">
             {(field) => (
-              <div className="space-y-2">
-                <Label htmlFor={field.name}>Name</Label>
+              <Field
+                data-invalid={field.state.meta.errors.length > 0 || undefined}
+              >
+                <FieldLabel htmlFor={field.name}>Full name</FieldLabel>
                 <Input
                   id={field.name}
                   name={field.name}
+                  className="h-10"
                   value={field.state.value}
                   onBlur={field.handleBlur}
                   onChange={(e) => field.handleChange(e.target.value)}
+                  aria-invalid={field.state.meta.errors.length > 0}
                 />
-                {field.state.meta.errors.map((error) => (
-                  <p key={error?.message} className="text-red-500">
-                    {error?.message}
-                  </p>
-                ))}
-              </div>
+                <FieldError errors={field.state.meta.errors} />
+              </Field>
             )}
           </form.Field>
-        </div>
 
-        <div>
           <form.Field name="email">
             {(field) => (
-              <div className="space-y-2">
-                <Label htmlFor={field.name}>Email</Label>
+              <Field
+                data-invalid={field.state.meta.errors.length > 0 || undefined}
+              >
+                <FieldLabel htmlFor={field.name}>Email</FieldLabel>
                 <Input
                   id={field.name}
                   name={field.name}
                   type="email"
+                  className="h-10"
                   value={field.state.value}
                   onBlur={field.handleBlur}
                   onChange={(e) => field.handleChange(e.target.value)}
+                  aria-invalid={field.state.meta.errors.length > 0}
                 />
-                {field.state.meta.errors.map((error) => (
-                  <p key={error?.message} className="text-red-500">
-                    {error?.message}
-                  </p>
-                ))}
-              </div>
+                <FieldError errors={field.state.meta.errors} />
+              </Field>
             )}
           </form.Field>
-        </div>
 
-        <div>
           <form.Field name="password">
             {(field) => (
-              <div className="space-y-2">
-                <Label htmlFor={field.name}>Password</Label>
+              <Field
+                data-invalid={field.state.meta.errors.length > 0 || undefined}
+              >
+                <FieldLabel htmlFor={field.name}>Password</FieldLabel>
                 <Input
                   id={field.name}
                   name={field.name}
                   type="password"
+                  className="h-10"
                   value={field.state.value}
                   onBlur={field.handleBlur}
                   onChange={(e) => field.handleChange(e.target.value)}
+                  aria-invalid={field.state.meta.errors.length > 0}
                 />
-                {field.state.meta.errors.map((error) => (
-                  <p key={error?.message} className="text-red-500">
-                    {error?.message}
-                  </p>
-                ))}
-              </div>
+                <FieldError errors={field.state.meta.errors} />
+              </Field>
             )}
           </form.Field>
-        </div>
 
-        <form.Subscribe
-          selector={(state) => ({ canSubmit: state.canSubmit, isSubmitting: state.isSubmitting })}
-        >
-          {({ canSubmit, isSubmitting }) => (
-            <Button type="submit" className="w-full" disabled={!canSubmit || isSubmitting}>
-              {isSubmitting ? "Submitting..." : "Sign Up"}
-            </Button>
-          )}
-        </form.Subscribe>
+          <FieldDescription>
+            By signing up you agree to our Terms and Privacy Policy.
+          </FieldDescription>
+
+          <form.Subscribe
+            selector={(state) => ({
+              canSubmit: state.canSubmit,
+              isSubmitting: state.isSubmitting,
+            })}
+          >
+            {({ canSubmit, isSubmitting }) => (
+              <Button
+                type="submit"
+                size="lg"
+                className="h-10 w-full"
+                disabled={!canSubmit || isSubmitting}
+              >
+                {isSubmitting ? "Creating account..." : "Create account"}
+              </Button>
+            )}
+          </form.Subscribe>
+        </FieldGroup>
       </form>
 
-      <div className="mt-4 text-center">
-        <Button
-          variant="link"
-          onClick={onSwitchToSignIn}
-          className="text-indigo-600 hover:text-indigo-800"
-        >
-          Already have an account? Sign In
-        </Button>
-      </div>
+      <OAuthButtons />
+
+      <Link to="/" className="text-sm text-muted-foreground hover:text-primary">
+        ← Back to home
+      </Link>
     </div>
   );
 }
