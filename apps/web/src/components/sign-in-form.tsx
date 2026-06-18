@@ -1,4 +1,4 @@
-import { Button } from "@lets_work/ui/components/button";
+import { Button, buttonVariants } from "@lets_work/ui/components/button";
 import {
   Field,
   FieldError,
@@ -6,6 +6,7 @@ import {
   FieldLabel,
 } from "@lets_work/ui/components/field";
 import { Input } from "@lets_work/ui/components/input";
+import { cn } from "@lets_work/ui/lib/utils";
 import { useForm } from "@tanstack/react-form";
 import { Link, useNavigate } from "@tanstack/react-router";
 import { toast } from "sonner";
@@ -98,9 +99,12 @@ export default function SignInForm({ onSwitchToSignUp }: { onSwitchToSignUp: () 
               <Field data-invalid={field.state.meta.errors.length > 0}>
                 <div className="flex items-center justify-between">
                   <FieldLabel htmlFor={field.name}>Password</FieldLabel>
-                  <Button type="button" variant="link" className="h-auto p-0 text-xs">
+                  <Link
+                    to="/forgot-password"
+                    className={cn(buttonVariants({ variant: "link", size: "sm" }), "h-auto p-0 text-xs")}
+                  >
                     Forgot?
-                  </Button>
+                  </Link>
                 </div>
                 <Input
                   id={field.name}

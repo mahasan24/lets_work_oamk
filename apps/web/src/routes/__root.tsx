@@ -11,6 +11,8 @@ export interface RouterAppContext {}
 
 const APP_ROUTES = ["/dashboard", "/success"];
 
+const AUTH_ROUTES = ["/login", "/forgot-password", "/reset-password"];
+
 export const Route = createRootRouteWithContext<RouterAppContext>()({
   component: RootComponent,
   head: () => ({
@@ -38,7 +40,8 @@ function RootComponent() {
   const isAppRoute = APP_ROUTES.some(
     (route) => pathname === route || pathname.startsWith(`${route}/`),
   );
-  const isMarketingRoute = pathname === "/" || pathname === "/login";
+  const isAuthRoute = AUTH_ROUTES.includes(pathname);
+  const isMarketingRoute = pathname === "/" || isAuthRoute;
 
   return (
     <>
