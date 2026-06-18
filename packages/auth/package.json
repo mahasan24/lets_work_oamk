@@ -15,11 +15,13 @@
     "@lets_work/env": "workspace:*",
     "better-auth": "catalog:",
     "dotenv": "catalog:",
+    "nodemailer": "^9.0.1",
     "stripe": "catalog:",
     "zod": "catalog:"
   },
   "devDependencies": {
     "@lets_work/config": "workspace:*",
+    "@types/nodemailer": "^8.0.1",
     "typescript": "catalog:"
   }
 }

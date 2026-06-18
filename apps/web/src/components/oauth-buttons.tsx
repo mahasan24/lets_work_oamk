@@ -1,6 +1,10 @@
 import { Button } from "@lets_work/ui/components/button";
 import { FieldSeparator } from "@lets_work/ui/components/field";
+import { env } from "@lets_work/env/web";
+import { useState } from "react";
 import { toast } from "sonner";
+
+import { authClient } from "@/lib/auth-client";
 
 function GoogleIcon() {
   return (
@@ -26,8 +30,20 @@ function GoogleIcon() {
 }
 
 export function OAuthButtons() {
-  const handleOAuth = () => {
-    toast.info("Google sign-in coming soon");
+  const [isLoading, setIsLoading] = useState(false);
+
+  const handleGoogleSignIn = async () => {
+    setIsLoading(true);
+
+    const { error } = await authClient.signIn.social({
+      provider: "google",
+      callbackURL: `${env.VITE_APP_URL}/dashboard`,
+    });
+
+    if (error) {
+      toast.error(error.message || "Could not start Google sign-in");
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -39,10 +55,11 @@ export function OAuthButtons() {
         variant="outline"
         size="lg"
         className="h-10 w-full font-normal"
-        onClick={handleOAuth}
+        disabled={isLoading}
+        onClick={handleGoogleSignIn}
       >
         <GoogleIcon />
-        Continue with Google
+        {isLoading ? "Redirecting..." : "Continue with Google"}
       </Button>
     </div>
   );

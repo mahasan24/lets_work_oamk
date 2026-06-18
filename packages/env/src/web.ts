@@ -5,7 +5,8 @@ export const env = createEnv({
   clientPrefix: "VITE_",
   client: {
     VITE_SERVER_URL: z.url(),
+    VITE_APP_URL: z.url(),
   },
-  runtimeEnv: (import.meta as any).env,
+  runtimeEnv: (import.meta as ImportMeta & { env: Record<string, string | undefined> }).env,
   emptyStringAsUndefined: true,
 });
