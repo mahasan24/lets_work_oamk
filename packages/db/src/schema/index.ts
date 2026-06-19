@@ -13,6 +13,7 @@ export * from "./notifications";
 export * from "./payments";
 export * from "./platform";
 export * from "./portfolio";
+export * from "./certifications";
 export * from "./reviews";
 export * from "./verification";
 export {};

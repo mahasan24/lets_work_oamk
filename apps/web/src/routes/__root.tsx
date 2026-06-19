@@ -9,7 +9,7 @@ import "../index.css";
 
 export interface RouterAppContext {}
 
-const APP_ROUTES = ["/dashboard", "/success"];
+const APP_ROUTES = ["/success"];
 
 const AUTH_ROUTES = ["/login", "/forgot-password", "/reset-password"];
 
@@ -37,6 +37,7 @@ export const Route = createRootRouteWithContext<RouterAppContext>()({
 
 function RootComponent() {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const isDashboardRoute = pathname === "/dashboard" || pathname.startsWith("/dashboard/");
   const isAppRoute = APP_ROUTES.some(
     (route) => pathname === route || pathname.startsWith(`${route}/`),
   );
@@ -52,7 +53,11 @@ function RootComponent() {
         disableTransitionOnChange
         storageKey="vite-ui-theme"
       >
-        {isAppRoute ? (
+        {isDashboardRoute ? (
+          <div className="grid h-svh grid-rows-[1fr]">
+            <Outlet />
+          </div>
+        ) : isAppRoute ? (
           <div className="grid h-svh grid-rows-[auto_1fr]">
             <Header />
             <Outlet />

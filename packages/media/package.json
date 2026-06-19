@@ -1,0 +1,17 @@
+{
+  "name": "@lets_work/media",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "dependencies": {
+    "@lets_work/env": "workspace:*",
+    "cloudinary": "^2.9.0"
+  },
+  "devDependencies": {
+    "@lets_work/config": "workspace:*",
+    "typescript": "catalog:"
+  }
+}

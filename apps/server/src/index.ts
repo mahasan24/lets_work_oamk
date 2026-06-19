@@ -3,11 +3,13 @@ import { auth } from "@lets_work/auth";
 import { env } from "@lets_work/env/server";
 import { Elysia } from "elysia";
 
+import { profileRoutes } from "./routes/profile";
+
 new Elysia()
   .use(
     cors({
       origin: env.CORS_ORIGIN,
-      methods: ["GET", "POST", "OPTIONS"],
+      methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
       allowedHeaders: ["Content-Type", "Authorization"],
       credentials: true,
     }),
@@ -19,6 +21,7 @@ new Elysia()
     }
     return status(405);
   })
+  .use(profileRoutes)
   .get("/", () => "OK")
   .listen(3000, () => {
     console.log("Server is running on http://localhost:3000");
