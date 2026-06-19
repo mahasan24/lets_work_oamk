@@ -1,11 +1,10 @@
 import { Avatar, AvatarFallback, AvatarImage } from "@lets_work/ui/components/avatar";
-import { Button, buttonVariants } from "@lets_work/ui/components/button";
+import { buttonVariants } from "@lets_work/ui/components/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@lets_work/ui/components/card";
 import { cn } from "@lets_work/ui/lib/utils";
 import { Link, useRouterState } from "@tanstack/react-router";
 
-import Logo from "@/components/marketing/logo";
-import UserMenu from "@/components/user-menu";
+import { AVAILABILITY_OPTIONS, getCountryLabel } from "@/lib/profile-options";
 import type { ProfileBundle } from "@/lib/profile-api";
 
 type DashboardSidebarProps = {
@@ -18,18 +17,25 @@ export default function DashboardSidebar({ profile }: DashboardSidebarProps) {
   const displayName = profile?.user.name ?? "Freelancer";
   const headline = profile?.profile.headline ?? "Add your professional title";
   const avatar = profile?.profile.avatarUrl ?? profile?.user.image ?? undefined;
+  const countryLabel = getCountryLabel(profile?.profile.country);
+  const availabilityLabel =
+    AVAILABILITY_OPTIONS.find((option) => option.value === profile?.profile.availabilityStatus)
+      ?.label ?? "Available";
 
   return (
-    <aside className="flex flex-col gap-4">
+    <aside className="flex w-full flex-col gap-4">
       <Card>
-        <CardHeader className="items-center text-center">
-          <Avatar className="size-20">
+        <CardHeader className="items-start text-left">
+          <Avatar className="size-16">
             <AvatarImage src={avatar} alt={displayName} />
             <AvatarFallback>{displayName.slice(0, 2).toUpperCase()}</AvatarFallback>
           </Avatar>
-          <div className="flex flex-col gap-1">
+          <div className="flex w-full flex-col gap-1">
             <CardTitle className="text-base">{displayName}</CardTitle>
             <p className="line-clamp-2 text-xs text-muted-foreground">{headline}</p>
+            {countryLabel ? (
+              <p className="text-xs text-muted-foreground">{countryLabel}</p>
+            ) : null}
           </div>
         </CardHeader>
         <CardContent className="flex flex-col gap-4">
@@ -65,8 +71,8 @@ export default function DashboardSidebar({ profile }: DashboardSidebarProps) {
           <CardTitle className="text-sm">Availability badge</CardTitle>
         </CardHeader>
         <CardContent>
-          <p className="text-sm capitalize text-muted-foreground">
-            {profile?.profile.availabilityStatus ?? "available"}
+          <p className="text-sm text-muted-foreground">
+            {availabilityLabel}
             {profile?.profile.hoursPerWeek ? ` · ${profile.profile.hoursPerWeek} hrs/week` : ""}
           </p>
           <Link

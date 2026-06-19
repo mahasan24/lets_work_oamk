@@ -68,11 +68,13 @@ export default function UserMenu({ signUpButton }: UserMenuProps = {}) {
       >
         {session.user.name}
       </DropdownMenuTrigger>
-      <DropdownMenuContent className="bg-card">
+      <DropdownMenuContent align="end" className="!w-56 min-w-56 bg-card">
         <DropdownMenuGroup>
           <DropdownMenuLabel>Account</DropdownMenuLabel>
           <DropdownMenuSeparator />
-          <DropdownMenuItem>{session.user.email}</DropdownMenuItem>
+          <DropdownMenuLabel className="font-normal text-muted-foreground">
+            <span className="block break-all">{session.user.email}</span>
+          </DropdownMenuLabel>
           <DropdownMenuItem
             onClick={() => {
               navigate({ to: "/dashboard" });
