@@ -6,6 +6,7 @@ export const env = createEnv({
   client: {
     VITE_SERVER_URL: z.url(),
     VITE_APP_URL: z.url(),
+    VITE_CLOUDINARY_CLOUD_NAME: z.string().min(1),
   },
   runtimeEnv: (import.meta as ImportMeta & { env: Record<string, string | undefined> }).env,
   emptyStringAsUndefined: true,

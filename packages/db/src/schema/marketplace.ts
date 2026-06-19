@@ -28,6 +28,12 @@ export const onboardingStepEnum = pgEnum("onboarding_step", [
   "complete",
 ]);
 
+export const availabilityStatusEnum = pgEnum("availability_status", [
+  "available",
+  "limited",
+  "unavailable",
+]);
+
 export const marketplaceUserProfile = pgTable("marketplace_user_profile", {
   userId: text("user_id")
     .primaryKey()
@@ -50,8 +56,15 @@ export const marketplaceUserProfile = pgTable("marketplace_user_profile", {
   companyWebsite: text("company_website"),
   hourlyRate: numeric("hourly_rate", { precision: 12, scale: 2 }),
   currency: text("currency").default("USD").notNull(),
+  country: text("country"),
+  city: text("city"),
   location: text("location"),
   timezone: text("timezone"),
+  videoIntroUrl: text("video_intro_url"),
+  availabilityStatus: availabilityStatusEnum("availability_status")
+    .default("available")
+    .notNull(),
+  hoursPerWeek: integer("hours_per_week"),
   avgRating: numeric("avg_rating", { precision: 3, scale: 2 }),
   reviewCount: integer("review_count").default(0).notNull(),
   jobsCompleted: integer("jobs_completed").default(0).notNull(),
