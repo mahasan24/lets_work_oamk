@@ -9,31 +9,41 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as SuccessRouteImport } from './routes/success'
-import { Route as ResetPasswordRouteImport } from './routes/reset-password'
-import { Route as LoginRouteImport } from './routes/login'
-import { Route as ForgotPasswordRouteImport } from './routes/forgot-password'
+import { Route as SuccessRouteRouteImport } from './routes/success/route'
+import { Route as ResetPasswordRouteRouteImport } from './routes/reset-password/route'
+import { Route as LoginRouteRouteImport } from './routes/login/route'
+import { Route as ForgotPasswordRouteRouteImport } from './routes/forgot-password/route'
 import { Route as DashboardRouteRouteImport } from './routes/dashboard/route'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as SuccessIndexRouteImport } from './routes/success/index'
+import { Route as ResetPasswordIndexRouteImport } from './routes/reset-password/index'
+import { Route as LoginIndexRouteImport } from './routes/login/index'
+import { Route as ForgotPasswordIndexRouteImport } from './routes/forgot-password/index'
 import { Route as DashboardIndexRouteImport } from './routes/dashboard/index'
-import { Route as DashboardProfileRouteImport } from './routes/dashboard/profile'
+import { Route as DashboardHirerRouteRouteImport } from './routes/dashboard/hirer/route'
+import { Route as DashboardFreelancerRouteRouteImport } from './routes/dashboard/freelancer/route'
+import { Route as DashboardHirerIndexRouteImport } from './routes/dashboard/hirer/index'
+import { Route as DashboardFreelancerIndexRouteImport } from './routes/dashboard/freelancer/index'
+import { Route as DashboardHirerProfileRouteImport } from './routes/dashboard/hirer/profile'
+import { Route as DashboardFreelancerProfileRouteImport } from './routes/dashboard/freelancer/profile'
+import { Route as DashboardOnboardingRoleIndexRouteImport } from './routes/dashboard/onboarding/role/index'
 
-const SuccessRoute = SuccessRouteImport.update({
+const SuccessRouteRoute = SuccessRouteRouteImport.update({
   id: '/success',
   path: '/success',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ResetPasswordRoute = ResetPasswordRouteImport.update({
+const ResetPasswordRouteRoute = ResetPasswordRouteRouteImport.update({
   id: '/reset-password',
   path: '/reset-password',
   getParentRoute: () => rootRouteImport,
 } as any)
-const LoginRoute = LoginRouteImport.update({
+const LoginRouteRoute = LoginRouteRouteImport.update({
   id: '/login',
   path: '/login',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ForgotPasswordRoute = ForgotPasswordRouteImport.update({
+const ForgotPasswordRouteRoute = ForgotPasswordRouteRouteImport.update({
   id: '/forgot-password',
   path: '/forgot-password',
   getParentRoute: () => rootRouteImport,
@@ -48,46 +58,124 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const SuccessIndexRoute = SuccessIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => SuccessRouteRoute,
+} as any)
+const ResetPasswordIndexRoute = ResetPasswordIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => ResetPasswordRouteRoute,
+} as any)
+const LoginIndexRoute = LoginIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => LoginRouteRoute,
+} as any)
+const ForgotPasswordIndexRoute = ForgotPasswordIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => ForgotPasswordRouteRoute,
+} as any)
 const DashboardIndexRoute = DashboardIndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => DashboardRouteRoute,
 } as any)
-const DashboardProfileRoute = DashboardProfileRouteImport.update({
-  id: '/profile',
-  path: '/profile',
+const DashboardHirerRouteRoute = DashboardHirerRouteRouteImport.update({
+  id: '/hirer',
+  path: '/hirer',
   getParentRoute: () => DashboardRouteRoute,
 } as any)
+const DashboardFreelancerRouteRoute =
+  DashboardFreelancerRouteRouteImport.update({
+    id: '/freelancer',
+    path: '/freelancer',
+    getParentRoute: () => DashboardRouteRoute,
+  } as any)
+const DashboardHirerIndexRoute = DashboardHirerIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => DashboardHirerRouteRoute,
+} as any)
+const DashboardFreelancerIndexRoute =
+  DashboardFreelancerIndexRouteImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => DashboardFreelancerRouteRoute,
+  } as any)
+const DashboardHirerProfileRoute = DashboardHirerProfileRouteImport.update({
+  id: '/profile',
+  path: '/profile',
+  getParentRoute: () => DashboardHirerRouteRoute,
+} as any)
+const DashboardFreelancerProfileRoute =
+  DashboardFreelancerProfileRouteImport.update({
+    id: '/profile',
+    path: '/profile',
+    getParentRoute: () => DashboardFreelancerRouteRoute,
+  } as any)
+const DashboardOnboardingRoleIndexRoute =
+  DashboardOnboardingRoleIndexRouteImport.update({
+    id: '/onboarding/role/',
+    path: '/onboarding/role/',
+    getParentRoute: () => DashboardRouteRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/dashboard': typeof DashboardRouteRouteWithChildren
-  '/forgot-password': typeof ForgotPasswordRoute
-  '/login': typeof LoginRoute
-  '/reset-password': typeof ResetPasswordRoute
-  '/success': typeof SuccessRoute
-  '/dashboard/profile': typeof DashboardProfileRoute
+  '/forgot-password': typeof ForgotPasswordRouteRouteWithChildren
+  '/login': typeof LoginRouteRouteWithChildren
+  '/reset-password': typeof ResetPasswordRouteRouteWithChildren
+  '/success': typeof SuccessRouteRouteWithChildren
+  '/dashboard/freelancer': typeof DashboardFreelancerRouteRouteWithChildren
+  '/dashboard/hirer': typeof DashboardHirerRouteRouteWithChildren
   '/dashboard/': typeof DashboardIndexRoute
+  '/forgot-password/': typeof ForgotPasswordIndexRoute
+  '/login/': typeof LoginIndexRoute
+  '/reset-password/': typeof ResetPasswordIndexRoute
+  '/success/': typeof SuccessIndexRoute
+  '/dashboard/freelancer/profile': typeof DashboardFreelancerProfileRoute
+  '/dashboard/hirer/profile': typeof DashboardHirerProfileRoute
+  '/dashboard/freelancer/': typeof DashboardFreelancerIndexRoute
+  '/dashboard/hirer/': typeof DashboardHirerIndexRoute
+  '/dashboard/onboarding/role/': typeof DashboardOnboardingRoleIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/forgot-password': typeof ForgotPasswordRoute
-  '/login': typeof LoginRoute
-  '/reset-password': typeof ResetPasswordRoute
-  '/success': typeof SuccessRoute
-  '/dashboard/profile': typeof DashboardProfileRoute
   '/dashboard': typeof DashboardIndexRoute
+  '/forgot-password': typeof ForgotPasswordIndexRoute
+  '/login': typeof LoginIndexRoute
+  '/reset-password': typeof ResetPasswordIndexRoute
+  '/success': typeof SuccessIndexRoute
+  '/dashboard/freelancer/profile': typeof DashboardFreelancerProfileRoute
+  '/dashboard/hirer/profile': typeof DashboardHirerProfileRoute
+  '/dashboard/freelancer': typeof DashboardFreelancerIndexRoute
+  '/dashboard/hirer': typeof DashboardHirerIndexRoute
+  '/dashboard/onboarding/role': typeof DashboardOnboardingRoleIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/dashboard': typeof DashboardRouteRouteWithChildren
-  '/forgot-password': typeof ForgotPasswordRoute
-  '/login': typeof LoginRoute
-  '/reset-password': typeof ResetPasswordRoute
-  '/success': typeof SuccessRoute
-  '/dashboard/profile': typeof DashboardProfileRoute
+  '/forgot-password': typeof ForgotPasswordRouteRouteWithChildren
+  '/login': typeof LoginRouteRouteWithChildren
+  '/reset-password': typeof ResetPasswordRouteRouteWithChildren
+  '/success': typeof SuccessRouteRouteWithChildren
+  '/dashboard/freelancer': typeof DashboardFreelancerRouteRouteWithChildren
+  '/dashboard/hirer': typeof DashboardHirerRouteRouteWithChildren
   '/dashboard/': typeof DashboardIndexRoute
+  '/forgot-password/': typeof ForgotPasswordIndexRoute
+  '/login/': typeof LoginIndexRoute
+  '/reset-password/': typeof ResetPasswordIndexRoute
+  '/success/': typeof SuccessIndexRoute
+  '/dashboard/freelancer/profile': typeof DashboardFreelancerProfileRoute
+  '/dashboard/hirer/profile': typeof DashboardHirerProfileRoute
+  '/dashboard/freelancer/': typeof DashboardFreelancerIndexRoute
+  '/dashboard/hirer/': typeof DashboardHirerIndexRoute
+  '/dashboard/onboarding/role/': typeof DashboardOnboardingRoleIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -98,17 +186,31 @@ export interface FileRouteTypes {
     | '/login'
     | '/reset-password'
     | '/success'
-    | '/dashboard/profile'
+    | '/dashboard/freelancer'
+    | '/dashboard/hirer'
     | '/dashboard/'
+    | '/forgot-password/'
+    | '/login/'
+    | '/reset-password/'
+    | '/success/'
+    | '/dashboard/freelancer/profile'
+    | '/dashboard/hirer/profile'
+    | '/dashboard/freelancer/'
+    | '/dashboard/hirer/'
+    | '/dashboard/onboarding/role/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/dashboard'
     | '/forgot-password'
     | '/login'
     | '/reset-password'
     | '/success'
-    | '/dashboard/profile'
-    | '/dashboard'
+    | '/dashboard/freelancer/profile'
+    | '/dashboard/hirer/profile'
+    | '/dashboard/freelancer'
+    | '/dashboard/hirer'
+    | '/dashboard/onboarding/role'
   id:
     | '__root__'
     | '/'
@@ -117,17 +219,27 @@ export interface FileRouteTypes {
     | '/login'
     | '/reset-password'
     | '/success'
-    | '/dashboard/profile'
+    | '/dashboard/freelancer'
+    | '/dashboard/hirer'
     | '/dashboard/'
+    | '/forgot-password/'
+    | '/login/'
+    | '/reset-password/'
+    | '/success/'
+    | '/dashboard/freelancer/profile'
+    | '/dashboard/hirer/profile'
+    | '/dashboard/freelancer/'
+    | '/dashboard/hirer/'
+    | '/dashboard/onboarding/role/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   DashboardRouteRoute: typeof DashboardRouteRouteWithChildren
-  ForgotPasswordRoute: typeof ForgotPasswordRoute
-  LoginRoute: typeof LoginRoute
-  ResetPasswordRoute: typeof ResetPasswordRoute
-  SuccessRoute: typeof SuccessRoute
+  ForgotPasswordRouteRoute: typeof ForgotPasswordRouteRouteWithChildren
+  LoginRouteRoute: typeof LoginRouteRouteWithChildren
+  ResetPasswordRouteRoute: typeof ResetPasswordRouteRouteWithChildren
+  SuccessRouteRoute: typeof SuccessRouteRouteWithChildren
 }
 
 declare module '@tanstack/react-router' {
@@ -136,28 +248,28 @@ declare module '@tanstack/react-router' {
       id: '/success'
       path: '/success'
       fullPath: '/success'
-      preLoaderRoute: typeof SuccessRouteImport
+      preLoaderRoute: typeof SuccessRouteRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/reset-password': {
       id: '/reset-password'
       path: '/reset-password'
       fullPath: '/reset-password'
-      preLoaderRoute: typeof ResetPasswordRouteImport
+      preLoaderRoute: typeof ResetPasswordRouteRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/login': {
       id: '/login'
       path: '/login'
       fullPath: '/login'
-      preLoaderRoute: typeof LoginRouteImport
+      preLoaderRoute: typeof LoginRouteRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/forgot-password': {
       id: '/forgot-password'
       path: '/forgot-password'
       fullPath: '/forgot-password'
-      preLoaderRoute: typeof ForgotPasswordRouteImport
+      preLoaderRoute: typeof ForgotPasswordRouteRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/dashboard': {
@@ -174,6 +286,34 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/success/': {
+      id: '/success/'
+      path: '/'
+      fullPath: '/success/'
+      preLoaderRoute: typeof SuccessIndexRouteImport
+      parentRoute: typeof SuccessRouteRoute
+    }
+    '/reset-password/': {
+      id: '/reset-password/'
+      path: '/'
+      fullPath: '/reset-password/'
+      preLoaderRoute: typeof ResetPasswordIndexRouteImport
+      parentRoute: typeof ResetPasswordRouteRoute
+    }
+    '/login/': {
+      id: '/login/'
+      path: '/'
+      fullPath: '/login/'
+      preLoaderRoute: typeof LoginIndexRouteImport
+      parentRoute: typeof LoginRouteRoute
+    }
+    '/forgot-password/': {
+      id: '/forgot-password/'
+      path: '/'
+      fullPath: '/forgot-password/'
+      preLoaderRoute: typeof ForgotPasswordIndexRouteImport
+      parentRoute: typeof ForgotPasswordRouteRoute
+    }
     '/dashboard/': {
       id: '/dashboard/'
       path: '/'
@@ -181,37 +321,158 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardIndexRouteImport
       parentRoute: typeof DashboardRouteRoute
     }
-    '/dashboard/profile': {
-      id: '/dashboard/profile'
+    '/dashboard/hirer': {
+      id: '/dashboard/hirer'
+      path: '/hirer'
+      fullPath: '/dashboard/hirer'
+      preLoaderRoute: typeof DashboardHirerRouteRouteImport
+      parentRoute: typeof DashboardRouteRoute
+    }
+    '/dashboard/freelancer': {
+      id: '/dashboard/freelancer'
+      path: '/freelancer'
+      fullPath: '/dashboard/freelancer'
+      preLoaderRoute: typeof DashboardFreelancerRouteRouteImport
+      parentRoute: typeof DashboardRouteRoute
+    }
+    '/dashboard/hirer/': {
+      id: '/dashboard/hirer/'
+      path: '/'
+      fullPath: '/dashboard/hirer/'
+      preLoaderRoute: typeof DashboardHirerIndexRouteImport
+      parentRoute: typeof DashboardHirerRouteRoute
+    }
+    '/dashboard/freelancer/': {
+      id: '/dashboard/freelancer/'
+      path: '/'
+      fullPath: '/dashboard/freelancer/'
+      preLoaderRoute: typeof DashboardFreelancerIndexRouteImport
+      parentRoute: typeof DashboardFreelancerRouteRoute
+    }
+    '/dashboard/hirer/profile': {
+      id: '/dashboard/hirer/profile'
       path: '/profile'
-      fullPath: '/dashboard/profile'
-      preLoaderRoute: typeof DashboardProfileRouteImport
+      fullPath: '/dashboard/hirer/profile'
+      preLoaderRoute: typeof DashboardHirerProfileRouteImport
+      parentRoute: typeof DashboardHirerRouteRoute
+    }
+    '/dashboard/freelancer/profile': {
+      id: '/dashboard/freelancer/profile'
+      path: '/profile'
+      fullPath: '/dashboard/freelancer/profile'
+      preLoaderRoute: typeof DashboardFreelancerProfileRouteImport
+      parentRoute: typeof DashboardFreelancerRouteRoute
+    }
+    '/dashboard/onboarding/role/': {
+      id: '/dashboard/onboarding/role/'
+      path: '/onboarding/role'
+      fullPath: '/dashboard/onboarding/role/'
+      preLoaderRoute: typeof DashboardOnboardingRoleIndexRouteImport
       parentRoute: typeof DashboardRouteRoute
     }
   }
 }
 
+interface DashboardFreelancerRouteRouteChildren {
+  DashboardFreelancerProfileRoute: typeof DashboardFreelancerProfileRoute
+  DashboardFreelancerIndexRoute: typeof DashboardFreelancerIndexRoute
+}
+
+const DashboardFreelancerRouteRouteChildren: DashboardFreelancerRouteRouteChildren =
+  {
+    DashboardFreelancerProfileRoute: DashboardFreelancerProfileRoute,
+    DashboardFreelancerIndexRoute: DashboardFreelancerIndexRoute,
+  }
+
+const DashboardFreelancerRouteRouteWithChildren =
+  DashboardFreelancerRouteRoute._addFileChildren(
+    DashboardFreelancerRouteRouteChildren,
+  )
+
+interface DashboardHirerRouteRouteChildren {
+  DashboardHirerProfileRoute: typeof DashboardHirerProfileRoute
+  DashboardHirerIndexRoute: typeof DashboardHirerIndexRoute
+}
+
+const DashboardHirerRouteRouteChildren: DashboardHirerRouteRouteChildren = {
+  DashboardHirerProfileRoute: DashboardHirerProfileRoute,
+  DashboardHirerIndexRoute: DashboardHirerIndexRoute,
+}
+
+const DashboardHirerRouteRouteWithChildren =
+  DashboardHirerRouteRoute._addFileChildren(DashboardHirerRouteRouteChildren)
+
 interface DashboardRouteRouteChildren {
-  DashboardProfileRoute: typeof DashboardProfileRoute
+  DashboardFreelancerRouteRoute: typeof DashboardFreelancerRouteRouteWithChildren
+  DashboardHirerRouteRoute: typeof DashboardHirerRouteRouteWithChildren
   DashboardIndexRoute: typeof DashboardIndexRoute
+  DashboardOnboardingRoleIndexRoute: typeof DashboardOnboardingRoleIndexRoute
 }
 
 const DashboardRouteRouteChildren: DashboardRouteRouteChildren = {
-  DashboardProfileRoute: DashboardProfileRoute,
+  DashboardFreelancerRouteRoute: DashboardFreelancerRouteRouteWithChildren,
+  DashboardHirerRouteRoute: DashboardHirerRouteRouteWithChildren,
   DashboardIndexRoute: DashboardIndexRoute,
+  DashboardOnboardingRoleIndexRoute: DashboardOnboardingRoleIndexRoute,
 }
 
 const DashboardRouteRouteWithChildren = DashboardRouteRoute._addFileChildren(
   DashboardRouteRouteChildren,
 )
 
+interface ForgotPasswordRouteRouteChildren {
+  ForgotPasswordIndexRoute: typeof ForgotPasswordIndexRoute
+}
+
+const ForgotPasswordRouteRouteChildren: ForgotPasswordRouteRouteChildren = {
+  ForgotPasswordIndexRoute: ForgotPasswordIndexRoute,
+}
+
+const ForgotPasswordRouteRouteWithChildren =
+  ForgotPasswordRouteRoute._addFileChildren(ForgotPasswordRouteRouteChildren)
+
+interface LoginRouteRouteChildren {
+  LoginIndexRoute: typeof LoginIndexRoute
+}
+
+const LoginRouteRouteChildren: LoginRouteRouteChildren = {
+  LoginIndexRoute: LoginIndexRoute,
+}
+
+const LoginRouteRouteWithChildren = LoginRouteRoute._addFileChildren(
+  LoginRouteRouteChildren,
+)
+
+interface ResetPasswordRouteRouteChildren {
+  ResetPasswordIndexRoute: typeof ResetPasswordIndexRoute
+}
+
+const ResetPasswordRouteRouteChildren: ResetPasswordRouteRouteChildren = {
+  ResetPasswordIndexRoute: ResetPasswordIndexRoute,
+}
+
+const ResetPasswordRouteRouteWithChildren =
+  ResetPasswordRouteRoute._addFileChildren(ResetPasswordRouteRouteChildren)
+
+interface SuccessRouteRouteChildren {
+  SuccessIndexRoute: typeof SuccessIndexRoute
+}
+
+const SuccessRouteRouteChildren: SuccessRouteRouteChildren = {
+  SuccessIndexRoute: SuccessIndexRoute,
+}
+
+const SuccessRouteRouteWithChildren = SuccessRouteRoute._addFileChildren(
+  SuccessRouteRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   DashboardRouteRoute: DashboardRouteRouteWithChildren,
-  ForgotPasswordRoute: ForgotPasswordRoute,
-  LoginRoute: LoginRoute,
-  ResetPasswordRoute: ResetPasswordRoute,
-  SuccessRoute: SuccessRoute,
+  ForgotPasswordRouteRoute: ForgotPasswordRouteRouteWithChildren,
+  LoginRouteRoute: LoginRouteRouteWithChildren,
+  ResetPasswordRouteRoute: ResetPasswordRouteRouteWithChildren,
+  SuccessRouteRoute: SuccessRouteRouteWithChildren,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

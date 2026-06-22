@@ -15,8 +15,8 @@ import z from "zod";
 import { authClient } from "@/lib/auth-client";
 
 export default function ResetPasswordForm() {
-  const navigate = useNavigate({ from: "/reset-password" });
-  const { token, error } = useSearch({ from: "/reset-password" });
+  const navigate = useNavigate({ from: "/reset-password/" });
+  const { token, error } = useSearch({ from: "/reset-password/" });
 
   const form = useForm({
     defaultValues: {

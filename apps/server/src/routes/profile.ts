@@ -6,13 +6,19 @@ import { createUploadSignature, type UploadFolder } from "@lets_work/media";
 import { eq, and } from "drizzle-orm";
 import { Elysia, t } from "elysia";
 
-import { getProfileBundle, refreshProfileCompletion } from "../lib/profile";
+import {
+  getProfileBundle,
+  initializeProfileRole,
+  refreshProfileCompletion,
+  submitIdentityVerification,
+} from "../lib/profile";
 import { betterAuthPlugin } from "../plugins/auth";
 
 const profileUpdateSchema = t.Object({
   headline: t.Optional(t.String()),
   bio: t.Optional(t.String()),
   skills: t.Optional(t.Array(t.String())),
+  jobCategories: t.Optional(t.Array(t.String())),
   hourlyRate: t.Optional(t.Nullable(t.String())),
   currency: t.Optional(t.String()),
   country: t.Optional(t.Nullable(t.String())),
@@ -25,6 +31,13 @@ const profileUpdateSchema = t.Object({
     t.Union([t.Literal("available"), t.Literal("limited"), t.Literal("unavailable")]),
   ),
   hoursPerWeek: t.Optional(t.Nullable(t.Number())),
+  activeRole: t.Optional(t.Union([t.Literal("freelancer"), t.Literal("hirer")])),
+  hirerType: t.Optional(t.Nullable(t.Union([t.Literal("individual"), t.Literal("company")]))),
+  companyName: t.Optional(t.Nullable(t.String())),
+  companyWebsite: t.Optional(t.Nullable(t.String())),
+  companyDescription: t.Optional(t.Nullable(t.String())),
+  companySize: t.Optional(t.Nullable(t.String())),
+  phoneNumber: t.Optional(t.Nullable(t.String())),
 });
 
 export const profileRoutes = new Elysia({ prefix: "/api/profile" })
@@ -36,6 +49,18 @@ export const profileRoutes = new Elysia({ prefix: "/api/profile" })
     },
     { auth: true },
   )
+  .post(
+    "/initialize",
+    async ({ user, body }) => {
+      return initializeProfileRole(user.id, body.accountType);
+    },
+    {
+      auth: true,
+      body: t.Object({
+        accountType: t.Union([t.Literal("hirer"), t.Literal("freelancer")]),
+      }),
+    },
+  )
   .patch(
     "/me",
     async ({ user, body }) => {
@@ -44,12 +69,20 @@ export const profileRoutes = new Elysia({ prefix: "/api/profile" })
         .set({
           ...body,
           skills: body.skills ?? undefined,
+          jobCategories: body.jobCategories ?? undefined,
         })
         .where(eq(marketplaceUserProfile.userId, user.id));
 
       return getProfileBundle(user.id);
     },
     { auth: true, body: profileUpdateSchema },
+  )
+  .post(
+    "/verification",
+    async ({ user }) => {
+      return submitIdentityVerification(user.id);
+    },
+    { auth: true },
   )
   .post(
     "/portfolio",
