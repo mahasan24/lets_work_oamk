@@ -151,6 +151,15 @@ export function getCurrencyLabel(code: string | null | undefined) {
   return CURRENCIES.find((c) => c.value === code)?.label ?? code;
 }
 
+export function resolveCountryValue(stored: string | null | undefined) {
+  if (!stored) return "";
+  if (COUNTRIES.some((country) => country.value === stored)) return stored;
+  const byLabel = COUNTRIES.find(
+    (country) => country.label.toLowerCase() === stored.toLowerCase(),
+  );
+  return byLabel?.value ?? stored;
+}
+
 export const SKILL_SUGGESTIONS = [
   "JavaScript",
   "TypeScript",

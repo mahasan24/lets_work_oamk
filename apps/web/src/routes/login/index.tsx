@@ -5,7 +5,7 @@ import AuthPageLayout from "@/components/marketing/auth-page-layout";
 import SignInForm from "@/components/sign-in-form";
 import SignUpForm from "@/components/sign-up-form";
 
-export const Route = createFileRoute("/login")({
+export const Route = createFileRoute("/login/")({
   component: LoginPage,
 });
 

@@ -17,6 +17,7 @@ import { toast } from "sonner";
 import z from "zod";
 
 import { authClient } from "@/lib/auth-client";
+import { profileApi } from "@/lib/profile-api";
 
 import Loader from "./loader";
 import { OAuthButtons } from "./oauth-buttons";
@@ -46,7 +47,12 @@ export default function SignUpForm({
           name: value.name,
         },
         {
-          onSuccess: () => {
+          onSuccess: async () => {
+            try {
+              await profileApi.initialize(value.accountType);
+            } catch {
+              toast.error("Account created, but failed to save account type");
+            }
             navigate({ to: "/dashboard" });
             toast.success("Account created");
           },

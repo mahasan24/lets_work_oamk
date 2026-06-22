@@ -26,6 +26,7 @@ import {
   COUNTRIES,
   CURRENCIES,
   getTimezoneOptions,
+  resolveCountryValue,
   SKILL_SUGGESTIONS,
 } from "@/lib/profile-options";
 import { profileApi, type ProfileBundle } from "@/lib/profile-api";
@@ -41,15 +42,6 @@ import { SearchableCombobox } from "./searchable-combobox";
 import { SkillsTagsInput } from "./skills-tags-input";
 
 const inputClassName = "h-10";
-
-function resolveCountryValue(stored: string | null | undefined) {
-  if (!stored) return "";
-  if (COUNTRIES.some((country) => country.value === stored)) return stored;
-  const byLabel = COUNTRIES.find(
-    (country) => country.label.toLowerCase() === stored.toLowerCase(),
-  );
-  return byLabel?.value ?? stored;
-}
 
 export default function ProfileEditor() {
   const router = useRouter();

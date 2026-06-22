@@ -34,6 +34,8 @@ export const availabilityStatusEnum = pgEnum("availability_status", [
   "unavailable",
 ]);
 
+export const hirerTypeEnum = pgEnum("hirer_type", ["individual", "company"]);
+
 export const marketplaceUserProfile = pgTable("marketplace_user_profile", {
   userId: text("user_id")
     .primaryKey()
@@ -52,8 +54,12 @@ export const marketplaceUserProfile = pgTable("marketplace_user_profile", {
   bio: text("bio"),
   skills: jsonb("skills"),
   jobCategories: jsonb("job_categories"),
+  hirerType: hirerTypeEnum("hirer_type"),
   companyName: text("company_name"),
   companyWebsite: text("company_website"),
+  companyDescription: text("company_description"),
+  companySize: text("company_size"),
+  phoneNumber: text("phone_number"),
   hourlyRate: numeric("hourly_rate", { precision: 12, scale: 2 }),
   currency: text("currency").default("USD").notNull(),
   country: text("country"),

@@ -1,26 +1,43 @@
 import { Avatar, AvatarFallback, AvatarImage } from "@lets_work/ui/components/avatar";
+import { Badge } from "@lets_work/ui/components/badge";
 import { buttonVariants } from "@lets_work/ui/components/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@lets_work/ui/components/card";
 import { cn } from "@lets_work/ui/lib/utils";
 import { Link, useRouterState } from "@tanstack/react-router";
 
-import { AVAILABILITY_OPTIONS, getCountryLabel } from "@/lib/profile-options";
+import { getCountryLabel } from "@/lib/profile-options";
 import type { ProfileBundle } from "@/lib/profile-api";
 
-type DashboardSidebarProps = {
+type HirerSidebarProps = {
   profile: ProfileBundle | null;
 };
 
-export default function DashboardSidebar({ profile }: DashboardSidebarProps) {
+function getVerificationLabel(profile: ProfileBundle | null) {
+  const identity = profile?.verifications.find((item) => item.type === "identity");
+  if (!identity) return "Not submitted";
+  if (identity.status === "verified") return "Verified";
+  if (identity.status === "pending") return "Pending review";
+  if (identity.status === "rejected") return "Rejected";
+  return "Not submitted";
+}
+
+export default function HirerSidebar({ profile }: HirerSidebarProps) {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const completion = profile?.profileCompletion ?? 0;
-  const displayName = profile?.user.name ?? "Freelancer";
-  const headline = profile?.profile.headline ?? "Add your professional title";
+  const displayName =
+    profile?.profile.hirerType === "company" && profile.profile.companyName
+      ? profile.profile.companyName
+      : (profile?.user.name ?? "Client");
+  const subtitle =
+    profile?.profile.hirerType === "company"
+      ? (profile?.profile.headline ?? "Company account")
+      : (profile?.profile.headline ?? "Individual client");
   const avatar = profile?.profile.avatarUrl ?? profile?.user.image ?? undefined;
   const countryLabel = getCountryLabel(profile?.profile.country);
-  const availabilityLabel =
-    AVAILABILITY_OPTIONS.find((option) => option.value === profile?.profile.availabilityStatus)
-      ?.label ?? "Available";
+  const verificationLabel = getVerificationLabel(profile);
+  const isVerified = profile?.verifications.some(
+    (item) => item.type === "identity" && item.status === "verified",
+  );
 
   return (
     <aside className="flex w-full flex-col gap-4">
@@ -32,7 +49,7 @@ export default function DashboardSidebar({ profile }: DashboardSidebarProps) {
           </Avatar>
           <div className="flex w-full flex-col gap-1">
             <CardTitle className="text-base">{displayName}</CardTitle>
-            <p className="line-clamp-2 text-xs text-muted-foreground">{headline}</p>
+            <p className="line-clamp-2 text-xs text-muted-foreground">{subtitle}</p>
             {countryLabel ? (
               <p className="text-xs text-muted-foreground">{countryLabel}</p>
             ) : null}
@@ -52,10 +69,10 @@ export default function DashboardSidebar({ profile }: DashboardSidebarProps) {
             </div>
           </div>
           <Link
-            to="/dashboard/profile"
+            to="/dashboard/hirer/profile"
             className={cn(
               buttonVariants({
-                variant: pathname === "/dashboard/profile" ? "default" : "outline",
+                variant: pathname === "/dashboard/hirer/profile" ? "default" : "outline",
                 size: "sm",
               }),
               "w-full justify-center",
@@ -68,28 +85,27 @@ export default function DashboardSidebar({ profile }: DashboardSidebarProps) {
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-sm">Availability badge</CardTitle>
+          <CardTitle className="text-sm">Verification</CardTitle>
         </CardHeader>
-        <CardContent>
-          <p className="text-sm text-muted-foreground">
-            {availabilityLabel}
-            {profile?.profile.hoursPerWeek ? ` · ${profile.profile.hoursPerWeek} hrs/week` : ""}
-          </p>
+        <CardContent className="flex flex-col gap-2">
+          <div className="flex items-center gap-2">
+            <Badge variant={isVerified ? "default" : "secondary"}>{verificationLabel}</Badge>
+          </div>
           <Link
-            to="/dashboard/profile"
-            className={cn(buttonVariants({ variant: "link", size: "sm" }), "mt-2 h-auto p-0")}
+            to="/dashboard/hirer/profile"
+            className={cn(buttonVariants({ variant: "link", size: "sm" }), "h-auto p-0")}
           >
-            Edit availability
+            {isVerified ? "View verification" : "Get verified"}
           </Link>
         </CardContent>
       </Card>
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-sm">Reach more clients</CardTitle>
+          <CardTitle className="text-sm">Hire faster</CardTitle>
         </CardHeader>
         <CardContent className="text-sm text-muted-foreground">
-          Boost your profile and availability settings to appear in more client searches.
+          Complete your client profile and verify your account to attract top freelancers.
         </CardContent>
       </Card>
     </aside>

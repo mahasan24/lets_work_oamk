@@ -9,7 +9,7 @@ const resetPasswordSearchSchema = z.object({
   error: z.string().optional(),
 });
 
-export const Route = createFileRoute("/reset-password")({
+export const Route = createFileRoute("/reset-password/")({
   validateSearch: resetPasswordSearchSchema,
   component: ResetPasswordPage,
 });

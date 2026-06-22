@@ -9,9 +9,9 @@ import "../index.css";
 
 export interface RouterAppContext {}
 
-const APP_ROUTES = ["/success"];
+const APP_ROUTES = ["/success", "/success/"];
 
-const AUTH_ROUTES = ["/login", "/forgot-password", "/reset-password"];
+const AUTH_ROUTES = ["/login", "/login/", "/forgot-password", "/forgot-password/", "/reset-password", "/reset-password/"];
 
 export const Route = createRootRouteWithContext<RouterAppContext>()({
   component: RootComponent,

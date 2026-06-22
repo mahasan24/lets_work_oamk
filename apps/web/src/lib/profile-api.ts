@@ -21,14 +21,29 @@ async function apiFetch<T>(path: string, init?: RequestInit): Promise<T> {
 }
 
 export type AvailabilityStatus = "available" | "limited" | "unavailable";
+export type AccountType = "freelancer" | "hirer" | "both";
+export type ActiveRole = "freelancer" | "hirer";
+export type HirerType = "individual" | "company";
+export type OnboardingStep = "profile" | "role_selection" | "verification" | "complete";
+export type VerificationStatus = "pending" | "verified" | "rejected" | "expired";
 
 export type ProfileBundle = {
   user: { id: string; name: string; email: string; image: string | null };
   profile: {
     userId: string;
+    accountType: AccountType;
+    activeRole: ActiveRole;
+    onboardingStep: OnboardingStep;
     headline: string | null;
     bio: string | null;
     skills: string[] | null;
+    jobCategories: string[] | null;
+    hirerType: HirerType | null;
+    companyName: string | null;
+    companyWebsite: string | null;
+    companyDescription: string | null;
+    companySize: string | null;
+    phoneNumber: string | null;
     hourlyRate: string | null;
     currency: string;
     country: string | null;
@@ -67,6 +82,12 @@ export type ProfileBundle = {
     startDate: string | null;
     endDate: string | null;
   }>;
+  verifications: Array<{
+    id: string;
+    type: string;
+    status: VerificationStatus;
+    label: string | null;
+  }>;
   profileCompletion: number;
 };
 
@@ -80,8 +101,15 @@ export type UploadSignature = {
 
 export const profileApi = {
   getMe: () => apiFetch<ProfileBundle>("/api/profile/me"),
+  initialize: (accountType: "hirer" | "freelancer") =>
+    apiFetch<ProfileBundle>("/api/profile/initialize", {
+      method: "POST",
+      body: JSON.stringify({ accountType }),
+    }),
   updateMe: (body: Record<string, unknown>) =>
     apiFetch<ProfileBundle>("/api/profile/me", { method: "PATCH", body: JSON.stringify(body) }),
+  submitVerification: () =>
+    apiFetch<ProfileBundle>("/api/profile/verification", { method: "POST" }),
   addPortfolio: (body: Record<string, unknown>) =>
     apiFetch<ProfileBundle>("/api/profile/portfolio", {
       method: "POST",

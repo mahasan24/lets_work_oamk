@@ -2,13 +2,13 @@ import { Link } from "@tanstack/react-router";
 
 import Logo from "@/components/marketing/logo";
 import UserMenu from "@/components/user-menu";
-import { Route } from "@/routes/dashboard/route";
+import { Route } from "@/routes/dashboard/freelancer/route";
 
-import DashboardSidebar from "./dashboard-sidebar";
+import FreelancerSidebar from "./freelancer-sidebar";
 
 const NAV_ITEMS = ["Find work", "Deliver work", "Manage finances", "Messages"] as const;
 
-export default function DashboardLayout({ children }: { children: React.ReactNode }) {
+export default function FreelancerDashboardLayout({ children }: { children: React.ReactNode }) {
   const { profile } = Route.useRouteContext();
 
   return (
@@ -26,7 +26,10 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             </nav>
           </div>
           <div className="flex items-center gap-3">
-            <Link to="/dashboard" className="text-sm text-muted-foreground hover:text-foreground">
+            <Link
+              to="/dashboard/freelancer"
+              className="text-sm text-muted-foreground hover:text-foreground"
+            >
               Home
             </Link>
             <UserMenu />
@@ -35,7 +38,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       </header>
 
       <div className="mx-auto grid w-full max-w-7xl flex-1 grid-cols-1 items-start gap-6 px-4 py-6 md:grid-cols-[280px_minmax(0,1fr)] md:px-6">
-        <DashboardSidebar profile={profile} />
+        <FreelancerSidebar profile={profile} />
         <main className="min-w-0">{children}</main>
       </div>
     </div>
