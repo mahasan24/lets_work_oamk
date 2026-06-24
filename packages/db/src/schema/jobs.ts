@@ -25,6 +25,33 @@ export const jobStatusEnum = pgEnum("job_status", [
   "paused",
 ]);
 
+export const jobExperienceLevelEnum = pgEnum("job_experience_level", [
+  "entry",
+  "intermediate",
+  "expert",
+]);
+
+export const jobDurationEnum = pgEnum("job_duration", [
+  "less_than_month",
+  "one_to_three_months",
+  "three_to_six_months",
+  "more_than_six_months",
+]);
+
+export type JobAttachment = {
+  id: string;
+  url: string;
+  fileName: string;
+  mimeType?: string | null;
+};
+
+export type JobAttachmentInput = {
+  id?: string;
+  url: string;
+  fileName: string;
+  mimeType?: string | null;
+};
+
 export const proposalStatusEnum = pgEnum("proposal_status", [
   "draft",
   "submitted",
@@ -52,6 +79,14 @@ export const job = pgTable(
     hourlyRateMin: numeric("hourly_rate_min", { precision: 12, scale: 2 }),
     hourlyRateMax: numeric("hourly_rate_max", { precision: 12, scale: 2 }),
     remoteOnly: boolean("remote_only").default(true).notNull(),
+    country: text("country"),
+    currency: text("currency").default("USD").notNull(),
+    experienceLevel: jobExperienceLevelEnum("experience_level"),
+    estimatedDuration: jobDurationEnum("estimated_duration"),
+    weeklyHours: integer("weekly_hours"),
+    preferredTimezone: text("preferred_timezone"),
+    tags: jsonb("tags").$type<string[]>(),
+    attachments: jsonb("attachments").$type<JobAttachment[]>(),
     status: jobStatusEnum("status").default("draft").notNull(),
     proposalsCount: integer("proposals_count").default(0).notNull(),
     publishedAt: timestamp("published_at"),
