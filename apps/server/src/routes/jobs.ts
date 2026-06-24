@@ -24,6 +24,7 @@ import {
   updateHirerJob,
 } from "../lib/jobs";
 import { betterAuthPlugin } from "../plugins/auth";
+import { COOKIE_AUTH_SECURITY } from "../lib/openapi-tags";
 
 const jobAttachmentSchema = t.Object({
   id: t.Optional(t.String()),
@@ -112,11 +113,21 @@ async function runPublicAction<T>(action: () => Promise<T>) {
   }
 }
 
-export const jobRoutes = new Elysia({ prefix: "/api/jobs" })
+export const jobRoutes = new Elysia({
+  prefix: "/api/jobs",
+  detail: {
+    tags: ["Jobs"],
+  },
+})
   .get("/categories", () => ({
     categories: JOB_CATEGORY_SUGGESTIONS,
     currencies: SUPPORTED_CURRENCIES,
-  }))
+  }), {
+    detail: {
+      summary: "List job categories and currencies",
+      description: "Reference data for job posting forms.",
+    },
+  })
   .get(
     "/public/:slug",
     async ({ params, status }) => {
@@ -128,10 +139,20 @@ export const jobRoutes = new Elysia({ prefix: "/api/jobs" })
       params: t.Object({
         slug: t.String(),
       }),
+      detail: {
+        summary: "Get published job by slug",
+        description: "Returns a single open job for public viewing.",
+      },
     },
   );
 
-export const hirerJobRoutes = new Elysia({ prefix: "/api/hirer/jobs" })
+export const hirerJobRoutes = new Elysia({
+  prefix: "/api/hirer/jobs",
+  detail: {
+    tags: ["Hirer Jobs"],
+    security: COOKIE_AUTH_SECURITY,
+  },
+})
   .use(betterAuthPlugin)
   .get(
     "/uploads/sign",
@@ -143,7 +164,7 @@ export const hirerJobRoutes = new Elysia({ prefix: "/api/hirer/jobs" })
       if (!result.ok) return status(result.status, result.body);
       return result.data;
     },
-    { auth: true },
+    { auth: true, detail: { summary: "Sign job attachment upload" } },
   )
   .get(
     "/",
@@ -175,6 +196,10 @@ export const hirerJobRoutes = new Elysia({ prefix: "/api/hirer/jobs" })
         page: t.Optional(t.Numeric()),
         limit: t.Optional(t.Numeric()),
       }),
+      detail: {
+        summary: "List hirer jobs",
+        description: "Paginated list of jobs owned by the authenticated hirer.",
+      },
     },
   )
   .get(
@@ -187,6 +212,7 @@ export const hirerJobRoutes = new Elysia({ prefix: "/api/hirer/jobs" })
     {
       auth: true,
       params: t.Object({ id: t.String() }),
+      detail: { summary: "Get hirer job by ID" },
     },
   )
   .get(
@@ -201,6 +227,10 @@ export const hirerJobRoutes = new Elysia({ prefix: "/api/hirer/jobs" })
     {
       auth: true,
       params: t.Object({ id: t.String() }),
+      detail: {
+        summary: "Check publish readiness",
+        description: "Returns validation errors that must be resolved before publishing.",
+      },
     },
   )
   .post(
@@ -213,6 +243,7 @@ export const hirerJobRoutes = new Elysia({ prefix: "/api/hirer/jobs" })
     {
       auth: true,
       body: jobWriteSchema,
+      detail: { summary: "Create job draft" },
     },
   )
   .patch(
@@ -228,6 +259,7 @@ export const hirerJobRoutes = new Elysia({ prefix: "/api/hirer/jobs" })
       auth: true,
       params: t.Object({ id: t.String() }),
       body: jobWriteSchema,
+      detail: { summary: "Update job" },
     },
   )
   .delete(
@@ -240,6 +272,7 @@ export const hirerJobRoutes = new Elysia({ prefix: "/api/hirer/jobs" })
     {
       auth: true,
       params: t.Object({ id: t.String() }),
+      detail: { summary: "Delete draft job" },
     },
   )
   .post(
@@ -252,6 +285,7 @@ export const hirerJobRoutes = new Elysia({ prefix: "/api/hirer/jobs" })
     {
       auth: true,
       params: t.Object({ id: t.String() }),
+      detail: { summary: "Publish job", description: "Moves a draft job to open status." },
     },
   )
   .post(
@@ -264,6 +298,7 @@ export const hirerJobRoutes = new Elysia({ prefix: "/api/hirer/jobs" })
     {
       auth: true,
       params: t.Object({ id: t.String() }),
+      detail: { summary: "Pause open job" },
     },
   )
   .post(
@@ -276,6 +311,7 @@ export const hirerJobRoutes = new Elysia({ prefix: "/api/hirer/jobs" })
     {
       auth: true,
       params: t.Object({ id: t.String() }),
+      detail: { summary: "Resume paused job" },
     },
   )
   .post(
@@ -288,5 +324,6 @@ export const hirerJobRoutes = new Elysia({ prefix: "/api/hirer/jobs" })
     {
       auth: true,
       params: t.Object({ id: t.String() }),
+      detail: { summary: "Close job" },
     },
   );

@@ -13,6 +13,7 @@ import {
   submitIdentityVerification,
 } from "../lib/profile";
 import { betterAuthPlugin } from "../plugins/auth";
+import { COOKIE_AUTH_SECURITY } from "../lib/openapi-tags";
 
 const profileUpdateSchema = t.Object({
   headline: t.Optional(t.String()),
@@ -40,14 +41,20 @@ const profileUpdateSchema = t.Object({
   phoneNumber: t.Optional(t.Nullable(t.String())),
 });
 
-export const profileRoutes = new Elysia({ prefix: "/api/profile" })
+export const profileRoutes = new Elysia({
+  prefix: "/api/profile",
+  detail: {
+    tags: ["Profile"],
+    security: COOKIE_AUTH_SECURITY,
+  },
+})
   .use(betterAuthPlugin)
   .get(
     "/me",
     async ({ user }) => {
       return getProfileBundle(user.id);
     },
-    { auth: true },
+    { auth: true, detail: { summary: "Get current profile", description: "Returns profile, portfolio, certifications, experience, and completion score." } },
   )
   .post(
     "/initialize",
@@ -59,6 +66,10 @@ export const profileRoutes = new Elysia({ prefix: "/api/profile" })
       body: t.Object({
         accountType: t.Union([t.Literal("hirer"), t.Literal("freelancer")]),
       }),
+      detail: {
+        summary: "Initialize account role",
+        description: "Sets the user's marketplace role during onboarding.",
+      },
     },
   )
   .patch(
@@ -75,14 +86,27 @@ export const profileRoutes = new Elysia({ prefix: "/api/profile" })
 
       return getProfileBundle(user.id);
     },
-    { auth: true, body: profileUpdateSchema },
+    {
+      auth: true,
+      body: profileUpdateSchema,
+      detail: {
+        summary: "Update profile",
+        description: "Partially updates freelancer or hirer profile fields.",
+      },
+    },
   )
   .post(
     "/verification",
     async ({ user }) => {
       return submitIdentityVerification(user.id);
     },
-    { auth: true },
+    {
+      auth: true,
+      detail: {
+        summary: "Submit identity verification",
+        description: "Submits the user's profile for identity verification review.",
+      },
+    },
   )
   .post(
     "/portfolio",
@@ -109,6 +133,7 @@ export const profileRoutes = new Elysia({ prefix: "/api/profile" })
         imageUrl: t.Optional(t.Nullable(t.String())),
         sortOrder: t.Optional(t.Number()),
       }),
+      detail: { summary: "Add portfolio item" },
     },
   )
   .patch(
@@ -131,6 +156,7 @@ export const profileRoutes = new Elysia({ prefix: "/api/profile" })
         imageUrl: t.Optional(t.Nullable(t.String())),
         sortOrder: t.Optional(t.Number()),
       }),
+      detail: { summary: "Update portfolio item" },
     },
   )
   .delete(
@@ -142,7 +168,11 @@ export const profileRoutes = new Elysia({ prefix: "/api/profile" })
       await refreshProfileCompletion(user.id);
       return getProfileBundle(user.id);
     },
-    { auth: true, params: t.Object({ id: t.String() }) },
+    {
+      auth: true,
+      params: t.Object({ id: t.String() }),
+      detail: { summary: "Delete portfolio item" },
+    },
   )
   .post(
     "/certifications",
@@ -175,6 +205,7 @@ export const profileRoutes = new Elysia({ prefix: "/api/profile" })
         expiryDate: t.Optional(t.Nullable(t.String())),
         sortOrder: t.Optional(t.Number()),
       }),
+      detail: { summary: "Add certification" },
     },
   )
   .delete(
@@ -186,7 +217,11 @@ export const profileRoutes = new Elysia({ prefix: "/api/profile" })
       await refreshProfileCompletion(user.id);
       return getProfileBundle(user.id);
     },
-    { auth: true, params: t.Object({ id: t.String() }) },
+    {
+      auth: true,
+      params: t.Object({ id: t.String() }),
+      detail: { summary: "Delete certification" },
+    },
   )
   .post(
     "/experience",
@@ -217,6 +252,7 @@ export const profileRoutes = new Elysia({ prefix: "/api/profile" })
         endDate: t.Optional(t.Nullable(t.String())),
         sortOrder: t.Optional(t.Number()),
       }),
+      detail: { summary: "Add work experience" },
     },
   )
   .delete(
@@ -228,7 +264,11 @@ export const profileRoutes = new Elysia({ prefix: "/api/profile" })
       await refreshProfileCompletion(user.id);
       return getProfileBundle(user.id);
     },
-    { auth: true, params: t.Object({ id: t.String() }) },
+    {
+      auth: true,
+      params: t.Object({ id: t.String() }),
+      detail: { summary: "Delete work experience" },
+    },
   )
   .get(
     "/uploads/sign",
@@ -252,5 +292,9 @@ export const profileRoutes = new Elysia({ prefix: "/api/profile" })
           ]),
         ),
       }),
+      detail: {
+        summary: "Sign Cloudinary upload",
+        description: "Returns a signed payload for direct client uploads to Cloudinary.",
+      },
     },
   );
