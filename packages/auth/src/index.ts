@@ -3,6 +3,7 @@ import * as schema from "@lets_work/db/schema/auth";
 import { env } from "@lets_work/env/server";
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
+import { openAPI } from "better-auth/plugins";
 
 import { sendPasswordResetEmail } from "./lib/mail";
 
@@ -46,6 +47,7 @@ export function createAuth() {
     },
     secret: env.BETTER_AUTH_SECRET,
     baseURL: env.BETTER_AUTH_URL,
+    plugins: [openAPI()],
     advanced: {
       defaultCookieAttributes: {
         sameSite: isProduction ? "none" : "lax",
