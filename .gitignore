@@ -11,6 +11,7 @@ build
 # Environment variables
 .env
 .env*.local
+backlog.md
 
 # IDEs and editors
 .vscode/*

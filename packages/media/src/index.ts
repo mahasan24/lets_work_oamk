@@ -8,7 +8,12 @@ cloudinary.config({
   secure: true,
 });
 
-export type UploadFolder = "avatars" | "portfolio" | "certifications" | "videos";
+export type UploadFolder =
+  | "avatars"
+  | "portfolio"
+  | "certifications"
+  | "videos"
+  | "job-attachments";
 
 export function createUploadSignature(folder: UploadFolder) {
   const timestamp = Math.round(Date.now() / 1000);

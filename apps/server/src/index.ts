@@ -4,6 +4,7 @@ import { env } from "@lets_work/env/server";
 import { Elysia } from "elysia";
 
 import { profileRoutes } from "./routes/profile";
+import { hirerJobRoutes, jobRoutes } from "./routes/jobs";
 
 new Elysia()
   .use(
@@ -22,6 +23,8 @@ new Elysia()
     return status(405);
   })
   .use(profileRoutes)
+  .use(jobRoutes)
+  .use(hirerJobRoutes)
   .get("/", () => "OK")
   .listen(3000, () => {
     console.log("Server is running on http://localhost:3000");
