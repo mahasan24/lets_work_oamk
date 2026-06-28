@@ -27,6 +27,8 @@ import { Route as DashboardFreelancerIndexRouteImport } from './routes/dashboard
 import { Route as DashboardHirerProfileRouteImport } from './routes/dashboard/hirer/profile'
 import { Route as DashboardFreelancerProfileRouteImport } from './routes/dashboard/freelancer/profile'
 import { Route as DashboardOnboardingRoleIndexRouteImport } from './routes/dashboard/onboarding/role/index'
+import { Route as DashboardHirerJobsNewRouteImport } from './routes/dashboard/hirer/jobs/new'
+import { Route as DashboardHirerJobsJobIdRouteImport } from './routes/dashboard/hirer/jobs/$jobId'
 
 const SuccessRouteRoute = SuccessRouteRouteImport.update({
   id: '/success',
@@ -122,6 +124,16 @@ const DashboardOnboardingRoleIndexRoute =
     path: '/onboarding/role/',
     getParentRoute: () => DashboardRouteRoute,
   } as any)
+const DashboardHirerJobsNewRoute = DashboardHirerJobsNewRouteImport.update({
+  id: '/jobs/new',
+  path: '/jobs/new',
+  getParentRoute: () => DashboardHirerRouteRoute,
+} as any)
+const DashboardHirerJobsJobIdRoute = DashboardHirerJobsJobIdRouteImport.update({
+  id: '/jobs/$jobId',
+  path: '/jobs/$jobId',
+  getParentRoute: () => DashboardHirerRouteRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -141,6 +153,8 @@ export interface FileRoutesByFullPath {
   '/dashboard/hirer/profile': typeof DashboardHirerProfileRoute
   '/dashboard/freelancer/': typeof DashboardFreelancerIndexRoute
   '/dashboard/hirer/': typeof DashboardHirerIndexRoute
+  '/dashboard/hirer/jobs/$jobId': typeof DashboardHirerJobsJobIdRoute
+  '/dashboard/hirer/jobs/new': typeof DashboardHirerJobsNewRoute
   '/dashboard/onboarding/role/': typeof DashboardOnboardingRoleIndexRoute
 }
 export interface FileRoutesByTo {
@@ -154,6 +168,8 @@ export interface FileRoutesByTo {
   '/dashboard/hirer/profile': typeof DashboardHirerProfileRoute
   '/dashboard/freelancer': typeof DashboardFreelancerIndexRoute
   '/dashboard/hirer': typeof DashboardHirerIndexRoute
+  '/dashboard/hirer/jobs/$jobId': typeof DashboardHirerJobsJobIdRoute
+  '/dashboard/hirer/jobs/new': typeof DashboardHirerJobsNewRoute
   '/dashboard/onboarding/role': typeof DashboardOnboardingRoleIndexRoute
 }
 export interface FileRoutesById {
@@ -175,6 +191,8 @@ export interface FileRoutesById {
   '/dashboard/hirer/profile': typeof DashboardHirerProfileRoute
   '/dashboard/freelancer/': typeof DashboardFreelancerIndexRoute
   '/dashboard/hirer/': typeof DashboardHirerIndexRoute
+  '/dashboard/hirer/jobs/$jobId': typeof DashboardHirerJobsJobIdRoute
+  '/dashboard/hirer/jobs/new': typeof DashboardHirerJobsNewRoute
   '/dashboard/onboarding/role/': typeof DashboardOnboardingRoleIndexRoute
 }
 export interface FileRouteTypes {
@@ -197,6 +215,8 @@ export interface FileRouteTypes {
     | '/dashboard/hirer/profile'
     | '/dashboard/freelancer/'
     | '/dashboard/hirer/'
+    | '/dashboard/hirer/jobs/$jobId'
+    | '/dashboard/hirer/jobs/new'
     | '/dashboard/onboarding/role/'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -210,6 +230,8 @@ export interface FileRouteTypes {
     | '/dashboard/hirer/profile'
     | '/dashboard/freelancer'
     | '/dashboard/hirer'
+    | '/dashboard/hirer/jobs/$jobId'
+    | '/dashboard/hirer/jobs/new'
     | '/dashboard/onboarding/role'
   id:
     | '__root__'
@@ -230,6 +252,8 @@ export interface FileRouteTypes {
     | '/dashboard/hirer/profile'
     | '/dashboard/freelancer/'
     | '/dashboard/hirer/'
+    | '/dashboard/hirer/jobs/$jobId'
+    | '/dashboard/hirer/jobs/new'
     | '/dashboard/onboarding/role/'
   fileRoutesById: FileRoutesById
 }
@@ -370,6 +394,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardOnboardingRoleIndexRouteImport
       parentRoute: typeof DashboardRouteRoute
     }
+    '/dashboard/hirer/jobs/new': {
+      id: '/dashboard/hirer/jobs/new'
+      path: '/jobs/new'
+      fullPath: '/dashboard/hirer/jobs/new'
+      preLoaderRoute: typeof DashboardHirerJobsNewRouteImport
+      parentRoute: typeof DashboardHirerRouteRoute
+    }
+    '/dashboard/hirer/jobs/$jobId': {
+      id: '/dashboard/hirer/jobs/$jobId'
+      path: '/jobs/$jobId'
+      fullPath: '/dashboard/hirer/jobs/$jobId'
+      preLoaderRoute: typeof DashboardHirerJobsJobIdRouteImport
+      parentRoute: typeof DashboardHirerRouteRoute
+    }
   }
 }
 
@@ -392,11 +430,15 @@ const DashboardFreelancerRouteRouteWithChildren =
 interface DashboardHirerRouteRouteChildren {
   DashboardHirerProfileRoute: typeof DashboardHirerProfileRoute
   DashboardHirerIndexRoute: typeof DashboardHirerIndexRoute
+  DashboardHirerJobsJobIdRoute: typeof DashboardHirerJobsJobIdRoute
+  DashboardHirerJobsNewRoute: typeof DashboardHirerJobsNewRoute
 }
 
 const DashboardHirerRouteRouteChildren: DashboardHirerRouteRouteChildren = {
   DashboardHirerProfileRoute: DashboardHirerProfileRoute,
   DashboardHirerIndexRoute: DashboardHirerIndexRoute,
+  DashboardHirerJobsJobIdRoute: DashboardHirerJobsJobIdRoute,
+  DashboardHirerJobsNewRoute: DashboardHirerJobsNewRoute,
 }
 
 const DashboardHirerRouteRouteWithChildren =
