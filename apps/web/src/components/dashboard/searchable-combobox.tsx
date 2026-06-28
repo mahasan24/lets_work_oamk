@@ -14,6 +14,20 @@ import { useMemo, useState } from "react";
 
 import type { ProfileOption } from "@/lib/profile-options";
 
+function resolveOptionLabel(value: string, options: ProfileOption[]) {
+  if (!value) return undefined;
+
+  const byValue = options.find((option) => option.value === value);
+  if (byValue) return byValue.label;
+
+  const byLabel = options.find(
+    (option) => option.label.toLowerCase() === value.toLowerCase(),
+  );
+  if (byLabel) return byLabel.label;
+
+  return value.replace(/_/g, " ");
+}
+
 type SearchableComboboxProps = {
   value: string;
   onValueChange: (value: string) => void;
@@ -38,7 +52,7 @@ export function SearchableCombobox({
   const [open, setOpen] = useState(false);
 
   const selectedLabel = useMemo(
-    () => options.find((option) => option.value === value)?.label,
+    () => resolveOptionLabel(value, options),
     [options, value],
   );
 

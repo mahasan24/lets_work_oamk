@@ -9,6 +9,8 @@ type SkillsTagsInputProps = {
   onChange: (skills: string[]) => void;
   suggestions?: string[];
   placeholder?: string;
+  helperText?: string;
+  maxSuggestions?: number;
 };
 
 function normalizeSkill(skill: string) {
@@ -20,6 +22,8 @@ export function SkillsTagsInput({
   onChange,
   suggestions = [],
   placeholder = "Type a skill and press Enter",
+  helperText = "Choose from suggestions or type a custom skill and press Enter.",
+  maxSuggestions = 12,
 }: SkillsTagsInputProps) {
   const [input, setInput] = useState("");
   const [focused, setFocused] = useState(false);
@@ -28,13 +32,23 @@ export function SkillsTagsInput({
 
   const filteredSuggestions = useMemo(() => {
     const query = input.trim().toLowerCase();
-    if (!query) return suggestions.filter((s) => !value.includes(s)).slice(0, 8);
-    return suggestions
-      .filter((s) => s.toLowerCase().includes(query) && !value.includes(s))
-      .slice(0, 8);
-  }, [input, suggestions, value]);
+    if (!query) {
+      return suggestions.filter((skill) => !value.includes(skill)).slice(0, maxSuggestions);
+    }
 
-  const showSuggestions = focused && (filteredSuggestions.length > 0 || input.trim().length > 0);
+    return suggestions
+      .filter((skill) => skill.toLowerCase().includes(query) && !value.includes(skill))
+      .slice(0, maxSuggestions);
+  }, [input, maxSuggestions, suggestions, value]);
+
+  const trimmedInput = input.trim();
+  const canAddCustom =
+    trimmedInput.length > 0 &&
+    !value.some((skill) => skill.toLowerCase() === trimmedInput.toLowerCase()) &&
+    !filteredSuggestions.some((skill) => skill.toLowerCase() === trimmedInput.toLowerCase());
+
+  const showSuggestions =
+    focused && (filteredSuggestions.length > 0 || canAddCustom);
 
   useEffect(() => {
     if (!showSuggestions || !anchorRef.current) return;
@@ -43,7 +57,7 @@ export function SkillsTagsInput({
       const rect = anchorRef.current?.getBoundingClientRect();
       if (!rect) return;
 
-      const menuHeight = 192;
+      const menuHeight = 240;
       const spaceBelow = window.innerHeight - rect.bottom;
       const openUpward = spaceBelow < menuHeight && rect.top > spaceBelow;
 
@@ -65,7 +79,7 @@ export function SkillsTagsInput({
       window.removeEventListener("resize", updatePosition);
       window.removeEventListener("scroll", updatePosition, true);
     };
-  }, [showSuggestions, input, filteredSuggestions.length]);
+  }, [showSuggestions, input, filteredSuggestions.length, canAddCustom]);
 
   const addSkill = (skill: string) => {
     const normalized = normalizeSkill(skill);
@@ -84,7 +98,7 @@ export function SkillsTagsInput({
       ? createPortal(
           <div
             style={menuStyle}
-            className="max-h-48 overflow-y-auto border border-border bg-popover shadow-md"
+            className="max-h-60 overflow-y-auto border border-border bg-popover shadow-md"
           >
             {filteredSuggestions.length > 0 ? (
               <ul className="py-1">
@@ -101,14 +115,15 @@ export function SkillsTagsInput({
                   </li>
                 ))}
               </ul>
-            ) : input.trim() ? (
+            ) : null}
+            {canAddCustom ? (
               <button
                 type="button"
-                className="w-full px-3 py-2 text-left text-sm text-muted-foreground hover:bg-muted"
+                className="w-full border-t px-3 py-2 text-left text-sm hover:bg-muted"
                 onMouseDown={(e) => e.preventDefault()}
                 onClick={() => addSkill(input)}
               >
-                Add &quot;{input.trim()}&quot;
+                Add custom skill &quot;{trimmedInput}&quot;
               </button>
             ) : null}
           </div>,
@@ -117,7 +132,7 @@ export function SkillsTagsInput({
       : null;
 
   return (
-    <div className="flex flex-col gap-3">
+    <div className="flex flex-col gap-2">
       <div className="flex flex-wrap gap-2">
         {value.map((skill) => (
           <Badge key={skill} variant="secondary" className="gap-1 py-0.5 pr-1 pl-2 text-xs">
@@ -146,7 +161,7 @@ export function SkillsTagsInput({
           onKeyDown={(e) => {
             if (e.key === "Enter") {
               e.preventDefault();
-              addSkill(input);
+              if (trimmedInput) addSkill(input);
             }
             if (e.key === "Backspace" && !input && value.length > 0) {
               removeSkill(value[value.length - 1]!);
@@ -154,6 +169,8 @@ export function SkillsTagsInput({
           }}
         />
       </div>
+
+      {helperText ? <p className="text-xs text-muted-foreground">{helperText}</p> : null}
 
       {suggestionsMenu}
     </div>

@@ -4,6 +4,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@lets
 import { Checkbox } from "@lets_work/ui/components/checkbox";
 import {
   Field,
+  FieldContent,
+  FieldDescription,
   FieldGroup,
   FieldLabel,
 } from "@lets_work/ui/components/field";
@@ -14,7 +16,6 @@ import {
   SelectGroup,
   SelectItem,
   SelectTrigger,
-  SelectValue,
 } from "@lets_work/ui/components/select";
 import { Separator } from "@lets_work/ui/components/separator";
 import { Textarea } from "@lets_work/ui/components/textarea";
@@ -28,10 +29,12 @@ import { SearchableCombobox } from "@/components/dashboard/searchable-combobox";
 import { SkillsTagsInput } from "@/components/dashboard/skills-tags-input";
 import { uploadJobAttachment } from "@/lib/cloudinary-upload";
 import { JOB_CATEGORY_SUGGESTIONS } from "@/lib/hirer-options";
+import { JOB_SKILL_SUGGESTIONS } from "@/lib/job-skill-suggestions";
 import {
   BUDGET_TYPE_OPTIONS,
   ESTIMATED_DURATION_OPTIONS,
   EXPERIENCE_LEVEL_OPTIONS,
+  getBudgetTypeLabel,
   getDurationLabel,
   getExperienceLevelLabel,
   SUPPORTED_CURRENCIES,
@@ -47,7 +50,7 @@ import {
   type JobAttachment,
   type JobPublishReadiness,
 } from "@/lib/jobs-api";
-import { COUNTRIES, getTimezoneOptions, SKILL_SUGGESTIONS } from "@/lib/profile-options";
+import { COUNTRIES, getTimezoneOptions, resolveCountryValue } from "@/lib/profile-options";
 
 import { JobActionsMenu } from "./job-actions-menu";
 import { JobStatusBadge } from "./job-status-badge";
@@ -95,7 +98,7 @@ function jobToFormState(job: Job): FormState {
     hourlyRateMin: job.hourlyRateMin ?? "",
     hourlyRateMax: job.hourlyRateMax ?? "",
     remoteOnly: job.remoteOnly,
-    country: job.country ?? "",
+    country: resolveCountryValue(job.country) || job.country || "",
     currency: job.currency,
     experienceLevel: job.experienceLevel ?? "",
     estimatedDuration: job.estimatedDuration ?? "",
@@ -393,8 +396,10 @@ export default function JobFormWizard({ jobId }: JobFormWizardProps) {
                     if (value) updateForm("budgetType", value as BudgetType);
                   }}
                 >
-                  <SelectTrigger className={inputClassName}>
-                    <SelectValue />
+                  <SelectTrigger className={cn(inputClassName, "w-full")}>
+                    <span className="truncate">
+                      {getBudgetTypeLabel(form.budgetType)}
+                    </span>
                   </SelectTrigger>
                   <SelectContent>
                     <SelectGroup>
@@ -416,8 +421,8 @@ export default function JobFormWizard({ jobId }: JobFormWizardProps) {
                     if (value) updateForm("currency", value);
                   }}
                 >
-                  <SelectTrigger className={inputClassName}>
-                    <SelectValue />
+                  <SelectTrigger className={cn(inputClassName, "w-full")}>
+                    <span className="truncate">{form.currency}</span>
                   </SelectTrigger>
                   <SelectContent>
                     <SelectGroup>
@@ -490,8 +495,12 @@ export default function JobFormWizard({ jobId }: JobFormWizardProps) {
                     updateForm("experienceLevel", value === "none" ? "" : (value as ExperienceLevel))
                   }
                 >
-                  <SelectTrigger className={inputClassName}>
-                    <SelectValue placeholder="Select level" />
+                  <SelectTrigger className={cn(inputClassName, "w-full")}>
+                    <span className="truncate">
+                      {form.experienceLevel
+                        ? getExperienceLevelLabel(form.experienceLevel)
+                        : "Not specified"}
+                    </span>
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="none">Not specified</SelectItem>
@@ -515,8 +524,12 @@ export default function JobFormWizard({ jobId }: JobFormWizardProps) {
                     )
                   }
                 >
-                  <SelectTrigger className={inputClassName}>
-                    <SelectValue placeholder="Select duration" />
+                  <SelectTrigger className={cn(inputClassName, "w-full")}>
+                    <span className="truncate">
+                      {form.estimatedDuration
+                        ? getDurationLabel(form.estimatedDuration)
+                        : "Not specified"}
+                    </span>
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="none">Not specified</SelectItem>
@@ -551,8 +564,10 @@ export default function JobFormWizard({ jobId }: JobFormWizardProps) {
                 <SkillsTagsInput
                   value={form.requiredSkills}
                   onChange={(skills) => updateForm("requiredSkills", skills)}
-                  suggestions={SKILL_SUGGESTIONS}
-                  placeholder="Add skills freelancers must have"
+                  suggestions={JOB_SKILL_SUGGESTIONS}
+                  placeholder="Search or type a skill"
+                  helperText="Pick from suggestions or type any skill and press Enter."
+                  maxSuggestions={14}
                 />
               </Field>
               <Field>
@@ -561,22 +576,25 @@ export default function JobFormWizard({ jobId }: JobFormWizardProps) {
                   value={form.tags}
                   onChange={(tags) => updateForm("tags", tags)}
                   suggestions={JOB_CATEGORY_SUGGESTIONS}
-                  placeholder="Add tags to help discovery"
+                  placeholder="Search or type a tag"
+                  helperText="Optional tags to help freelancers discover this job."
+                  maxSuggestions={10}
                 />
               </Field>
-              <Field className="flex flex-row items-start gap-3">
+              <Field orientation="horizontal" className="items-start">
                 <Checkbox
                   id="remote-only"
+                  className="mt-0.5"
                   checked={form.remoteOnly}
                   disabled={isReadOnly}
                   onCheckedChange={(checked) => updateForm("remoteOnly", checked === true)}
                 />
-                <div className="flex flex-col gap-1">
+                <FieldContent>
                   <FieldLabel htmlFor="remote-only">Remote only</FieldLabel>
-                  <p className="text-xs text-muted-foreground">
+                  <FieldDescription>
                     Freelancers can work from anywhere.
-                  </p>
-                </div>
+                  </FieldDescription>
+                </FieldContent>
               </Field>
               {!form.remoteOnly ? (
                 <Field>
