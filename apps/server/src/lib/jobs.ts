@@ -8,7 +8,9 @@ import {
   type jobExperienceLevelEnum,
   type jobStatusEnum,
 } from "@lets_work/db/schema/jobs";
-import { and, desc, eq, ilike, or, sql } from "drizzle-orm";
+import { marketplaceUserProfile } from "@lets_work/db/schema/marketplace";
+import { user } from "@lets_work/db/schema/auth";
+import { and, desc, eq, gte, ilike, inArray, lte, or, sql } from "drizzle-orm";
 
 import {
   JobForbiddenError,
@@ -51,6 +53,71 @@ export type HirerJobListQuery = {
   page?: number;
   limit?: number;
 };
+
+export type PublicJobListQuery = {
+  search?: string;
+  category?: string;
+  experienceLevel?: ExperienceLevel;
+  budgetType?: BudgetType;
+  minBudget?: string;
+  maxBudget?: string;
+  postedWithin?: "24h" | "7d" | "30d";
+  remoteOnly?: boolean;
+  sort?: "newest" | "budget_high";
+  page?: number;
+  limit?: number;
+};
+
+const PUBLIC_JOB_STATUSES: JobStatus[] = ["open", "in_review"];
+
+function postedWithinToDate(value: PublicJobListQuery["postedWithin"]) {
+  if (!value) return null;
+
+  const hours = value === "24h" ? 24 : value === "7d" ? 24 * 7 : 24 * 30;
+  return new Date(Date.now() - hours * 60 * 60 * 1000);
+}
+
+type HirerSummaryRow = {
+  name: string;
+  companyName: string | null;
+  headline: string | null;
+};
+
+export function serializePublicJob(row: JobRow, hirer?: HirerSummaryRow | null) {
+  const base = serializeJob(row);
+  const displayName = hirer?.companyName?.trim() || hirer?.name?.trim() || "Client";
+
+  return {
+    id: base.id,
+    title: base.title,
+    slug: base.slug,
+    description: base.description,
+    category: base.category,
+    requiredSkills: base.requiredSkills,
+    budgetType: base.budgetType,
+    budgetMin: base.budgetMin,
+    budgetMax: base.budgetMax,
+    hourlyRateMin: base.hourlyRateMin,
+    hourlyRateMax: base.hourlyRateMax,
+    remoteOnly: base.remoteOnly,
+    country: base.country,
+    currency: base.currency,
+    experienceLevel: base.experienceLevel,
+    estimatedDuration: base.estimatedDuration,
+    weeklyHours: base.weeklyHours,
+    preferredTimezone: base.preferredTimezone,
+    tags: base.tags,
+    status: base.status,
+    proposalsCount: base.proposalsCount,
+    publishedAt: base.publishedAt,
+    createdAt: base.createdAt,
+    updatedAt: base.updatedAt,
+    hirer: {
+      displayName,
+      headline: hirer?.headline?.trim() || null,
+    },
+  };
+}
 
 function slugify(text: string) {
   return text
@@ -508,16 +575,126 @@ export async function getHirerJobPublishReadiness(jobId: string, hirerUserId: st
   };
 }
 
+export async function listPublicJobs(query: PublicJobListQuery) {
+  const page = Math.max(query.page ?? 1, 1);
+  const limit = Math.min(Math.max(query.limit ?? 20, 1), 100);
+  const offset = (page - 1) * limit;
+
+  const conditions = [inArray(job.status, PUBLIC_JOB_STATUSES)];
+
+  if (query.search?.trim()) {
+    const term = `%${query.search.trim()}%`;
+    conditions.push(or(ilike(job.title, term), ilike(job.description, term))!);
+  }
+
+  if (query.category?.trim()) {
+    conditions.push(eq(job.category, query.category.trim()));
+  }
+
+  if (query.experienceLevel) {
+    conditions.push(eq(job.experienceLevel, query.experienceLevel));
+  }
+
+  if (query.budgetType) {
+    conditions.push(eq(job.budgetType, query.budgetType));
+  }
+
+  if (query.remoteOnly === true) {
+    conditions.push(eq(job.remoteOnly, true));
+  }
+
+  const postedAfter = postedWithinToDate(query.postedWithin);
+  if (postedAfter) {
+    conditions.push(gte(job.publishedAt, postedAfter));
+  }
+
+  const minBudget = parseAmount(query.minBudget);
+  if (minBudget != null) {
+    conditions.push(
+      or(
+        and(eq(job.budgetType, "one_time"), gte(sql`${job.budgetMax}::numeric`, minBudget)),
+        and(eq(job.budgetType, "hourly"), gte(sql`${job.hourlyRateMax}::numeric`, minBudget)),
+      )!,
+    );
+  }
+
+  const maxBudget = parseAmount(query.maxBudget);
+  if (maxBudget != null) {
+    conditions.push(
+      or(
+        and(eq(job.budgetType, "one_time"), lte(sql`${job.budgetMin}::numeric`, maxBudget)),
+        and(eq(job.budgetType, "hourly"), lte(sql`${job.hourlyRateMin}::numeric`, maxBudget)),
+      )!,
+    );
+  }
+
+  const whereClause = and(...conditions);
+  const orderBy =
+    query.sort === "budget_high"
+      ? desc(sql`COALESCE(${job.budgetMax}::numeric, ${job.hourlyRateMax}::numeric, 0)`)
+      : desc(job.publishedAt);
+
+  const [rows, countRows] = await Promise.all([
+    db
+      .select({
+        job,
+        hirerName: user.name,
+        hirerCompany: marketplaceUserProfile.companyName,
+        hirerHeadline: marketplaceUserProfile.headline,
+      })
+      .from(job)
+      .innerJoin(user, eq(user.id, job.hirerUserId))
+      .leftJoin(marketplaceUserProfile, eq(marketplaceUserProfile.userId, job.hirerUserId))
+      .where(whereClause)
+      .orderBy(orderBy)
+      .limit(limit)
+      .offset(offset),
+    db
+      .select({ count: sql<number>`count(*)::int` })
+      .from(job)
+      .where(whereClause),
+  ]);
+
+  const total = countRows[0]?.count ?? 0;
+
+  return {
+    items: rows.map((row) =>
+      serializePublicJob(row.job, {
+        name: row.hirerName,
+        companyName: row.hirerCompany,
+        headline: row.hirerHeadline,
+      }),
+    ),
+    pagination: {
+      page,
+      limit,
+      total,
+      totalPages: Math.ceil(total / limit),
+    },
+  };
+}
+
 export async function getPublicJobBySlug(slug: string) {
   const [row] = await db
-    .select()
+    .select({
+      job,
+      hirerName: user.name,
+      hirerCompany: marketplaceUserProfile.companyName,
+      hirerHeadline: marketplaceUserProfile.headline,
+    })
     .from(job)
-    .where(and(eq(job.slug, slug), eq(job.status, "open")))
+    .innerJoin(user, eq(user.id, job.hirerUserId))
+    .leftJoin(marketplaceUserProfile, eq(marketplaceUserProfile.userId, job.hirerUserId))
+    .where(and(eq(job.slug, slug), inArray(job.status, PUBLIC_JOB_STATUSES)))
     .limit(1);
 
   if (!row) {
     throw new JobNotFoundError();
   }
 
-  return serializeJob(row);
+  return serializePublicJob(row.job, {
+    name: row.hirerName,
+    companyName: row.hirerCompany,
+    headline: row.hirerHeadline,
+  });
 }

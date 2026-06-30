@@ -21,6 +21,7 @@ import {
   getHirerJobPublishReadiness,
   getPublicJobBySlug,
   listHirerJobs,
+  listPublicJobs,
   pauseHirerJob,
   publishHirerJob,
   resumeHirerJob,
@@ -151,6 +152,52 @@ export const jobRoutes = new Elysia({
     },
   )
   .get(
+    "/",
+    async ({ query, status }) => {
+      const result = await runPublicAction(() =>
+        listPublicJobs({
+          search: query.search,
+          category: query.category,
+          experienceLevel: query.experienceLevel,
+          budgetType: query.budgetType,
+          minBudget: query.minBudget,
+          maxBudget: query.maxBudget,
+          postedWithin: query.postedWithin,
+          remoteOnly: query.remoteOnly,
+          sort: query.sort,
+          page: query.page,
+          limit: query.limit,
+        }),
+      );
+      if (!result.ok) return status(result.status, result.body);
+      return result.data;
+    },
+    {
+      query: t.Object({
+        search: t.Optional(t.String()),
+        category: t.Optional(t.String()),
+        experienceLevel: t.Optional(
+          t.Union([t.Literal("entry"), t.Literal("intermediate"), t.Literal("expert")]),
+        ),
+        budgetType: t.Optional(t.Union([t.Literal("hourly"), t.Literal("one_time")])),
+        minBudget: t.Optional(t.String()),
+        maxBudget: t.Optional(t.String()),
+        postedWithin: t.Optional(
+          t.Union([t.Literal("24h"), t.Literal("7d"), t.Literal("30d")]),
+        ),
+        remoteOnly: t.Optional(t.Boolean()),
+        sort: t.Optional(t.Union([t.Literal("newest"), t.Literal("budget_high")])),
+        page: t.Optional(t.Numeric()),
+        limit: t.Optional(t.Numeric()),
+      }),
+      detail: {
+        summary: "Browse open jobs",
+        description:
+          "Public job feed for freelancers with search, category, budget, experience, and date filters.",
+      },
+    },
+  )
+  .get(
     "/public/:slug",
     async ({ params, status }) => {
       const result = await runPublicAction(() => getPublicJobBySlug(params.slug));
@@ -163,7 +210,7 @@ export const jobRoutes = new Elysia({
       }),
       detail: {
         summary: "Get published job by slug",
-        description: "Returns a single open job for public viewing.",
+        description: "Returns a single open or in-review job for public viewing.",
       },
     },
   );

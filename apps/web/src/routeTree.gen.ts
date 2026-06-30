@@ -30,6 +30,7 @@ import { Route as DashboardOnboardingRoleIndexRouteImport } from './routes/dashb
 import { Route as DashboardAdminVerificationsIndexRouteImport } from './routes/dashboard/admin/verifications/index'
 import { Route as DashboardHirerJobsNewRouteImport } from './routes/dashboard/hirer/jobs/new'
 import { Route as DashboardHirerJobsJobIdRouteImport } from './routes/dashboard/hirer/jobs/$jobId'
+import { Route as DashboardFreelancerJobsSlugRouteImport } from './routes/dashboard/freelancer/jobs/$slug'
 
 const SuccessRouteRoute = SuccessRouteRouteImport.update({
   id: '/success',
@@ -141,6 +142,12 @@ const DashboardHirerJobsJobIdRoute = DashboardHirerJobsJobIdRouteImport.update({
   path: '/jobs/$jobId',
   getParentRoute: () => DashboardHirerRouteRoute,
 } as any)
+const DashboardFreelancerJobsSlugRoute =
+  DashboardFreelancerJobsSlugRouteImport.update({
+    id: '/jobs/$slug',
+    path: '/jobs/$slug',
+    getParentRoute: () => DashboardFreelancerRouteRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -160,6 +167,7 @@ export interface FileRoutesByFullPath {
   '/dashboard/hirer/profile': typeof DashboardHirerProfileRoute
   '/dashboard/freelancer/': typeof DashboardFreelancerIndexRoute
   '/dashboard/hirer/': typeof DashboardHirerIndexRoute
+  '/dashboard/freelancer/jobs/$slug': typeof DashboardFreelancerJobsSlugRoute
   '/dashboard/hirer/jobs/$jobId': typeof DashboardHirerJobsJobIdRoute
   '/dashboard/hirer/jobs/new': typeof DashboardHirerJobsNewRoute
   '/dashboard/admin/verifications/': typeof DashboardAdminVerificationsIndexRoute
@@ -176,6 +184,7 @@ export interface FileRoutesByTo {
   '/dashboard/hirer/profile': typeof DashboardHirerProfileRoute
   '/dashboard/freelancer': typeof DashboardFreelancerIndexRoute
   '/dashboard/hirer': typeof DashboardHirerIndexRoute
+  '/dashboard/freelancer/jobs/$slug': typeof DashboardFreelancerJobsSlugRoute
   '/dashboard/hirer/jobs/$jobId': typeof DashboardHirerJobsJobIdRoute
   '/dashboard/hirer/jobs/new': typeof DashboardHirerJobsNewRoute
   '/dashboard/admin/verifications': typeof DashboardAdminVerificationsIndexRoute
@@ -200,6 +209,7 @@ export interface FileRoutesById {
   '/dashboard/hirer/profile': typeof DashboardHirerProfileRoute
   '/dashboard/freelancer/': typeof DashboardFreelancerIndexRoute
   '/dashboard/hirer/': typeof DashboardHirerIndexRoute
+  '/dashboard/freelancer/jobs/$slug': typeof DashboardFreelancerJobsSlugRoute
   '/dashboard/hirer/jobs/$jobId': typeof DashboardHirerJobsJobIdRoute
   '/dashboard/hirer/jobs/new': typeof DashboardHirerJobsNewRoute
   '/dashboard/admin/verifications/': typeof DashboardAdminVerificationsIndexRoute
@@ -225,6 +235,7 @@ export interface FileRouteTypes {
     | '/dashboard/hirer/profile'
     | '/dashboard/freelancer/'
     | '/dashboard/hirer/'
+    | '/dashboard/freelancer/jobs/$slug'
     | '/dashboard/hirer/jobs/$jobId'
     | '/dashboard/hirer/jobs/new'
     | '/dashboard/admin/verifications/'
@@ -241,6 +252,7 @@ export interface FileRouteTypes {
     | '/dashboard/hirer/profile'
     | '/dashboard/freelancer'
     | '/dashboard/hirer'
+    | '/dashboard/freelancer/jobs/$slug'
     | '/dashboard/hirer/jobs/$jobId'
     | '/dashboard/hirer/jobs/new'
     | '/dashboard/admin/verifications'
@@ -264,6 +276,7 @@ export interface FileRouteTypes {
     | '/dashboard/hirer/profile'
     | '/dashboard/freelancer/'
     | '/dashboard/hirer/'
+    | '/dashboard/freelancer/jobs/$slug'
     | '/dashboard/hirer/jobs/$jobId'
     | '/dashboard/hirer/jobs/new'
     | '/dashboard/admin/verifications/'
@@ -428,18 +441,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardHirerJobsJobIdRouteImport
       parentRoute: typeof DashboardHirerRouteRoute
     }
+    '/dashboard/freelancer/jobs/$slug': {
+      id: '/dashboard/freelancer/jobs/$slug'
+      path: '/jobs/$slug'
+      fullPath: '/dashboard/freelancer/jobs/$slug'
+      preLoaderRoute: typeof DashboardFreelancerJobsSlugRouteImport
+      parentRoute: typeof DashboardFreelancerRouteRoute
+    }
   }
 }
 
 interface DashboardFreelancerRouteRouteChildren {
   DashboardFreelancerProfileRoute: typeof DashboardFreelancerProfileRoute
   DashboardFreelancerIndexRoute: typeof DashboardFreelancerIndexRoute
+  DashboardFreelancerJobsSlugRoute: typeof DashboardFreelancerJobsSlugRoute
 }
 
 const DashboardFreelancerRouteRouteChildren: DashboardFreelancerRouteRouteChildren =
   {
     DashboardFreelancerProfileRoute: DashboardFreelancerProfileRoute,
     DashboardFreelancerIndexRoute: DashboardFreelancerIndexRoute,
+    DashboardFreelancerJobsSlugRoute: DashboardFreelancerJobsSlugRoute,
   }
 
 const DashboardFreelancerRouteRouteWithChildren =

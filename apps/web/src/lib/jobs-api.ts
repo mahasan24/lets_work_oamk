@@ -120,6 +120,39 @@ export type JobPublishReadiness = {
   status: JobStatus;
 };
 
+export type PublicJobHirer = {
+  displayName: string;
+  headline: string | null;
+};
+
+export type PublicJob = Omit<Job, "hirerUserId" | "attachments"> & {
+  hirer: PublicJobHirer;
+};
+
+export type PublicJobListResponse = {
+  items: PublicJob[];
+  pagination: {
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+  };
+};
+
+export type PublicJobBrowseQuery = {
+  search?: string;
+  category?: string;
+  experienceLevel?: ExperienceLevel;
+  budgetType?: BudgetType;
+  minBudget?: string;
+  maxBudget?: string;
+  postedWithin?: "24h" | "7d" | "30d";
+  remoteOnly?: boolean;
+  sort?: "newest" | "budget_high";
+  page?: number;
+  limit?: number;
+};
+
 export type JobReferenceData = {
   categories: readonly string[];
   currencies: readonly string[];
@@ -133,12 +166,11 @@ export type UploadSignature = {
   apiKey: string;
 };
 
-function buildQuery(params: Record<string, string | number | undefined>) {
+function buildQuery(params: Record<string, string | number | boolean | undefined>) {
   const search = new URLSearchParams();
   for (const [key, value] of Object.entries(params)) {
-    if (value !== undefined && value !== "") {
-      search.set(key, String(value));
-    }
+    if (value === undefined || value === "") continue;
+    search.set(key, String(value));
   }
   const query = search.toString();
   return query ? `?${query}` : "";
@@ -146,6 +178,25 @@ function buildQuery(params: Record<string, string | number | undefined>) {
 
 export const jobsApi = {
   getReferenceData: () => apiFetch<JobReferenceData>("/api/jobs/categories"),
+
+  browse: (query?: PublicJobBrowseQuery) =>
+    apiFetch<PublicJobListResponse>(
+      `/api/jobs${buildQuery({
+        search: query?.search,
+        category: query?.category,
+        experienceLevel: query?.experienceLevel,
+        budgetType: query?.budgetType,
+        minBudget: query?.minBudget,
+        maxBudget: query?.maxBudget,
+        postedWithin: query?.postedWithin,
+        remoteOnly: query?.remoteOnly,
+        sort: query?.sort,
+        page: query?.page,
+        limit: query?.limit,
+      })}`,
+    ),
+
+  getPublic: (slug: string) => apiFetch<PublicJob>(`/api/jobs/public/${slug}`),
 
   listMine: (query?: {
     status?: JobStatus;
