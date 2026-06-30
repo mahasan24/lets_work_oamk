@@ -1,7 +1,9 @@
 import { Link } from "@tanstack/react-router";
 
 import Logo from "@/components/marketing/logo";
+import { OnboardingBanner } from "@/components/dashboard/onboarding-banner";
 import UserMenu from "@/components/user-menu";
+import { shouldShowOnboardingBanner } from "@/lib/dashboard-paths";
 import { Route } from "@/routes/dashboard/freelancer/route";
 
 import FreelancerSidebar from "./freelancer-sidebar";
@@ -39,7 +41,12 @@ export default function FreelancerDashboardLayout({ children }: { children: Reac
 
       <div className="mx-auto grid w-full max-w-7xl flex-1 grid-cols-1 items-start gap-6 px-4 py-6 md:grid-cols-[280px_minmax(0,1fr)] md:px-6">
         <FreelancerSidebar profile={profile} />
-        <main className="min-w-0">{children}</main>
+        <main className="flex min-w-0 flex-col gap-4">
+          {profile && shouldShowOnboardingBanner(profile) ? (
+            <OnboardingBanner profile={profile} role="freelancer" />
+          ) : null}
+          {children}
+        </main>
       </div>
     </div>
   );

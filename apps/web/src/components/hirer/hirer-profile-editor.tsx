@@ -358,7 +358,7 @@ export default function HirerProfileEditor() {
               <SkillsTagsInput
                 value={jobCategories}
                 onChange={setJobCategories}
-                suggestions={JOB_CATEGORY_SUGGESTIONS}
+                suggestions={[...JOB_CATEGORY_SUGGESTIONS]}
                 placeholder="Type a category and press Enter"
               />
             </Field>

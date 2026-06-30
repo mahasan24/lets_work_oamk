@@ -1,7 +1,7 @@
 import { createFileRoute, Outlet, redirect } from "@tanstack/react-router";
 
 import { authClient } from "@/lib/auth-client";
-import { getDashboardHomePath } from "@/lib/dashboard-paths";
+import { getDashboardHomePath, getOnboardingRedirectPath } from "@/lib/dashboard-paths";
 import { profileApi } from "@/lib/profile-api";
 
 export const Route = createFileRoute("/dashboard")({
@@ -14,11 +14,9 @@ export const Route = createFileRoute("/dashboard")({
 
     const profile = await profileApi.getMe().catch(() => null);
 
-    if (
-      profile?.profile.onboardingStep === "role_selection" &&
-      !location.pathname.startsWith("/dashboard/onboarding")
-    ) {
-      redirect({ to: "/dashboard/onboarding/role", throw: true });
+    const onboardingRedirect = getOnboardingRedirectPath(profile, location.pathname);
+    if (onboardingRedirect) {
+      redirect({ to: onboardingRedirect, throw: true });
     }
 
     const isDashboardRoot =

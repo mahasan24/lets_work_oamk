@@ -18,3 +18,37 @@ export function getProfilePath(profile: ProfileBundle | null | undefined) {
     ? "/dashboard/hirer/profile"
     : "/dashboard/freelancer/profile";
 }
+
+const PROFILE_COMPLETE_THRESHOLD = 80;
+
+export function getOnboardingRedirectPath(
+  profile: ProfileBundle | null | undefined,
+  pathname: string,
+): string | null {
+  if (!profile) return null;
+
+  const step = profile.profile.onboardingStep;
+
+  if (step === "role_selection") {
+    return "/dashboard/onboarding/role";
+  }
+
+  if (step === "profile" && profile.profileCompletion < PROFILE_COMPLETE_THRESHOLD) {
+    const profilePath = getProfilePath(profile);
+    if (
+      !pathname.startsWith(profilePath) &&
+      !pathname.startsWith("/dashboard/onboarding") &&
+      !pathname.startsWith("/dashboard/admin")
+    ) {
+      return profilePath;
+    }
+  }
+
+  return null;
+}
+
+export function shouldShowOnboardingBanner(profile: ProfileBundle | null | undefined) {
+  if (!profile) return false;
+  const step = profile.profile.onboardingStep;
+  return step === "profile" || step === "verification";
+}

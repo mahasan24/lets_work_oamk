@@ -200,8 +200,8 @@ async function getOwnedJob(jobId: string, hirerUserId: string) {
 }
 
 function assertEditableStatus(status: JobStatus) {
-  if (status === "closed") {
-    throw new JobStatusError("Closed jobs cannot be edited");
+  if (status === "closed" || status === "filled" || status === "cancelled") {
+    throw new JobStatusError(`${status} jobs cannot be edited`);
   }
 }
 
@@ -361,11 +361,31 @@ export async function publishHirerJob(jobId: string, hirerUserId: string) {
   return serializeJob(updated);
 }
 
-export async function pauseHirerJob(jobId: string, hirerUserId: string) {
+export async function startReviewHirerJob(jobId: string, hirerUserId: string) {
   const existing = await getOwnedJob(jobId, hirerUserId);
 
   if (existing.status !== "open") {
-    throw new JobStatusError("Only open jobs can be paused");
+    throw new JobStatusError("Only open jobs can move to in review");
+  }
+
+  const [updated] = await db
+    .update(job)
+    .set({ status: "in_review" })
+    .where(eq(job.id, jobId))
+    .returning();
+
+  if (!updated) {
+    throw new Error("Failed to start job review");
+  }
+
+  return serializeJob(updated);
+}
+
+export async function pauseHirerJob(jobId: string, hirerUserId: string) {
+  const existing = await getOwnedJob(jobId, hirerUserId);
+
+  if (existing.status !== "open" && existing.status !== "in_review") {
+    throw new JobStatusError("Only open or in-review jobs can be paused");
   }
 
   const [updated] = await db
@@ -388,9 +408,12 @@ export async function resumeHirerJob(jobId: string, hirerUserId: string) {
     throw new JobStatusError("Only paused jobs can be resumed");
   }
 
+  const nextStatus: JobStatus =
+    existing.proposalsCount > 0 ? "in_review" : "open";
+
   const [updated] = await db
     .update(job)
-    .set({ status: "open" })
+    .set({ status: nextStatus })
     .where(eq(job.id, jobId))
     .returning();
 
@@ -404,8 +427,12 @@ export async function resumeHirerJob(jobId: string, hirerUserId: string) {
 export async function closeHirerJob(jobId: string, hirerUserId: string) {
   const existing = await getOwnedJob(jobId, hirerUserId);
 
-  if (existing.status !== "open" && existing.status !== "paused") {
-    throw new JobStatusError("Only open or paused jobs can be closed");
+  if (
+    existing.status !== "open" &&
+    existing.status !== "paused" &&
+    existing.status !== "in_review"
+  ) {
+    throw new JobStatusError("Only open, paused, or in-review jobs can be closed");
   }
 
   const [updated] = await db
@@ -416,6 +443,55 @@ export async function closeHirerJob(jobId: string, hirerUserId: string) {
 
   if (!updated) {
     throw new Error("Failed to close job");
+  }
+
+  return serializeJob(updated);
+}
+
+export async function fillHirerJob(jobId: string, hirerUserId: string) {
+  const existing = await getOwnedJob(jobId, hirerUserId);
+
+  if (
+    existing.status !== "open" &&
+    existing.status !== "paused" &&
+    existing.status !== "in_review"
+  ) {
+    throw new JobStatusError("Only open, paused, or in-review jobs can be marked as filled");
+  }
+
+  const [updated] = await db
+    .update(job)
+    .set({ status: "filled" })
+    .where(eq(job.id, jobId))
+    .returning();
+
+  if (!updated) {
+    throw new Error("Failed to mark job as filled");
+  }
+
+  return serializeJob(updated);
+}
+
+export async function cancelHirerJob(jobId: string, hirerUserId: string) {
+  const existing = await getOwnedJob(jobId, hirerUserId);
+
+  if (
+    existing.status !== "draft" &&
+    existing.status !== "open" &&
+    existing.status !== "paused" &&
+    existing.status !== "in_review"
+  ) {
+    throw new JobStatusError("This job cannot be cancelled");
+  }
+
+  const [updated] = await db
+    .update(job)
+    .set({ status: "cancelled" })
+    .where(eq(job.id, jobId))
+    .returning();
+
+  if (!updated) {
+    throw new Error("Failed to cancel job");
   }
 
   return serializeJob(updated);

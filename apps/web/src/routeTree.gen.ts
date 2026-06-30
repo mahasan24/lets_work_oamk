@@ -27,6 +27,7 @@ import { Route as DashboardFreelancerIndexRouteImport } from './routes/dashboard
 import { Route as DashboardHirerProfileRouteImport } from './routes/dashboard/hirer/profile'
 import { Route as DashboardFreelancerProfileRouteImport } from './routes/dashboard/freelancer/profile'
 import { Route as DashboardOnboardingRoleIndexRouteImport } from './routes/dashboard/onboarding/role/index'
+import { Route as DashboardAdminVerificationsIndexRouteImport } from './routes/dashboard/admin/verifications/index'
 import { Route as DashboardHirerJobsNewRouteImport } from './routes/dashboard/hirer/jobs/new'
 import { Route as DashboardHirerJobsJobIdRouteImport } from './routes/dashboard/hirer/jobs/$jobId'
 
@@ -124,6 +125,12 @@ const DashboardOnboardingRoleIndexRoute =
     path: '/onboarding/role/',
     getParentRoute: () => DashboardRouteRoute,
   } as any)
+const DashboardAdminVerificationsIndexRoute =
+  DashboardAdminVerificationsIndexRouteImport.update({
+    id: '/admin/verifications/',
+    path: '/admin/verifications/',
+    getParentRoute: () => DashboardRouteRoute,
+  } as any)
 const DashboardHirerJobsNewRoute = DashboardHirerJobsNewRouteImport.update({
   id: '/jobs/new',
   path: '/jobs/new',
@@ -155,6 +162,7 @@ export interface FileRoutesByFullPath {
   '/dashboard/hirer/': typeof DashboardHirerIndexRoute
   '/dashboard/hirer/jobs/$jobId': typeof DashboardHirerJobsJobIdRoute
   '/dashboard/hirer/jobs/new': typeof DashboardHirerJobsNewRoute
+  '/dashboard/admin/verifications/': typeof DashboardAdminVerificationsIndexRoute
   '/dashboard/onboarding/role/': typeof DashboardOnboardingRoleIndexRoute
 }
 export interface FileRoutesByTo {
@@ -170,6 +178,7 @@ export interface FileRoutesByTo {
   '/dashboard/hirer': typeof DashboardHirerIndexRoute
   '/dashboard/hirer/jobs/$jobId': typeof DashboardHirerJobsJobIdRoute
   '/dashboard/hirer/jobs/new': typeof DashboardHirerJobsNewRoute
+  '/dashboard/admin/verifications': typeof DashboardAdminVerificationsIndexRoute
   '/dashboard/onboarding/role': typeof DashboardOnboardingRoleIndexRoute
 }
 export interface FileRoutesById {
@@ -193,6 +202,7 @@ export interface FileRoutesById {
   '/dashboard/hirer/': typeof DashboardHirerIndexRoute
   '/dashboard/hirer/jobs/$jobId': typeof DashboardHirerJobsJobIdRoute
   '/dashboard/hirer/jobs/new': typeof DashboardHirerJobsNewRoute
+  '/dashboard/admin/verifications/': typeof DashboardAdminVerificationsIndexRoute
   '/dashboard/onboarding/role/': typeof DashboardOnboardingRoleIndexRoute
 }
 export interface FileRouteTypes {
@@ -217,6 +227,7 @@ export interface FileRouteTypes {
     | '/dashboard/hirer/'
     | '/dashboard/hirer/jobs/$jobId'
     | '/dashboard/hirer/jobs/new'
+    | '/dashboard/admin/verifications/'
     | '/dashboard/onboarding/role/'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -232,6 +243,7 @@ export interface FileRouteTypes {
     | '/dashboard/hirer'
     | '/dashboard/hirer/jobs/$jobId'
     | '/dashboard/hirer/jobs/new'
+    | '/dashboard/admin/verifications'
     | '/dashboard/onboarding/role'
   id:
     | '__root__'
@@ -254,6 +266,7 @@ export interface FileRouteTypes {
     | '/dashboard/hirer/'
     | '/dashboard/hirer/jobs/$jobId'
     | '/dashboard/hirer/jobs/new'
+    | '/dashboard/admin/verifications/'
     | '/dashboard/onboarding/role/'
   fileRoutesById: FileRoutesById
 }
@@ -394,6 +407,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardOnboardingRoleIndexRouteImport
       parentRoute: typeof DashboardRouteRoute
     }
+    '/dashboard/admin/verifications/': {
+      id: '/dashboard/admin/verifications/'
+      path: '/admin/verifications'
+      fullPath: '/dashboard/admin/verifications/'
+      preLoaderRoute: typeof DashboardAdminVerificationsIndexRouteImport
+      parentRoute: typeof DashboardRouteRoute
+    }
     '/dashboard/hirer/jobs/new': {
       id: '/dashboard/hirer/jobs/new'
       path: '/jobs/new'
@@ -448,6 +468,7 @@ interface DashboardRouteRouteChildren {
   DashboardFreelancerRouteRoute: typeof DashboardFreelancerRouteRouteWithChildren
   DashboardHirerRouteRoute: typeof DashboardHirerRouteRouteWithChildren
   DashboardIndexRoute: typeof DashboardIndexRoute
+  DashboardAdminVerificationsIndexRoute: typeof DashboardAdminVerificationsIndexRoute
   DashboardOnboardingRoleIndexRoute: typeof DashboardOnboardingRoleIndexRoute
 }
 
@@ -455,6 +476,7 @@ const DashboardRouteRouteChildren: DashboardRouteRouteChildren = {
   DashboardFreelancerRouteRoute: DashboardFreelancerRouteRouteWithChildren,
   DashboardHirerRouteRoute: DashboardHirerRouteRouteWithChildren,
   DashboardIndexRoute: DashboardIndexRoute,
+  DashboardAdminVerificationsIndexRoute: DashboardAdminVerificationsIndexRoute,
   DashboardOnboardingRoleIndexRoute: DashboardOnboardingRoleIndexRoute,
 }
 

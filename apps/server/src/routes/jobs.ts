@@ -1,3 +1,4 @@
+import { auth } from "@lets_work/auth";
 import { createUploadSignature } from "@lets_work/media";
 import { Elysia, t } from "elysia";
 
@@ -9,11 +10,13 @@ import {
   JobValidationError,
   requireHirerProfile,
 } from "../lib/hirer";
-import { JOB_CATEGORY_SUGGESTIONS, SUPPORTED_CURRENCIES } from "../lib/job-constants";
+import { JOB_CATEGORY_SUGGESTIONS, mergeJobCategories, SUPPORTED_CURRENCIES } from "../lib/job-constants";
 import {
+  cancelHirerJob,
   closeHirerJob,
   createHirerJob,
   deleteHirerJob,
+  fillHirerJob,
   getHirerJob,
   getHirerJobPublishReadiness,
   getPublicJobBySlug,
@@ -21,8 +24,10 @@ import {
   pauseHirerJob,
   publishHirerJob,
   resumeHirerJob,
+  startReviewHirerJob,
   updateHirerJob,
 } from "../lib/jobs";
+import { ensureProfile } from "../lib/profile";
 import { betterAuthPlugin } from "../plugins/auth";
 import { COOKIE_AUTH_SECURITY } from "../lib/openapi-tags";
 
@@ -119,15 +124,32 @@ export const jobRoutes = new Elysia({
     tags: ["Jobs"],
   },
 })
-  .get("/categories", () => ({
-    categories: JOB_CATEGORY_SUGGESTIONS,
-    currencies: SUPPORTED_CURRENCIES,
-  }), {
-    detail: {
-      summary: "List job categories and currencies",
-      description: "Reference data for job posting forms.",
+  .get(
+    "/categories",
+    async ({ request }) => {
+      const session = await auth.api.getSession({ headers: request.headers });
+      let categories: string[] = [...JOB_CATEGORY_SUGGESTIONS];
+
+      if (session?.user) {
+        const profile = await ensureProfile(session.user.id);
+        categories = mergeJobCategories(
+          Array.isArray(profile.jobCategories) ? profile.jobCategories : [],
+        );
+      }
+
+      return {
+        categories,
+        currencies: SUPPORTED_CURRENCIES,
+      };
     },
-  })
+    {
+      detail: {
+        summary: "List job categories and currencies",
+        description:
+          "Reference data for job posting forms. Merges hirer profile categories when authenticated.",
+      },
+    },
+  )
   .get(
     "/public/:slug",
     async ({ params, status }) => {
@@ -188,7 +210,10 @@ export const hirerJobRoutes = new Elysia({
           t.Union([
             t.Literal("draft"),
             t.Literal("open"),
+            t.Literal("in_review"),
+            t.Literal("filled"),
             t.Literal("closed"),
+            t.Literal("cancelled"),
             t.Literal("paused"),
           ]),
         ),
@@ -325,5 +350,46 @@ export const hirerJobRoutes = new Elysia({
       auth: true,
       params: t.Object({ id: t.String() }),
       detail: { summary: "Close job" },
+    },
+  )
+  .post(
+    "/:id/review",
+    async ({ user, params, status }) => {
+      const result = await runHirerAction(user.id, () =>
+        startReviewHirerJob(params.id, user.id),
+      );
+      if (!result.ok) return status(result.status, result.body);
+      return result.data;
+    },
+    {
+      auth: true,
+      params: t.Object({ id: t.String() }),
+      detail: { summary: "Start reviewing proposals", description: "Moves an open job to in review." },
+    },
+  )
+  .post(
+    "/:id/fill",
+    async ({ user, params, status }) => {
+      const result = await runHirerAction(user.id, () => fillHirerJob(params.id, user.id));
+      if (!result.ok) return status(result.status, result.body);
+      return result.data;
+    },
+    {
+      auth: true,
+      params: t.Object({ id: t.String() }),
+      detail: { summary: "Mark job as filled" },
+    },
+  )
+  .post(
+    "/:id/cancel",
+    async ({ user, params, status }) => {
+      const result = await runHirerAction(user.id, () => cancelHirerJob(params.id, user.id));
+      if (!result.ok) return status(result.status, result.body);
+      return result.data;
+    },
+    {
+      auth: true,
+      params: t.Object({ id: t.String() }),
+      detail: { summary: "Cancel job" },
     },
   );

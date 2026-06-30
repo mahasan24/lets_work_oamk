@@ -191,5 +191,12 @@ export const jobsApi = {
 
   close: (id: string) => apiFetch<Job>(`/api/hirer/jobs/${id}/close`, { method: "POST" }),
 
+  startReview: (id: string) =>
+    apiFetch<Job>(`/api/hirer/jobs/${id}/review`, { method: "POST" }),
+
+  fill: (id: string) => apiFetch<Job>(`/api/hirer/jobs/${id}/fill`, { method: "POST" }),
+
+  cancel: (id: string) => apiFetch<Job>(`/api/hirer/jobs/${id}/cancel`, { method: "POST" }),
+
   getUploadSignature: () => apiFetch<UploadSignature>("/api/hirer/jobs/uploads/sign"),
 };
