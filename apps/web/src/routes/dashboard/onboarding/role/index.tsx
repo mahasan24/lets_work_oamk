@@ -12,7 +12,7 @@ import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { toast } from "sonner";
 
-import { getDashboardHomePath } from "@/lib/dashboard-paths";
+import { getDashboardHomePath, getProfilePath } from "@/lib/dashboard-paths";
 import { profileApi } from "@/lib/profile-api";
 
 export const Route = createFileRoute("/dashboard/onboarding/role/")({
@@ -35,7 +35,7 @@ function RoleOnboardingPage() {
     setIsSubmitting(true);
     try {
       const bundle = await profileApi.initialize(accountType);
-      await navigate({ to: getDashboardHomePath(bundle) });
+      await navigate({ to: getProfilePath(bundle) });
       toast.success("Welcome! Let's set up your profile.");
     } catch {
       toast.error("Failed to save your account type");

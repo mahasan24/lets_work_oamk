@@ -49,6 +49,15 @@ export function JobActionsMenu({ job, onUpdated, onDeleted }: JobActionsMenuProp
     }
   };
 
+  const canPause = job.status === "open" || job.status === "in_review";
+  const canClose = canPause || job.status === "paused";
+  const canFill = canClose;
+  const canCancel =
+    job.status === "draft" ||
+    job.status === "open" ||
+    job.status === "paused" ||
+    job.status === "in_review";
+
   return (
     <DropdownMenu>
       <DropdownMenuTrigger
@@ -72,6 +81,13 @@ export function JobActionsMenu({ job, onUpdated, onDeleted }: JobActionsMenuProp
           </DropdownMenuItem>
         ) : null}
         {job.status === "open" ? (
+          <DropdownMenuItem
+            onClick={() => runAction(() => jobsApi.startReview(job.id), "Job moved to review")}
+          >
+            Start reviewing
+          </DropdownMenuItem>
+        ) : null}
+        {canPause ? (
           <DropdownMenuItem onClick={() => runAction(() => jobsApi.pause(job.id), "Job paused")}>
             Pause
           </DropdownMenuItem>
@@ -81,9 +97,22 @@ export function JobActionsMenu({ job, onUpdated, onDeleted }: JobActionsMenuProp
             Resume
           </DropdownMenuItem>
         ) : null}
-        {job.status === "open" || job.status === "paused" ? (
+        {canFill ? (
+          <DropdownMenuItem onClick={() => runAction(() => jobsApi.fill(job.id), "Job marked as filled")}>
+            Mark as filled
+          </DropdownMenuItem>
+        ) : null}
+        {canClose ? (
           <DropdownMenuItem onClick={() => runAction(() => jobsApi.close(job.id), "Job closed")}>
             Close job
+          </DropdownMenuItem>
+        ) : null}
+        {canCancel ? (
+          <DropdownMenuItem
+            variant="destructive"
+            onClick={() => runAction(() => jobsApi.cancel(job.id), "Job cancelled")}
+          >
+            Cancel job
           </DropdownMenuItem>
         ) : null}
         {job.status === "draft" ? (

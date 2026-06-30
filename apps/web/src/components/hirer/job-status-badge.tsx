@@ -6,8 +6,11 @@ import { getJobStatusLabel, type JobStatus } from "@/lib/job-options";
 const STATUS_VARIANT: Record<JobStatus, "default" | "secondary" | "outline" | "destructive"> = {
   draft: "secondary",
   open: "default",
+  in_review: "default",
   paused: "outline",
+  filled: "secondary",
   closed: "destructive",
+  cancelled: "destructive",
 };
 
 type JobStatusBadgeProps = {

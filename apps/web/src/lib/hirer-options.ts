@@ -19,7 +19,20 @@ export const JOB_CATEGORY_SUGGESTIONS = [
   "Architecture",
   "Engineering",
   "Product Management",
-];
+] as const;
+
+export function mergeJobCategorySuggestions(profileCategories?: string[] | null) {
+  const merged = new Set<string>(JOB_CATEGORY_SUGGESTIONS);
+
+  if (Array.isArray(profileCategories)) {
+    for (const category of profileCategories) {
+      const trimmed = category?.trim();
+      if (trimmed) merged.add(trimmed);
+    }
+  }
+
+  return [...merged].sort((a, b) => a.localeCompare(b));
+}
 
 export const COMPANY_SIZE_OPTIONS = [
   { value: "1", label: "Just me" },

@@ -18,11 +18,25 @@ export const ESTIMATED_DURATION_OPTIONS = [
   { value: "more_than_six_months", label: "More than 6 months" },
 ] as const;
 
+export const POSTED_WITHIN_OPTIONS = [
+  { value: "24h", label: "Last 24 hours" },
+  { value: "7d", label: "Last 7 days" },
+  { value: "30d", label: "Last 30 days" },
+] as const;
+
+export const JOB_SORT_OPTIONS = [
+  { value: "newest", label: "Newest" },
+  { value: "budget_high", label: "Highest budget" },
+] as const;
+
 export const JOB_STATUS_OPTIONS = [
   { value: "draft", label: "Draft" },
   { value: "open", label: "Open" },
+  { value: "in_review", label: "In review" },
   { value: "paused", label: "Paused" },
+  { value: "filled", label: "Filled" },
   { value: "closed", label: "Closed" },
+  { value: "cancelled", label: "Cancelled" },
 ] as const;
 
 export type JobStatus = (typeof JOB_STATUS_OPTIONS)[number]["value"];

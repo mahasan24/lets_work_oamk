@@ -4,6 +4,7 @@ import { env } from "@lets_work/env/server";
 import { Elysia } from "elysia";
 
 import { openapiPlugin } from "./plugins/openapi";
+import { adminRoutes } from "./routes/admin";
 import { profileRoutes } from "./routes/profile";
 import { hirerJobRoutes, jobRoutes } from "./routes/jobs";
 
@@ -37,6 +38,7 @@ new Elysia()
   .use(profileRoutes)
   .use(jobRoutes)
   .use(hirerJobRoutes)
+  .use(adminRoutes)
   .get("/", () => "OK", {
     detail: {
       tags: ["Health"],

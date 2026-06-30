@@ -28,7 +28,7 @@ import { toast } from "sonner";
 import { SearchableCombobox } from "@/components/dashboard/searchable-combobox";
 import { SkillsTagsInput } from "@/components/dashboard/skills-tags-input";
 import { uploadJobAttachment } from "@/lib/cloudinary-upload";
-import { JOB_CATEGORY_SUGGESTIONS } from "@/lib/hirer-options";
+import { mergeJobCategorySuggestions } from "@/lib/hirer-options";
 import { JOB_SKILL_SUGGESTIONS } from "@/lib/job-skill-suggestions";
 import {
   BUDGET_TYPE_OPTIONS,
@@ -179,8 +179,10 @@ export default function JobFormWizard({ jobId }: JobFormWizardProps) {
   const [isPublishing, setIsPublishing] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [readiness, setReadiness] = useState<JobPublishReadiness | null>(null);
+  const [categoryOptions, setCategoryOptions] = useState<string[]>([]);
 
-  const isReadOnly = job?.status === "closed";
+  const isReadOnly =
+    job?.status === "closed" || job?.status === "filled" || job?.status === "cancelled";
 
   const loadJob = async () => {
     setIsLoading(true);
@@ -198,6 +200,13 @@ export default function JobFormWizard({ jobId }: JobFormWizardProps) {
   useEffect(() => {
     void loadJob();
   }, [jobId]);
+
+  useEffect(() => {
+    jobsApi
+      .getReferenceData()
+      .then((data) => setCategoryOptions([...data.categories]))
+      .catch(() => setCategoryOptions([...mergeJobCategorySuggestions()]));
+  }, []);
 
   useEffect(() => {
     if (step !== 4 || !jobId) return;
@@ -367,7 +376,7 @@ export default function JobFormWizard({ jobId }: JobFormWizardProps) {
                 <SearchableCombobox
                   value={form.category}
                   onValueChange={(value) => updateForm("category", value)}
-                  options={JOB_CATEGORY_SUGGESTIONS.map((item) => ({ value: item, label: item }))}
+                  options={categoryOptions.map((item) => ({ value: item, label: item }))}
                   placeholder="Select a category"
                   disabled={isReadOnly}
                 />
@@ -575,7 +584,7 @@ export default function JobFormWizard({ jobId }: JobFormWizardProps) {
                 <SkillsTagsInput
                   value={form.tags}
                   onChange={(tags) => updateForm("tags", tags)}
-                  suggestions={JOB_CATEGORY_SUGGESTIONS}
+                  suggestions={categoryOptions}
                   placeholder="Search or type a tag"
                   helperText="Optional tags to help freelancers discover this job."
                   maxSuggestions={10}

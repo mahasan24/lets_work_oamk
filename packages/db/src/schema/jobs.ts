@@ -21,7 +21,10 @@ export const jobBudgetTypeEnum = pgEnum("job_budget_type", [
 export const jobStatusEnum = pgEnum("job_status", [
   "draft",
   "open",
+  "in_review",
+  "filled",
   "closed",
+  "cancelled",
   "paused",
 ]);
 

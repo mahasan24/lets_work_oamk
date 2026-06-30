@@ -6,6 +6,8 @@ import { portfolioItem, workHistory } from "@lets_work/db/schema/portfolio";
 import { userVerification } from "@lets_work/db/schema/verification";
 import { and, eq } from "drizzle-orm";
 
+const PROFILE_COMPLETE_THRESHOLD = 80;
+
 type ProfileBundle = {
   user: { id: string; name: string; email: string; image: string | null };
   profile: typeof marketplaceUserProfile.$inferSelect;
@@ -121,6 +123,28 @@ export function calculateProfileCompletion(data: {
   });
 }
 
+function resolveOnboardingStep(
+  profile: typeof marketplaceUserProfile.$inferSelect,
+  verifications: (typeof userVerification.$inferSelect)[],
+  profileCompletion: number,
+) {
+  if (profile.onboardingStep === "role_selection") {
+    return "role_selection" as const;
+  }
+
+  const identity = verifications.find((item) => item.type === "identity");
+
+  if (profileCompletion < PROFILE_COMPLETE_THRESHOLD) {
+    return "profile" as const;
+  }
+
+  if (identity?.status === "verified") {
+    return "complete" as const;
+  }
+
+  return "verification" as const;
+}
+
 export async function getProfileBundle(userId: string): Promise<ProfileBundle> {
   const [dbUser] = await db.select().from(user).where(eq(user.id, userId)).limit(1);
 
@@ -158,10 +182,7 @@ export async function getProfileBundle(userId: string): Promise<ProfileBundle> {
       .where(eq(marketplaceUserProfile.userId, userId));
   }
 
-  const onboardingStep =
-    profileCompletion >= 100 && profile.onboardingStep !== "complete"
-      ? "complete"
-      : profile.onboardingStep;
+  const onboardingStep = resolveOnboardingStep(profile, verifications, profileCompletion);
 
   if (onboardingStep !== profile.onboardingStep) {
     await db
