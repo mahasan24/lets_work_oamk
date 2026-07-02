@@ -31,6 +31,7 @@ import { Route as DashboardAdminVerificationsIndexRouteImport } from './routes/d
 import { Route as DashboardHirerJobsNewRouteImport } from './routes/dashboard/hirer/jobs/new'
 import { Route as DashboardHirerJobsJobIdRouteImport } from './routes/dashboard/hirer/jobs/$jobId'
 import { Route as DashboardFreelancerJobsSlugRouteImport } from './routes/dashboard/freelancer/jobs/$slug'
+import { Route as DashboardHirerJobsJobIdProposalsRouteImport } from './routes/dashboard/hirer/jobs/$jobId.proposals'
 
 const SuccessRouteRoute = SuccessRouteRouteImport.update({
   id: '/success',
@@ -148,6 +149,12 @@ const DashboardFreelancerJobsSlugRoute =
     path: '/jobs/$slug',
     getParentRoute: () => DashboardFreelancerRouteRoute,
   } as any)
+const DashboardHirerJobsJobIdProposalsRoute =
+  DashboardHirerJobsJobIdProposalsRouteImport.update({
+    id: '/proposals',
+    path: '/proposals',
+    getParentRoute: () => DashboardHirerJobsJobIdRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -168,10 +175,11 @@ export interface FileRoutesByFullPath {
   '/dashboard/freelancer/': typeof DashboardFreelancerIndexRoute
   '/dashboard/hirer/': typeof DashboardHirerIndexRoute
   '/dashboard/freelancer/jobs/$slug': typeof DashboardFreelancerJobsSlugRoute
-  '/dashboard/hirer/jobs/$jobId': typeof DashboardHirerJobsJobIdRoute
+  '/dashboard/hirer/jobs/$jobId': typeof DashboardHirerJobsJobIdRouteWithChildren
   '/dashboard/hirer/jobs/new': typeof DashboardHirerJobsNewRoute
   '/dashboard/admin/verifications/': typeof DashboardAdminVerificationsIndexRoute
   '/dashboard/onboarding/role/': typeof DashboardOnboardingRoleIndexRoute
+  '/dashboard/hirer/jobs/$jobId/proposals': typeof DashboardHirerJobsJobIdProposalsRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -185,10 +193,11 @@ export interface FileRoutesByTo {
   '/dashboard/freelancer': typeof DashboardFreelancerIndexRoute
   '/dashboard/hirer': typeof DashboardHirerIndexRoute
   '/dashboard/freelancer/jobs/$slug': typeof DashboardFreelancerJobsSlugRoute
-  '/dashboard/hirer/jobs/$jobId': typeof DashboardHirerJobsJobIdRoute
+  '/dashboard/hirer/jobs/$jobId': typeof DashboardHirerJobsJobIdRouteWithChildren
   '/dashboard/hirer/jobs/new': typeof DashboardHirerJobsNewRoute
   '/dashboard/admin/verifications': typeof DashboardAdminVerificationsIndexRoute
   '/dashboard/onboarding/role': typeof DashboardOnboardingRoleIndexRoute
+  '/dashboard/hirer/jobs/$jobId/proposals': typeof DashboardHirerJobsJobIdProposalsRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -210,10 +219,11 @@ export interface FileRoutesById {
   '/dashboard/freelancer/': typeof DashboardFreelancerIndexRoute
   '/dashboard/hirer/': typeof DashboardHirerIndexRoute
   '/dashboard/freelancer/jobs/$slug': typeof DashboardFreelancerJobsSlugRoute
-  '/dashboard/hirer/jobs/$jobId': typeof DashboardHirerJobsJobIdRoute
+  '/dashboard/hirer/jobs/$jobId': typeof DashboardHirerJobsJobIdRouteWithChildren
   '/dashboard/hirer/jobs/new': typeof DashboardHirerJobsNewRoute
   '/dashboard/admin/verifications/': typeof DashboardAdminVerificationsIndexRoute
   '/dashboard/onboarding/role/': typeof DashboardOnboardingRoleIndexRoute
+  '/dashboard/hirer/jobs/$jobId/proposals': typeof DashboardHirerJobsJobIdProposalsRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -240,6 +250,7 @@ export interface FileRouteTypes {
     | '/dashboard/hirer/jobs/new'
     | '/dashboard/admin/verifications/'
     | '/dashboard/onboarding/role/'
+    | '/dashboard/hirer/jobs/$jobId/proposals'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -257,6 +268,7 @@ export interface FileRouteTypes {
     | '/dashboard/hirer/jobs/new'
     | '/dashboard/admin/verifications'
     | '/dashboard/onboarding/role'
+    | '/dashboard/hirer/jobs/$jobId/proposals'
   id:
     | '__root__'
     | '/'
@@ -281,6 +293,7 @@ export interface FileRouteTypes {
     | '/dashboard/hirer/jobs/new'
     | '/dashboard/admin/verifications/'
     | '/dashboard/onboarding/role/'
+    | '/dashboard/hirer/jobs/$jobId/proposals'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -448,6 +461,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardFreelancerJobsSlugRouteImport
       parentRoute: typeof DashboardFreelancerRouteRoute
     }
+    '/dashboard/hirer/jobs/$jobId/proposals': {
+      id: '/dashboard/hirer/jobs/$jobId/proposals'
+      path: '/proposals'
+      fullPath: '/dashboard/hirer/jobs/$jobId/proposals'
+      preLoaderRoute: typeof DashboardHirerJobsJobIdProposalsRouteImport
+      parentRoute: typeof DashboardHirerJobsJobIdRoute
+    }
   }
 }
 
@@ -469,17 +489,32 @@ const DashboardFreelancerRouteRouteWithChildren =
     DashboardFreelancerRouteRouteChildren,
   )
 
+interface DashboardHirerJobsJobIdRouteChildren {
+  DashboardHirerJobsJobIdProposalsRoute: typeof DashboardHirerJobsJobIdProposalsRoute
+}
+
+const DashboardHirerJobsJobIdRouteChildren: DashboardHirerJobsJobIdRouteChildren =
+  {
+    DashboardHirerJobsJobIdProposalsRoute:
+      DashboardHirerJobsJobIdProposalsRoute,
+  }
+
+const DashboardHirerJobsJobIdRouteWithChildren =
+  DashboardHirerJobsJobIdRoute._addFileChildren(
+    DashboardHirerJobsJobIdRouteChildren,
+  )
+
 interface DashboardHirerRouteRouteChildren {
   DashboardHirerProfileRoute: typeof DashboardHirerProfileRoute
   DashboardHirerIndexRoute: typeof DashboardHirerIndexRoute
-  DashboardHirerJobsJobIdRoute: typeof DashboardHirerJobsJobIdRoute
+  DashboardHirerJobsJobIdRoute: typeof DashboardHirerJobsJobIdRouteWithChildren
   DashboardHirerJobsNewRoute: typeof DashboardHirerJobsNewRoute
 }
 
 const DashboardHirerRouteRouteChildren: DashboardHirerRouteRouteChildren = {
   DashboardHirerProfileRoute: DashboardHirerProfileRoute,
   DashboardHirerIndexRoute: DashboardHirerIndexRoute,
-  DashboardHirerJobsJobIdRoute: DashboardHirerJobsJobIdRoute,
+  DashboardHirerJobsJobIdRoute: DashboardHirerJobsJobIdRouteWithChildren,
   DashboardHirerJobsNewRoute: DashboardHirerJobsNewRoute,
 }
 

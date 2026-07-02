@@ -126,3 +126,86 @@ export function getProposalStatusLabel(status: ProposalStatus) {
       return status;
   }
 }
+
+export const PROPOSAL_STATUS_FILTER_OPTIONS = [
+  { value: "all", label: "All" },
+  { value: "submitted", label: "Submitted" },
+  { value: "shortlisted", label: "Shortlisted" },
+  { value: "accepted", label: "Accepted" },
+  { value: "rejected", label: "Rejected" },
+  { value: "withdrawn", label: "Withdrawn" },
+] as const;
+
+export const PROPOSAL_SORT_OPTIONS = [
+  { value: "newest", label: "Newest" },
+  { value: "rate_low", label: "Lowest bid" },
+  { value: "rate_high", label: "Highest bid" },
+] as const;
+
+export type HirerProposalFreelancer = {
+  id: string;
+  name: string;
+  image: string | null;
+  headline: string | null;
+  country: string | null;
+  city: string | null;
+  skills: string[];
+  profileCompletion: number;
+  hourlyRate: string | null;
+  avgRating: string | null;
+  reviewCount: number;
+  jobsCompleted: number;
+};
+
+export type HirerProposal = Proposal & {
+  job: {
+    id: string;
+    title: string;
+    budgetType: "hourly" | "one_time";
+    currency: string;
+  };
+  freelancer: HirerProposalFreelancer;
+};
+
+export type HirerProposalListResponse = {
+  job: {
+    id: string;
+    title: string;
+    status: string;
+    proposalsCount: number;
+    budgetType: "hourly" | "one_time";
+    currency: string;
+  };
+  items: HirerProposal[];
+  meta: {
+    total: number;
+    statusCounts: Partial<Record<ProposalStatus, number>>;
+  };
+};
+
+export type HirerProposalBrowseQuery = {
+  status?: Exclude<ProposalStatus, "draft">;
+  sort?: "newest" | "rate_low" | "rate_high";
+};
+
+function buildQuery(params: Record<string, string | number | boolean | undefined>) {
+  const search = new URLSearchParams();
+  for (const [key, value] of Object.entries(params)) {
+    if (value === undefined || value === "") continue;
+    search.set(key, String(value));
+  }
+  const query = search.toString();
+  return query ? `?${query}` : "";
+}
+
+export const hirerProposalsApi = {
+  listForJob: (jobId: string, query?: HirerProposalBrowseQuery) =>
+    apiFetch<HirerProposalListResponse>(
+      `/api/hirer/jobs/${jobId}/proposals${buildQuery({
+        status: query?.status,
+        sort: query?.sort,
+      })}`,
+    ),
+
+  get: (proposalId: string) => apiFetch<HirerProposal>(`/api/hirer/proposals/${proposalId}`),
+};

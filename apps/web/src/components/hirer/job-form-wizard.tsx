@@ -312,6 +312,15 @@ export default function JobFormWizard({ jobId }: JobFormWizardProps) {
               ? "This job is closed and can no longer be edited."
               : "Complete each step, save your draft, and publish when ready."}
           </p>
+          {job.proposalsCount > 0 ? (
+            <Link
+              to="/dashboard/hirer/jobs/$jobId/proposals"
+              params={{ jobId }}
+              className="text-sm font-medium text-primary hover:underline"
+            >
+              View {job.proposalsCount} proposal{job.proposalsCount === 1 ? "" : "s"}
+            </Link>
+          ) : null}
         </div>
         {!isReadOnly ? <JobActionsMenu job={job} onUpdated={(updated) => {
           setJob(updated);
