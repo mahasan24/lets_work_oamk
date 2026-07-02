@@ -7,6 +7,7 @@ import { openapiPlugin } from "./plugins/openapi";
 import { adminRoutes } from "./routes/admin";
 import { profileRoutes } from "./routes/profile";
 import { hirerJobRoutes, jobRoutes } from "./routes/jobs";
+import { freelancerProposalRoutes } from "./routes/proposals";
 
 new Elysia()
   .use(
@@ -38,6 +39,7 @@ new Elysia()
   .use(profileRoutes)
   .use(jobRoutes)
   .use(hirerJobRoutes)
+  .use(freelancerProposalRoutes)
   .use(adminRoutes)
   .get("/", () => "OK", {
     detail: {

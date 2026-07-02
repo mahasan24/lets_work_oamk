@@ -8,6 +8,13 @@
       "when": 1782829607580,
       "tag": "0000_parched_daredevil",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1782988983496,
+      "tag": "0001_tiny_bucky",
+      "breakpoints": true
     }
   ]
 }
