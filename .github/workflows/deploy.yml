@@ -32,5 +32,4 @@ jobs:
               echo "Missing /opt/lets_work/.env.production on the VPS"
               exit 1
             fi
-            chmod +x deploy/deploy.sh
             ./deploy/deploy.sh
