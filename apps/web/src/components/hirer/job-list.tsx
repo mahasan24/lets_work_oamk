@@ -164,8 +164,19 @@ export function JobList({ showHeader = true }: JobListProps) {
                     params={{ jobId: job.id }}
                     className={cn(buttonVariants({ variant: "outline", size: "sm" }))}
                   >
-                    {job.status === "closed" ? "View" : "Edit"}
+                    {job.status === "closed" || job.status === "filled" || job.status === "cancelled"
+                      ? "View"
+                      : "Edit"}
                   </Link>
+                  {job.proposalsCount > 0 ? (
+                    <Link
+                      to="/dashboard/hirer/jobs/$jobId/proposals"
+                      params={{ jobId: job.id }}
+                      className={cn(buttonVariants({ variant: "outline", size: "sm" }))}
+                    >
+                      Proposals ({job.proposalsCount})
+                    </Link>
+                  ) : null}
                   {job.status === "draft" ? (
                     <Button
                       size="sm"

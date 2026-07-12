@@ -73,4 +73,16 @@ export async function uploadJobAttachment(file: File) {
   };
 }
 
+export async function uploadProposalAttachment(file: File) {
+  const { proposalsApi } = await import("./proposals-api");
+  const signature = await proposalsApi.getUploadSignature();
+  const url = await uploadWithSignature(file, signature);
+  return {
+    id: crypto.randomUUID(),
+    url,
+    fileName: file.name,
+    mimeType: file.type || null,
+  };
+}
+
 export type { UploadSignature };

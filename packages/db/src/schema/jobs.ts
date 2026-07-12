@@ -118,6 +118,8 @@ export const proposal = pgTable(
       .references(() => user.id, { onDelete: "cascade" }),
     coverLetter: text("cover_letter").notNull(),
     proposedRate: numeric("proposed_rate", { precision: 12, scale: 2 }),
+    estimatedDuration: jobDurationEnum("estimated_duration"),
+    attachments: jsonb("attachments").$type<JobAttachment[]>(),
     status: proposalStatusEnum("status").default("draft").notNull(),
     submittedAt: timestamp("submitted_at"),
     createdAt: timestamp("created_at").defaultNow().notNull(),

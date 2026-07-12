@@ -13,7 +13,8 @@ export type UploadFolder =
   | "portfolio"
   | "certifications"
   | "videos"
-  | "job-attachments";
+  | "job-attachments"
+  | "proposal-attachments";
 
 export function createUploadSignature(folder: UploadFolder) {
   const timestamp = Math.round(Date.now() / 1000);

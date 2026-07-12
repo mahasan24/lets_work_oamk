@@ -4,9 +4,10 @@ import { Card, CardContent, CardHeader, CardTitle } from "@lets_work/ui/componen
 import { Separator } from "@lets_work/ui/components/separator";
 import { cn } from "@lets_work/ui/lib/utils";
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
 
+import { ProposalForm } from "@/components/freelancer/proposal-form";
 import {
   getDurationLabel,
   getExperienceLevelLabel,
@@ -25,14 +26,22 @@ function FreelancerJobDetailPage() {
   const [job, setJob] = useState<PublicJob | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  useEffect(() => {
+  const loadJob = useCallback(async () => {
     setIsLoading(true);
-    jobsApi
-      .getPublic(slug)
-      .then(setJob)
-      .catch(() => toast.error("Job not found"))
-      .finally(() => setIsLoading(false));
+    try {
+      const loaded = await jobsApi.getPublic(slug);
+      setJob(loaded);
+    } catch {
+      toast.error("Job not found");
+      setJob(null);
+    } finally {
+      setIsLoading(false);
+    }
   }, [slug]);
+
+  useEffect(() => {
+    void loadJob();
+  }, [loadJob]);
 
   if (isLoading) {
     return <p className="text-sm text-muted-foreground">Loading job...</p>;
@@ -149,12 +158,7 @@ function FreelancerJobDetailPage() {
 
       <Separator />
 
-      <div className="flex flex-wrap gap-3">
-        <Button disabled>Submit proposal</Button>
-        <p className="text-sm text-muted-foreground self-center">
-          Proposal submission coming in the next sprint.
-        </p>
-      </div>
+      <ProposalForm job={job} onSubmitted={() => void loadJob()} />
     </div>
   );
 }
