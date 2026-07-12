@@ -1,0 +1,28 @@
+# Production API — Bun monorepo
+FROM oven/bun:1.3.3-alpine
+WORKDIR /app
+
+ENV NODE_ENV=production
+
+COPY package.json bun.lock turbo.json ./
+COPY apps/server/package.json ./apps/server/
+COPY apps/web/package.json ./apps/web/
+COPY packages/auth/package.json ./packages/auth/
+COPY packages/config/package.json ./packages/config/
+COPY packages/db/package.json ./packages/db/
+COPY packages/env/package.json ./packages/env/
+COPY packages/media/package.json ./packages/media/
+COPY packages/ui/package.json ./packages/ui/
+
+RUN bun install --frozen-lockfile
+
+COPY apps/server ./apps/server
+COPY packages ./packages
+
+EXPOSE 3000
+
+HEALTHCHECK --interval=30s --timeout=5s --start-period=25s --retries=3 \
+  CMD bun -e "fetch('http://127.0.0.1:3000/').then((r)=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"
+
+WORKDIR /app/apps/server
+CMD ["bun", "run", "src/index.ts"]

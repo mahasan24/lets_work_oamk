@@ -1,0 +1,22 @@
+# Dependencies and build artifacts
+node_modules
+**/node_modules
+.turbo
+**/.turbo
+dist
+**/dist
+.git
+.github
+.agents
+*.md
+!README.md
+.env
+.env.*
+!.env.production.example
+apps/server/.env
+apps/web/.env
+backlog.md
+coverage
+.DS_Store
+**/*.log
+apps/web/.tanstack

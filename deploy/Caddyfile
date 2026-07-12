@@ -1,0 +1,25 @@
+{$DOMAIN:letswork.dev}, www.{$DOMAIN:letswork.dev} {
+	encode gzip
+
+	# API + Better Auth (same origin for cookies)
+	handle /api/* {
+		reverse_proxy api:3000
+	}
+
+	# OpenAPI docs (optional)
+	handle /openapi* {
+		reverse_proxy api:3000
+	}
+
+	# SPA
+	handle {
+		reverse_proxy web:80
+	}
+
+	header {
+		# Security headers
+		X-Content-Type-Options nosniff
+		Referrer-Policy strict-origin-when-cross-origin
+		-Server
+	}
+}

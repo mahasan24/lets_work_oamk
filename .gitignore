@@ -11,6 +11,8 @@ build
 # Environment variables
 .env
 .env*.local
+.env.production
+!.env.production.example
 backlog.md
 
 # IDEs and editors
@@ -50,3 +52,4 @@ coverage
 .cache
 tmp
 temp
+DEPLOY.md
