@@ -16,6 +16,9 @@ if [[ ! -f "$ENV_FILE" ]]; then
   exit 1
 fi
 
+# Avoid "dubious ownership" when the repo was cloned as root but deploy runs as another user
+git config --global --add safe.directory "$ROOT_DIR" 2>/dev/null || true
+
 echo "==> Pulling latest main"
 git fetch origin main
 git checkout main

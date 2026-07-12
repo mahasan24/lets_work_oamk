@@ -28,8 +28,10 @@ jobs:
           script: |
             set -euo pipefail
             cd /opt/lets_work
+            git config --global --add safe.directory /opt/lets_work
             if [ ! -f .env.production ]; then
               echo "Missing /opt/lets_work/.env.production on the VPS"
               exit 1
             fi
+            chmod +x deploy/deploy.sh
             ./deploy/deploy.sh
