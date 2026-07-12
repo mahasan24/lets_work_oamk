@@ -3,6 +3,8 @@ import { defineConfig } from "drizzle-kit";
 
 dotenv.config({
   path: "../../apps/server/.env",
+  // Do not override env vars already set (e.g. Docker Compose).
+  override: false,
 });
 
 export default defineConfig({
