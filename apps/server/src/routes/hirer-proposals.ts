@@ -46,10 +46,11 @@ export const hirerProposalRoutes = new Elysia({
 })
   .use(betterAuthPlugin)
   .get(
-    "/jobs/:jobId/proposals",
+    // Param must be `:id` (same name as `/api/hirer/jobs/:id` in job routes)
+    "/jobs/:id/proposals",
     async ({ user, params, query, status }) => {
       const result = await runHirerProposalAction(user.id, () =>
-        listHirerJobProposals(params.jobId, user.id, {
+        listHirerJobProposals(params.id, user.id, {
           status: query.status,
           sort: query.sort,
         }),
@@ -59,7 +60,7 @@ export const hirerProposalRoutes = new Elysia({
     },
     {
       auth: true,
-      params: t.Object({ jobId: t.String() }),
+      params: t.Object({ id: t.String() }),
       query: t.Object({
         status: t.Optional(
           t.Union([
