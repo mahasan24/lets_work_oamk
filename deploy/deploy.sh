@@ -27,23 +27,19 @@ git pull --ff-only origin main
 echo "==> Building and starting containers"
 docker compose -f "$COMPOSE_FILE" --env-file "$ENV_FILE" up -d --build --remove-orphans
 
-echo "==> Waiting for API health"
-for i in {1..30}; do
+echo "==> Waiting for API health (migrations run on container start)"
+for i in {1..45}; do
   if docker compose -f "$COMPOSE_FILE" --env-file "$ENV_FILE" exec -T api \
     bun -e "fetch('http://127.0.0.1:3000/').then((r)=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"; then
     break
   fi
-  if [[ "$i" -eq 30 ]]; then
+  if [[ "$i" -eq 45 ]]; then
     echo "API did not become healthy in time"
     docker compose -f "$COMPOSE_FILE" --env-file "$ENV_FILE" logs --tail=80 api
     exit 1
   fi
   sleep 2
 done
-
-echo "==> Running database migrations"
-docker compose -f "$COMPOSE_FILE" --env-file "$ENV_FILE" exec -T api \
-  bun --cwd /app/packages/db run db:migrate
 
 echo "==> Deploy complete"
 docker compose -f "$COMPOSE_FILE" --env-file "$ENV_FILE" ps
