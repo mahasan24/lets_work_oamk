@@ -3,6 +3,14 @@ import { Badge } from "@lets_work/ui/components/badge";
 import { Button, buttonVariants } from "@lets_work/ui/components/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@lets_work/ui/components/card";
 import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@lets_work/ui/components/dialog";
+import {
   Select,
   SelectContent,
   SelectGroup,
@@ -11,10 +19,11 @@ import {
 } from "@lets_work/ui/components/select";
 import { Skeleton } from "@lets_work/ui/components/skeleton";
 import { Tabs, TabsList, TabsTrigger } from "@lets_work/ui/components/tabs";
+import { Textarea } from "@lets_work/ui/components/textarea";
 import { cn } from "@lets_work/ui/lib/utils";
 import { Link } from "@tanstack/react-router";
 import { FileIcon } from "lucide-react";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState, useTransition } from "react";
 import { toast } from "sonner";
 
 import { getDurationLabel } from "@/lib/job-options";
@@ -22,6 +31,7 @@ import { formatRelativeJobDate } from "@/lib/job-utils";
 import {
   getProposalStatusLabel,
   hirerProposalsApi,
+  ProposalsApiError,
   PROPOSAL_SORT_OPTIONS,
   PROPOSAL_STATUS_FILTER_OPTIONS,
   type HirerProposal,
@@ -32,6 +42,7 @@ import { getCountryLabel } from "@/lib/profile-options";
 
 type StatusFilter = ProposalStatus | "all";
 type SortOption = "newest" | "rate_low" | "rate_high";
+type DialogMode = "message" | "hire" | null;
 
 type JobProposalsDashboardProps = {
   jobId: string;
@@ -59,6 +70,12 @@ function ProposalStatusBadge({ status }: { status: ProposalStatus }) {
   return <Badge variant={variant}>{getProposalStatusLabel(status)}</Badge>;
 }
 
+function actionErrorMessage(error: unknown, fallback: string) {
+  if (error instanceof ProposalsApiError) return error.message;
+  if (error instanceof Error) return error.message;
+  return fallback;
+}
+
 export function JobProposalsDashboard({ jobId }: JobProposalsDashboardProps) {
   const [data, setData] = useState<HirerProposalListResponse | null>(null);
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
@@ -66,6 +83,9 @@ export function JobProposalsDashboard({ jobId }: JobProposalsDashboardProps) {
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [compareId, setCompareId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [dialogMode, setDialogMode] = useState<DialogMode>(null);
+  const [messageBody, setMessageBody] = useState("");
+  const [isPending, startTransition] = useTransition();
 
   const loadProposals = useCallback(async () => {
     setIsLoading(true);
@@ -99,6 +119,10 @@ export function JobProposalsDashboard({ jobId }: JobProposalsDashboardProps) {
 
   const selected = data?.items.find((item) => item.id === selectedId) ?? null;
   const compare = data?.items.find((item) => item.id === compareId) ?? null;
+  const jobIsOpen =
+    data?.job.status === "open" ||
+    data?.job.status === "in_review" ||
+    data?.job.status === "paused";
 
   const toggleCompare = (id: string) => {
     if (compareId === id) {
@@ -107,6 +131,24 @@ export function JobProposalsDashboard({ jobId }: JobProposalsDashboardProps) {
     }
     if (selectedId === id) return;
     setCompareId(id);
+  };
+
+  const runAction = (
+    action: () => Promise<unknown>,
+    successMessage: string,
+    failureMessage: string,
+  ) => {
+    startTransition(async () => {
+      try {
+        await action();
+        toast.success(successMessage);
+        setDialogMode(null);
+        setMessageBody("");
+        await loadProposals();
+      } catch (error) {
+        toast.error(actionErrorMessage(error, failureMessage));
+      }
+    });
   };
 
   return (
@@ -126,7 +168,7 @@ export function JobProposalsDashboard({ jobId }: JobProposalsDashboardProps) {
           <p className="text-sm text-muted-foreground">
             {data
               ? `${data.meta.total} proposal${data.meta.total === 1 ? "" : "s"} to review`
-              : "Review and compare freelancer proposals"}
+              : "Review, shortlist, message, and hire freelancers"}
           </p>
         </div>
         <Link
@@ -249,13 +291,136 @@ export function JobProposalsDashboard({ jobId }: JobProposalsDashboardProps) {
           </div>
 
           <div className="flex flex-col gap-4">
-            {selected ? <ProposalDetailCard proposal={selected} /> : null}
-            {compare ? (
-              <ProposalDetailCard proposal={compare} title="Compare" />
+            {selected ? (
+              <ProposalDetailCard
+                proposal={selected}
+                jobIsOpen={jobIsOpen}
+                isPending={isPending}
+                onShortlist={() =>
+                  runAction(
+                    () => hirerProposalsApi.shortlist(selected.id),
+                    "Proposal shortlisted",
+                    "Failed to shortlist proposal",
+                  )
+                }
+                onUnshortlist={() =>
+                  runAction(
+                    () => hirerProposalsApi.unshortlist(selected.id),
+                    "Removed from shortlist",
+                    "Failed to update proposal",
+                  )
+                }
+                onReject={() =>
+                  runAction(
+                    () => hirerProposalsApi.reject(selected.id),
+                    "Proposal archived",
+                    "Failed to archive proposal",
+                  )
+                }
+                onMessage={() => setDialogMode("message")}
+                onHire={() => setDialogMode("hire")}
+              />
             ) : null}
+            {compare ? <ProposalDetailCard proposal={compare} title="Compare" /> : null}
           </div>
         </div>
       )}
+
+      <Dialog
+        open={dialogMode !== null}
+        onOpenChange={(open) => {
+          if (!open) {
+            setDialogMode(null);
+            setMessageBody("");
+          }
+        }}
+      >
+        <DialogContent className="sm:max-w-md">
+          {dialogMode === "message" && selected ? (
+            <>
+              <DialogHeader>
+                <DialogTitle>Message {selected.freelancer.name}</DialogTitle>
+                <DialogDescription>
+                  Send a note about this shortlisted proposal. The freelancer will be notified.
+                </DialogDescription>
+              </DialogHeader>
+              <Textarea
+                value={messageBody}
+                onChange={(event) => setMessageBody(event.target.value)}
+                placeholder="Thanks for applying — I'd like to discuss timeline and availability."
+                rows={5}
+              />
+              <DialogFooter>
+                <Button
+                  type="button"
+                  variant="outline"
+                  disabled={isPending}
+                  onClick={() => {
+                    setDialogMode(null);
+                    setMessageBody("");
+                  }}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  type="button"
+                  disabled={isPending || messageBody.trim().length === 0}
+                  onClick={() =>
+                    runAction(
+                      () => hirerProposalsApi.message(selected.id, messageBody),
+                      "Message sent",
+                      "Failed to send message",
+                    )
+                  }
+                >
+                  {isPending ? "Sending…" : "Send message"}
+                </Button>
+              </DialogFooter>
+            </>
+          ) : null}
+
+          {dialogMode === "hire" && selected ? (
+            <>
+              <DialogHeader>
+                <DialogTitle>Hire {selected.freelancer.name}?</DialogTitle>
+                <DialogDescription>
+                  This accepts their proposal, creates an active contract, marks the job as
+                  filled, and archives other active proposals.
+                </DialogDescription>
+              </DialogHeader>
+              <div className="rounded-md border border-border bg-muted/30 p-3 text-sm">
+                <p className="font-medium">{formatProposedRate(selected)}</p>
+                <p className="text-muted-foreground">
+                  Timeline: {getDurationLabel(selected.estimatedDuration)}
+                </p>
+              </div>
+              <DialogFooter>
+                <Button
+                  type="button"
+                  variant="outline"
+                  disabled={isPending}
+                  onClick={() => setDialogMode(null)}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  type="button"
+                  disabled={isPending}
+                  onClick={() =>
+                    runAction(
+                      () => hirerProposalsApi.accept(selected.id),
+                      "Freelancer hired — contract created",
+                      "Failed to hire freelancer",
+                    )
+                  }
+                >
+                  {isPending ? "Hiring…" : "Confirm hire"}
+                </Button>
+              </DialogFooter>
+            </>
+          ) : null}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
@@ -263,12 +428,35 @@ export function JobProposalsDashboard({ jobId }: JobProposalsDashboardProps) {
 function ProposalDetailCard({
   proposal,
   title = "Proposal details",
+  jobIsOpen = false,
+  isPending = false,
+  onShortlist,
+  onUnshortlist,
+  onReject,
+  onMessage,
+  onHire,
 }: {
   proposal: HirerProposal;
   title?: string;
+  jobIsOpen?: boolean;
+  isPending?: boolean;
+  onShortlist?: () => void;
+  onUnshortlist?: () => void;
+  onReject?: () => void;
+  onMessage?: () => void;
+  onHire?: () => void;
 }) {
   const countryLabel = getCountryLabel(proposal.freelancer.country);
   const location = [proposal.freelancer.city, countryLabel].filter(Boolean).join(", ");
+  const canShortlist = proposal.status === "submitted" && jobIsOpen;
+  const canUnshortlist = proposal.status === "shortlisted" && jobIsOpen;
+  const canReject =
+    (proposal.status === "submitted" || proposal.status === "shortlisted") && jobIsOpen;
+  const canMessage =
+    proposal.status === "shortlisted" || proposal.status === "accepted";
+  const canHire =
+    (proposal.status === "submitted" || proposal.status === "shortlisted") && jobIsOpen;
+  const showActions = onShortlist || onUnshortlist || onReject || onMessage || onHire;
 
   return (
     <Card>
@@ -292,6 +480,54 @@ function ProposalDetailCard({
         </div>
       </CardHeader>
       <CardContent className="flex flex-col gap-5">
+        {showActions ? (
+          <div className="flex flex-wrap gap-2">
+            {canShortlist ? (
+              <Button type="button" size="sm" disabled={isPending} onClick={onShortlist}>
+                Shortlist
+              </Button>
+            ) : null}
+            {canUnshortlist ? (
+              <Button
+                type="button"
+                size="sm"
+                variant="outline"
+                disabled={isPending}
+                onClick={onUnshortlist}
+              >
+                Remove shortlist
+              </Button>
+            ) : null}
+            {canMessage ? (
+              <Button
+                type="button"
+                size="sm"
+                variant="outline"
+                disabled={isPending}
+                onClick={onMessage}
+              >
+                Message
+              </Button>
+            ) : null}
+            {canHire ? (
+              <Button type="button" size="sm" disabled={isPending} onClick={onHire}>
+                Hire
+              </Button>
+            ) : null}
+            {canReject ? (
+              <Button
+                type="button"
+                size="sm"
+                variant="destructive"
+                disabled={isPending}
+                onClick={onReject}
+              >
+                Archive
+              </Button>
+            ) : null}
+          </div>
+        ) : null}
+
         <div className="grid gap-4 text-sm sm:grid-cols-3">
           <DetailItem label="Bid" value={formatProposedRate(proposal)} />
           <DetailItem

@@ -208,4 +208,56 @@ export const hirerProposalsApi = {
     ),
 
   get: (proposalId: string) => apiFetch<HirerProposal>(`/api/hirer/proposals/${proposalId}`),
+
+  shortlist: (proposalId: string) =>
+    apiFetch<HirerProposal>(`/api/hirer/proposals/${proposalId}/shortlist`, {
+      method: "POST",
+    }),
+
+  unshortlist: (proposalId: string) =>
+    apiFetch<HirerProposal>(`/api/hirer/proposals/${proposalId}/unshortlist`, {
+      method: "POST",
+    }),
+
+  reject: (proposalId: string) =>
+    apiFetch<HirerProposal>(`/api/hirer/proposals/${proposalId}/reject`, {
+      method: "POST",
+    }),
+
+  message: (proposalId: string, body: string) =>
+    apiFetch<{
+      conversationId: string;
+      message: { id: string; body: string; createdAt: string };
+      proposal: HirerProposal;
+    }>(`/api/hirer/proposals/${proposalId}/message`, {
+      method: "POST",
+      body: JSON.stringify({ body }),
+    }),
+
+  accept: (proposalId: string) =>
+    apiFetch<HirerHireResponse>(`/api/hirer/proposals/${proposalId}/accept`, {
+      method: "POST",
+    }),
+};
+
+export type HirerHireResponse = {
+  proposal: HirerProposal;
+  job: {
+    id: string;
+    title: string;
+    status: string;
+  };
+  contract: {
+    id: string;
+    title: string;
+    status: string;
+    contractType: "hourly" | "one_time";
+    hourlyRate: string | null;
+    fixedAmount: string | null;
+    startedAt: string | null;
+    createdAt: string;
+  };
+  meta: {
+    statusCounts: Partial<Record<ProposalStatus, number>>;
+  };
 };
