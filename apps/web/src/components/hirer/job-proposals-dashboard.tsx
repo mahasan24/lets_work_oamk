@@ -21,7 +21,7 @@ import { Skeleton } from "@lets_work/ui/components/skeleton";
 import { Tabs, TabsList, TabsTrigger } from "@lets_work/ui/components/tabs";
 import { Textarea } from "@lets_work/ui/components/textarea";
 import { cn } from "@lets_work/ui/lib/utils";
-import { Link } from "@tanstack/react-router";
+import { Link, useNavigate } from "@tanstack/react-router";
 import { FileIcon } from "lucide-react";
 import { useCallback, useEffect, useState, useTransition } from "react";
 import { toast } from "sonner";
@@ -34,6 +34,7 @@ import {
   ProposalsApiError,
   PROPOSAL_SORT_OPTIONS,
   PROPOSAL_STATUS_FILTER_OPTIONS,
+  type HirerHireResponse,
   type HirerProposal,
   type HirerProposalListResponse,
   type ProposalStatus,
@@ -77,6 +78,7 @@ function actionErrorMessage(error: unknown, fallback: string) {
 }
 
 export function JobProposalsDashboard({ jobId }: JobProposalsDashboardProps) {
+  const navigate = useNavigate();
   const [data, setData] = useState<HirerProposalListResponse | null>(null);
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
   const [sort, setSort] = useState<SortOption>("newest");
@@ -406,13 +408,25 @@ export function JobProposalsDashboard({ jobId }: JobProposalsDashboardProps) {
                 <Button
                   type="button"
                   disabled={isPending}
-                  onClick={() =>
-                    runAction(
-                      () => hirerProposalsApi.accept(selected.id),
-                      "Freelancer hired — contract created",
-                      "Failed to hire freelancer",
-                    )
-                  }
+                  onClick={() => {
+                    startTransition(async () => {
+                      try {
+                        const result = (await hirerProposalsApi.accept(
+                          selected.id,
+                        )) as HirerHireResponse;
+                        toast.success("Freelancer hired — contract created");
+                        setDialogMode(null);
+                        await navigate({
+                          to: "/dashboard/hirer/contracts/$contractId",
+                          params: { contractId: result.contract.id },
+                        });
+                      } catch (error) {
+                        toast.error(
+                          actionErrorMessage(error, "Failed to hire freelancer"),
+                        );
+                      }
+                    });
+                  }}
                 >
                   {isPending ? "Hiring…" : "Confirm hire"}
                 </Button>

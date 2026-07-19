@@ -503,14 +503,14 @@ export async function acceptHirerProposal(proposalId: string, hirerUserId: strin
       type: "contract",
       title: "You've been hired",
       body: `Your proposal for "${row.job.title}" was accepted and a contract is now active.`,
-      actionUrl: `/dashboard/freelancer`,
+      actionUrl: `/dashboard/freelancer/contracts/${hired.contract.id}`,
     },
     {
       userId: hirerUserId,
       type: "contract",
       title: "Contract started",
       body: `You hired ${row.freelancer.name} for "${row.job.title}".`,
-      actionUrl: `/dashboard/hirer/jobs/${row.job.id}`,
+      actionUrl: `/dashboard/hirer/contracts/${hired.contract.id}`,
     },
     ...hired.rejectedSiblingUserIds.map((userId) => ({
       userId,

@@ -19,6 +19,18 @@ export const OPENAPI_TAGS = [
     name: "Hirer Jobs",
     description: "Hirer job drafts, publishing, and lifecycle management",
   },
+  {
+    name: "Hirer Proposals",
+    description: "Hirer proposal review, shortlisting, messaging, and hiring",
+  },
+  {
+    name: "Contracts",
+    description: "Contract listing, details, completion, and cancellation",
+  },
+  {
+    name: "Notifications",
+    description: "In-app notifications and unread state",
+  },
 ] as const;
 
 export const COOKIE_AUTH_SECURITY = [{ cookieAuth: [] }];
