@@ -1,14 +1,19 @@
 import { Link } from "@tanstack/react-router";
 
 import Logo from "@/components/marketing/logo";
+import { NotificationBell } from "@/components/dashboard/notification-bell";
 import { OnboardingBanner } from "@/components/dashboard/onboarding-banner";
 import UserMenu from "@/components/user-menu";
 import { Route } from "@/routes/dashboard/hirer/route";
 import { shouldShowOnboardingBanner } from "@/lib/dashboard-paths";
+import { cn } from "@lets_work/ui/lib/utils";
 
 import HirerSidebar from "./hirer-sidebar";
 
-const NAV_ITEMS = ["Talent", "Jobs", "Reports", "Messages"] as const;
+const NAV_ITEMS = [
+  { label: "Jobs", to: "/dashboard/hirer" as const },
+  { label: "Contracts", to: "/dashboard/hirer/contracts" as const },
+] as const;
 
 export default function HirerDashboardLayout({ children }: { children: React.ReactNode }) {
   const { profile } = Route.useRouteContext();
@@ -21,13 +26,19 @@ export default function HirerDashboardLayout({ children }: { children: React.Rea
             <Logo />
             <nav className="hidden items-center gap-6 md:flex">
               {NAV_ITEMS.map((item) => (
-                <span key={item} className="text-sm text-muted-foreground">
-                  {item}
-                </span>
+                <Link
+                  key={item.to}
+                  to={item.to}
+                  className={cn("text-sm text-muted-foreground hover:text-foreground")}
+                  activeProps={{ className: "text-sm font-medium text-foreground" }}
+                >
+                  {item.label}
+                </Link>
               ))}
             </nav>
           </div>
           <div className="flex items-center gap-3">
+            <NotificationBell />
             <Link to="/dashboard/hirer" className="text-sm text-muted-foreground hover:text-foreground">
               Home
             </Link>
