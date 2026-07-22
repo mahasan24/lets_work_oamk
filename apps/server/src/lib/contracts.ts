@@ -5,6 +5,9 @@ import { job } from "@lets_work/db/schema/jobs";
 import { marketplaceUserProfile } from "@lets_work/db/schema/marketplace";
 import { and, desc, eq, inArray, or } from "drizzle-orm";
 
+import { cancelContractMilestones } from "./milestone-helpers";
+import { assertContractMilestonesCompletable } from "./milestones";
+
 type ContractStatus = (typeof contractStatusEnum.enumValues)[number];
 
 export class ContractNotFoundError extends Error {
@@ -224,6 +227,8 @@ export async function completeUserContract(contractId: string, userId: string) {
     throw new ContractStatusError("Only active contracts can be completed");
   }
 
+  await assertContractMilestonesCompletable(contractId);
+
   const [updated] = await db
     .update(contract)
     .set({ status: "completed", endedAt: new Date() })
@@ -248,6 +253,8 @@ export async function cancelUserContract(contractId: string, userId: string) {
   if (existing.hirerUserId !== userId) {
     throw new ContractForbiddenError("Only the hirer can cancel this contract");
   }
+
+  await cancelContractMilestones(contractId);
 
   const [updated] = await db
     .update(contract)

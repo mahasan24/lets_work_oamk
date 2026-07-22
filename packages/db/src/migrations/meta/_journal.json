@@ -15,6 +15,13 @@
       "when": 1782988983496,
       "tag": "0001_tiny_bucky",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1783150000000,
+      "tag": "0002_milestone_revision_note",
+      "breakpoints": true
     }
   ]
 }
