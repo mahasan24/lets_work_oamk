@@ -25,13 +25,19 @@ type ContractsListProps = {
 const STATUS_FILTERS: Array<{ value: "all" | ContractStatus; label: string }> = [
   { value: "all", label: "All" },
   { value: "active", label: "Active" },
+  { value: "paused", label: "Paused" },
+  { value: "disputed", label: "Disputed" },
   { value: "completed", label: "Completed" },
   { value: "cancelled", label: "Cancelled" },
 ];
 
 function StatusBadge({ status }: { status: ContractStatus }) {
   const variant =
-    status === "active" ? "default" : status === "cancelled" ? "destructive" : "secondary";
+    status === "active"
+      ? "default"
+      : status === "cancelled" || status === "disputed"
+        ? "destructive"
+        : "secondary";
   return <Badge variant={variant}>{getContractStatusLabel(status)}</Badge>;
 }
 

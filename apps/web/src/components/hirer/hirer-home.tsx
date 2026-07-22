@@ -5,6 +5,7 @@ import { cn } from "@lets_work/ui/lib/utils";
 import { Link } from "@tanstack/react-router";
 
 import { JobList } from "@/components/hirer/job-list";
+import { ContractProgressSummaryCard } from "@/components/contracts/contract-progress-summary";
 import { Route } from "@/routes/dashboard/hirer/route";
 
 export default function HirerHome() {
@@ -33,6 +34,8 @@ export default function HirerHome() {
           </CardContent>
         </Card>
       ) : null}
+
+      <ContractProgressSummaryCard role="hirer" />
 
       <JobList />
     </div>

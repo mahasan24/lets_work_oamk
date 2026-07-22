@@ -7,6 +7,7 @@ import { and, desc, eq, inArray, or } from "drizzle-orm";
 
 import { cancelContractMilestones } from "./milestone-helpers";
 import { assertContractMilestonesCompletable } from "./milestones";
+import { recordContractEvent } from "./contract-events";
 
 type ContractStatus = (typeof contractStatusEnum.enumValues)[number];
 
@@ -239,13 +240,25 @@ export async function completeUserContract(contractId: string, userId: string) {
     throw new ContractStatusError("Only active contracts can be completed");
   }
 
+  await recordContractEvent({
+    contractId,
+    actorUserId: userId,
+    eventType: "completed",
+    title: "Contract completed",
+    description: "All deliverables were accepted and the contract was marked complete.",
+  });
+
   return getAccessibleContract(contractId, userId);
 }
 
 export async function cancelUserContract(contractId: string, userId: string) {
   const existing = await getAccessibleContract(contractId, userId);
 
-  if (existing.status !== "active" && existing.status !== "draft") {
+  if (
+    existing.status !== "active" &&
+    existing.status !== "draft" &&
+    existing.status !== "paused"
+  ) {
     throw new ContractStatusError("This contract cannot be cancelled");
   }
 
@@ -265,6 +278,120 @@ export async function cancelUserContract(contractId: string, userId: string) {
   if (!updated) {
     throw new Error("Failed to cancel contract");
   }
+
+  await recordContractEvent({
+    contractId,
+    actorUserId: userId,
+    eventType: "cancelled",
+    title: "Contract cancelled",
+    description: "The hirer cancelled this contract.",
+  });
+
+  return getAccessibleContract(contractId, userId);
+}
+
+export async function pauseUserContract(contractId: string, userId: string) {
+  const existing = await getAccessibleContract(contractId, userId);
+
+  if (existing.status !== "active") {
+    throw new ContractStatusError("Only active contracts can be paused");
+  }
+
+  if (existing.hirerUserId !== userId) {
+    throw new ContractForbiddenError("Only the hirer can pause this contract");
+  }
+
+  const [updated] = await db
+    .update(contract)
+    .set({ status: "paused" })
+    .where(and(eq(contract.id, contractId), eq(contract.status, "active")))
+    .returning();
+
+  if (!updated) {
+    throw new ContractStatusError("Only active contracts can be paused");
+  }
+
+  await recordContractEvent({
+    contractId,
+    actorUserId: userId,
+    eventType: "paused",
+    title: "Contract paused",
+    description: "Work was temporarily paused by the client.",
+  });
+
+  return getAccessibleContract(contractId, userId);
+}
+
+export async function resumeUserContract(contractId: string, userId: string) {
+  const existing = await getAccessibleContract(contractId, userId);
+
+  if (existing.status !== "paused") {
+    throw new ContractStatusError("Only paused contracts can be resumed");
+  }
+
+  if (existing.hirerUserId !== userId) {
+    throw new ContractForbiddenError("Only the hirer can resume this contract");
+  }
+
+  const [updated] = await db
+    .update(contract)
+    .set({ status: "active" })
+    .where(and(eq(contract.id, contractId), eq(contract.status, "paused")))
+    .returning();
+
+  if (!updated) {
+    throw new ContractStatusError("Only paused contracts can be resumed");
+  }
+
+  await recordContractEvent({
+    contractId,
+    actorUserId: userId,
+    eventType: "resumed",
+    title: "Contract resumed",
+    description: "Work continued after a temporary pause.",
+  });
+
+  return getAccessibleContract(contractId, userId);
+}
+
+export async function disputeUserContract(
+  contractId: string,
+  userId: string,
+  input: { reason: string },
+) {
+  const existing = await getAccessibleContract(contractId, userId);
+
+  if (existing.status !== "active" && existing.status !== "paused") {
+    throw new ContractStatusError("Only active or paused contracts can be disputed");
+  }
+
+  const reason = input.reason.trim();
+  if (!reason) {
+    throw new ContractStatusError("A dispute reason is required");
+  }
+
+  const [updated] = await db
+    .update(contract)
+    .set({ status: "disputed" })
+    .where(
+      and(
+        eq(contract.id, contractId),
+        inArray(contract.status, ["active", "paused"]),
+      ),
+    )
+    .returning();
+
+  if (!updated) {
+    throw new ContractStatusError("Only active or paused contracts can be disputed");
+  }
+
+  await recordContractEvent({
+    contractId,
+    actorUserId: userId,
+    eventType: "disputed",
+    title: "Contract disputed",
+    description: reason,
+  });
 
   return getAccessibleContract(contractId, userId);
 }

@@ -15,8 +15,10 @@ export const contractTypeEnum = pgEnum("contract_type", ["hourly", "one_time"]);
 export const contractStatusEnum = pgEnum("contract_status", [
   "draft",
   "active",
+  "paused",
   "completed",
   "cancelled",
+  "disputed",
 ]);
 
 export const contract = pgTable(

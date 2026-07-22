@@ -6,6 +6,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 
 import { JobBrowse } from "@/components/freelancer/job-browse";
+import { ContractProgressSummaryCard } from "@/components/contracts/contract-progress-summary";
 import { jobsApi } from "@/lib/jobs-api";
 import { mergeJobCategorySuggestions } from "@/lib/hirer-options";
 
@@ -45,6 +46,8 @@ function FreelancerDashboardHome() {
           </Link>
         </CardContent>
       </Card>
+
+      <ContractProgressSummaryCard role="freelancer" />
 
       <JobBrowse categories={categories} />
     </div>

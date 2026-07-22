@@ -12,6 +12,7 @@ import {
   ContractNotFoundError,
   ContractStatusError,
 } from "./contracts";
+import { recordContractEvent } from "./contract-events";
 import { createNotification } from "./notifications";
 
 const EDITABLE_STATUSES = ["pending"] as const;
@@ -184,6 +185,12 @@ async function validateMilestoneBudget(
 }
 
 function assertActiveContract(contractRow: typeof contract.$inferSelect) {
+  if (contractRow.status === "paused") {
+    throw new ContractStatusError("Milestones are paused while the contract is on hold");
+  }
+  if (contractRow.status === "disputed") {
+    throw new ContractStatusError("Milestones cannot be updated while the contract is disputed");
+  }
   if (contractRow.status !== "active") {
     throw new ContractStatusError("Milestones can only be managed on active contracts");
   }
@@ -311,6 +318,15 @@ export async function createContractMilestone(
     actionUrl: `/dashboard/freelancer/contracts/${contractId}`,
   });
 
+  await recordContractEvent({
+    contractId,
+    actorUserId: userId,
+    eventType: "milestone_created",
+    title: `Milestone added: ${title}`,
+    description: input.description?.trim() || null,
+    milestoneId: created.id,
+  });
+
   return getMilestoneView(created.id);
 }
 
@@ -407,6 +423,14 @@ export async function startContractMilestone(milestoneId: string, userId: string
     throw new MilestoneStatusError("This milestone cannot be started");
   }
 
+  await recordContractEvent({
+    contractId: contractRow.id,
+    actorUserId: userId,
+    eventType: "milestone_started",
+    title: `Work started: ${updated.title}`,
+    milestoneId: updated.id,
+  });
+
   return getMilestoneView(updated.id);
 }
 
@@ -473,6 +497,15 @@ export async function submitContractMilestone(
     actionUrl: `/dashboard/hirer/contracts/${contractRow.id}`,
   });
 
+  await recordContractEvent({
+    contractId: contractRow.id,
+    actorUserId: userId,
+    eventType: "milestone_submitted",
+    title: `Milestone submitted: ${updated.title}`,
+    description: note,
+    milestoneId: updated.id,
+  });
+
   return getMilestoneView(updated.id);
 }
 
@@ -510,6 +543,14 @@ export async function approveContractMilestone(milestoneId: string, userId: stri
     title: "Milestone approved",
     body: `"${updated.title}" was approved.`,
     actionUrl: `/dashboard/freelancer/contracts/${contractRow.id}`,
+  });
+
+  await recordContractEvent({
+    contractId: contractRow.id,
+    actorUserId: userId,
+    eventType: "milestone_approved",
+    title: `Milestone approved: ${updated.title}`,
+    milestoneId: updated.id,
   });
 
   return getMilestoneView(updated.id);
@@ -561,6 +602,15 @@ export async function requestContractMilestoneRevision(
     title: "Revision requested",
     body: `"${updated.title}" needs changes before approval.`,
     actionUrl: `/dashboard/freelancer/contracts/${contractRow.id}`,
+  });
+
+  await recordContractEvent({
+    contractId: contractRow.id,
+    actorUserId: userId,
+    eventType: "milestone_revision_requested",
+    title: `Revision requested: ${updated.title}`,
+    description: note,
+    milestoneId: updated.id,
   });
 
   return getMilestoneView(updated.id);
