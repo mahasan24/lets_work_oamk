@@ -14,6 +14,7 @@ import { and, asc, desc, eq, inArray, ne, sql } from "drizzle-orm";
 import { JobStatusError } from "./hirer";
 import { getHirerJob, serializeJob } from "./jobs";
 import { createDefaultMilestoneForContract } from "./milestone-helpers";
+import { recordContractEvent } from "./contract-events";
 import { createNotification, createNotifications } from "./notifications";
 import {
   ProposalNotFoundError,
@@ -490,15 +491,46 @@ export async function acceptHirerProposal(proposalId: string, hirerUserId: strin
       throw new Error("Failed to create contract");
     }
 
-    await createDefaultMilestoneForContract(createdContract, filledJob, tx);
+    const defaultMilestone = await createDefaultMilestoneForContract(
+      createdContract,
+      filledJob,
+      tx,
+    );
 
     return {
       proposal: accepted,
       job: filledJob,
       contract: createdContract,
+      defaultMilestone,
       rejectedSiblingUserIds: rejectedSiblings.map((item) => item.freelancerUserId),
     };
   });
+
+  await recordContractEvent({
+    contractId: hired.contract.id,
+    actorUserId: hirerUserId,
+    eventType: "created",
+    title: "Contract created",
+    description: `Contract started for "${row.job.title}".`,
+  });
+  await recordContractEvent({
+    contractId: hired.contract.id,
+    actorUserId: hirerUserId,
+    eventType: "activated",
+    title: "Contract activated",
+    description: "Work can begin on this contract.",
+  });
+
+  if (hired.defaultMilestone) {
+    await recordContractEvent({
+      contractId: hired.contract.id,
+      actorUserId: hirerUserId,
+      eventType: "milestone_created",
+      title: `Milestone added: ${hired.defaultMilestone.title}`,
+      description: hired.defaultMilestone.description,
+      milestoneId: hired.defaultMilestone.id,
+    });
+  }
 
   await notifyQuietly([
     {

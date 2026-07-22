@@ -34,7 +34,13 @@ async function apiFetch<T>(path: string, init?: RequestInit): Promise<T> {
   return response.json() as Promise<T>;
 }
 
-export type ContractStatus = "draft" | "active" | "completed" | "cancelled";
+export type ContractStatus =
+  | "draft"
+  | "active"
+  | "paused"
+  | "completed"
+  | "cancelled"
+  | "disputed";
 export type ContractType = "hourly" | "one_time";
 
 export type ContractParty = {
@@ -74,6 +80,80 @@ export type ContractListResponse = {
   meta: { total: number };
 };
 
+export type ContractEventType =
+  | "created"
+  | "activated"
+  | "paused"
+  | "resumed"
+  | "milestone_created"
+  | "milestone_started"
+  | "milestone_submitted"
+  | "milestone_approved"
+  | "milestone_revision_requested"
+  | "completed"
+  | "cancelled"
+  | "disputed";
+
+export type ContractEvent = {
+  id: string;
+  contractId: string;
+  actorUserId: string | null;
+  eventType: ContractEventType;
+  title: string;
+  description: string | null;
+  milestoneId: string | null;
+  metadata: unknown;
+  createdAt: string;
+};
+
+export type ContractTimelineResponse = {
+  items: ContractEvent[];
+  meta: { total: number };
+};
+
+export type ContractProgressSummary = {
+  contracts: Array<{
+    id: string;
+    title: string;
+    status: ContractStatus;
+    jobTitle: string | null;
+    milestoneTotal: number;
+    milestoneApproved: number;
+    completionPercent: number;
+  }>;
+  overdueMilestones: Array<{
+    id: string;
+    title: string;
+    status: string;
+    dueDate: string | null;
+    contract: {
+      id: string;
+      title: string;
+      jobTitle: string | null;
+      status: ContractStatus;
+    };
+  }>;
+  upcomingMilestones: Array<{
+    id: string;
+    title: string;
+    status: string;
+    dueDate: string | null;
+    contract: {
+      id: string;
+      title: string;
+    };
+  }>;
+  meta: {
+    activeContracts: number;
+    pausedContracts: number;
+    disputedContracts: number;
+    overdueCount: number;
+    totalMilestones: number;
+    approvedMilestones: number;
+    overallCompletionPercent: number;
+  };
+};
+
 function buildQuery(params: Record<string, string | undefined>) {
   const search = new URLSearchParams();
   for (const [key, value] of Object.entries(params)) {
@@ -94,11 +174,31 @@ export const contractsApi = {
 
   get: (contractId: string) => apiFetch<Contract>(`/api/contracts/${contractId}`),
 
+  timeline: (contractId: string) =>
+    apiFetch<ContractTimelineResponse>(`/api/contracts/${contractId}/timeline`),
+
+  progressSummary: (query?: { role?: "hirer" | "freelancer" }) =>
+    apiFetch<ContractProgressSummary>(
+      `/api/contracts/progress-summary${buildQuery({ role: query?.role })}`,
+    ),
+
   complete: (contractId: string) =>
     apiFetch<Contract>(`/api/contracts/${contractId}/complete`, { method: "POST" }),
 
   cancel: (contractId: string) =>
     apiFetch<Contract>(`/api/contracts/${contractId}/cancel`, { method: "POST" }),
+
+  pause: (contractId: string) =>
+    apiFetch<Contract>(`/api/contracts/${contractId}/pause`, { method: "POST" }),
+
+  resume: (contractId: string) =>
+    apiFetch<Contract>(`/api/contracts/${contractId}/resume`, { method: "POST" }),
+
+  dispute: (contractId: string, body: { reason: string }) =>
+    apiFetch<Contract>(`/api/contracts/${contractId}/dispute`, {
+      method: "POST",
+      body: JSON.stringify(body),
+    }),
 };
 
 export function getContractStatusLabel(status: ContractStatus) {
@@ -107,10 +207,14 @@ export function getContractStatusLabel(status: ContractStatus) {
       return "Draft";
     case "active":
       return "Active";
+    case "paused":
+      return "Paused";
     case "completed":
       return "Completed";
     case "cancelled":
       return "Cancelled";
+    case "disputed":
+      return "Disputed";
     default:
       return status;
   }
@@ -123,4 +227,35 @@ export function formatContractRate(contract: Contract) {
     return contract.hourlyRate ? `${symbol}${contract.hourlyRate}/hr` : "Not set";
   }
   return contract.fixedAmount ? `${symbol}${contract.fixedAmount}` : "Not set";
+}
+
+export function getContractEventLabel(eventType: ContractEventType) {
+  switch (eventType) {
+    case "created":
+      return "Created";
+    case "activated":
+      return "Activated";
+    case "paused":
+      return "Paused";
+    case "resumed":
+      return "Resumed";
+    case "milestone_created":
+      return "Milestone added";
+    case "milestone_started":
+      return "Work started";
+    case "milestone_submitted":
+      return "Submitted";
+    case "milestone_approved":
+      return "Approved";
+    case "milestone_revision_requested":
+      return "Revision requested";
+    case "completed":
+      return "Completed";
+    case "cancelled":
+      return "Cancelled";
+    case "disputed":
+      return "Disputed";
+    default:
+      return eventType;
+  }
 }

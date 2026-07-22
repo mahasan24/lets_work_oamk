@@ -22,6 +22,13 @@
       "when": 1783150000000,
       "tag": "0002_milestone_revision_note",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1783153600000,
+      "tag": "0003_contract_lifecycle",
+      "breakpoints": true
     }
   ]
 }

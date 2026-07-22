@@ -3,6 +3,7 @@ export * from "./ai";
 export * from "./analytics";
 export * from "./chat";
 export * from "./contracts";
+export * from "./contract-events";
 export * from "./disputes";
 export * from "./invoices";
 export * from "./jobs";
