@@ -28,6 +28,10 @@ export const OPENAPI_TAGS = [
     description: "Contract listing, details, completion, and cancellation",
   },
   {
+    name: "Milestones",
+    description: "Milestone planning, submissions, and approval on active contracts",
+  },
+  {
     name: "Notifications",
     description: "In-app notifications and unread state",
   },

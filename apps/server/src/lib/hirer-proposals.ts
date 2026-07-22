@@ -13,6 +13,7 @@ import { and, asc, desc, eq, inArray, ne, sql } from "drizzle-orm";
 
 import { JobStatusError } from "./hirer";
 import { getHirerJob, serializeJob } from "./jobs";
+import { createDefaultMilestoneForContract } from "./milestone-helpers";
 import { createNotification, createNotifications } from "./notifications";
 import {
   ProposalNotFoundError,
@@ -488,6 +489,8 @@ export async function acceptHirerProposal(proposalId: string, hirerUserId: strin
     if (!createdContract) {
       throw new Error("Failed to create contract");
     }
+
+    await createDefaultMilestoneForContract(createdContract, filledJob, tx);
 
     return {
       proposal: accepted,

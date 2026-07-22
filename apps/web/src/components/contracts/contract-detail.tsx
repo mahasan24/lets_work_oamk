@@ -17,6 +17,8 @@ import {
 } from "@/lib/contracts-api";
 import { formatRelativeJobDate } from "@/lib/job-utils";
 
+import { ContractMilestones } from "./contract-milestones";
+
 type ContractDetailProps = {
   contractId: string;
   role: "hirer" | "freelancer";
@@ -197,6 +199,8 @@ export function ContractDetail({ contractId, role, listPath }: ContractDetailPro
           </p>
         </CardContent>
       </Card>
+
+      <ContractMilestones contract={contract} role={role} onChanged={load} />
     </div>
   );
 }

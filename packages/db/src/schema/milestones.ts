@@ -40,6 +40,7 @@ export const milestone = pgTable(
     submittedAt: timestamp("submitted_at"),
     approvedAt: timestamp("approved_at"),
     releasedAt: timestamp("released_at"),
+    revisionNote: text("revision_note"),
     createdAt: timestamp("created_at").defaultNow().notNull(),
     updatedAt: timestamp("updated_at")
       .defaultNow()

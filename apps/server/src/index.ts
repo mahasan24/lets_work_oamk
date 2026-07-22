@@ -6,6 +6,7 @@ import { Elysia } from "elysia";
 import { openapiPlugin } from "./plugins/openapi";
 import { adminRoutes } from "./routes/admin";
 import { contractRoutes } from "./routes/contracts";
+import { contractMilestoneRoutes, milestoneActionRoutes } from "./routes/milestones";
 import { profileRoutes } from "./routes/profile";
 import { hirerProposalRoutes } from "./routes/hirer-proposals";
 import { hirerJobRoutes, jobRoutes } from "./routes/jobs";
@@ -45,6 +46,8 @@ new Elysia()
   .use(hirerProposalRoutes)
   .use(freelancerProposalRoutes)
   .use(contractRoutes)
+  .use(contractMilestoneRoutes)
+  .use(milestoneActionRoutes)
   .use(notificationRoutes)
   .use(adminRoutes)
   .get("/", () => "OK", {
