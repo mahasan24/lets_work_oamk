@@ -78,32 +78,30 @@ export const contractMilestoneRoutes = new Elysia({
 })
   .use(betterAuthPlugin)
   .get(
-    "/:contractId/milestones",
+    "/:id/milestones",
     async ({ user, params, status }) => {
-      const result = await runMilestoneAction(() =>
-        listContractMilestones(params.contractId, user.id),
-      );
+      const result = await runMilestoneAction(() => listContractMilestones(params.id, user.id));
       if (!result.ok) return status(result.status, result.body);
       return result.data;
     },
     {
       auth: true,
-      params: t.Object({ contractId: t.String() }),
+      params: t.Object({ id: t.String() }),
       detail: { summary: "List contract milestones" },
     },
   )
   .post(
-    "/:contractId/milestones",
+    "/:id/milestones",
     async ({ user, params, body, status }) => {
       const result = await runMilestoneAction(() =>
-        createContractMilestone(params.contractId, user.id, body),
+        createContractMilestone(params.id, user.id, body),
       );
       if (!result.ok) return status(result.status, result.body);
       return result.data;
     },
     {
       auth: true,
-      params: t.Object({ contractId: t.String() }),
+      params: t.Object({ id: t.String() }),
       body: milestoneBody,
       detail: { summary: "Create a contract milestone" },
     },
