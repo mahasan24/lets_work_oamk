@@ -16,5 +16,6 @@ export * from "./platform";
 export * from "./portfolio";
 export * from "./certifications";
 export * from "./reviews";
+export * from "./saved-jobs";
 export * from "./verification";
 export {};

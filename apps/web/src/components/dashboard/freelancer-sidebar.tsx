@@ -33,9 +33,7 @@ export default function FreelancerSidebar({ profile }: FreelancerSidebarProps) {
           <div className="flex w-full flex-col gap-1">
             <CardTitle className="text-base">{displayName}</CardTitle>
             <p className="line-clamp-2 text-xs text-muted-foreground">{headline}</p>
-            {countryLabel ? (
-              <p className="text-xs text-muted-foreground">{countryLabel}</p>
-            ) : null}
+            {countryLabel ? <p className="text-xs text-muted-foreground">{countryLabel}</p> : null}
           </div>
         </CardHeader>
         <CardContent className="flex flex-col gap-4">
@@ -62,6 +60,40 @@ export default function FreelancerSidebar({ profile }: FreelancerSidebarProps) {
             )}
           >
             {completion >= 100 ? "View profile" : "Complete your profile"}
+          </Link>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-sm">Quick links</CardTitle>
+        </CardHeader>
+        <CardContent className="flex flex-col gap-1">
+          <Link
+            to="/dashboard/freelancer"
+            search={{ tab: "best_match" }}
+            className="rounded-md px-2 py-1.5 text-sm text-muted-foreground hover:bg-muted hover:text-foreground"
+          >
+            Browse open jobs
+          </Link>
+          <Link
+            to="/dashboard/freelancer"
+            search={{ tab: "saved" }}
+            className="rounded-md px-2 py-1.5 text-sm text-muted-foreground hover:bg-muted hover:text-foreground"
+          >
+            Saved jobs
+          </Link>
+          <Link
+            to="/dashboard/freelancer/proposals"
+            className="rounded-md px-2 py-1.5 text-sm text-muted-foreground hover:bg-muted hover:text-foreground"
+          >
+            My proposals
+          </Link>
+          <Link
+            to="/dashboard/freelancer/contracts"
+            className="rounded-md px-2 py-1.5 text-sm text-muted-foreground hover:bg-muted hover:text-foreground"
+          >
+            Contracts
           </Link>
         </CardContent>
       </Card>

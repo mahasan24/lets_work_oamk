@@ -1,5 +1,4 @@
 import { Avatar, AvatarFallback, AvatarImage } from "@lets_work/ui/components/avatar";
-import { Badge } from "@lets_work/ui/components/badge";
 import { buttonVariants } from "@lets_work/ui/components/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@lets_work/ui/components/card";
 import { cn } from "@lets_work/ui/lib/utils";
@@ -50,9 +49,7 @@ export default function HirerSidebar({ profile }: HirerSidebarProps) {
           <div className="flex w-full flex-col gap-1">
             <CardTitle className="text-base">{displayName}</CardTitle>
             <p className="line-clamp-2 text-xs text-muted-foreground">{subtitle}</p>
-            {countryLabel ? (
-              <p className="text-xs text-muted-foreground">{countryLabel}</p>
-            ) : null}
+            {countryLabel ? <p className="text-xs text-muted-foreground">{countryLabel}</p> : null}
           </div>
         </CardHeader>
         <CardContent className="flex flex-col gap-4">
@@ -85,15 +82,45 @@ export default function HirerSidebar({ profile }: HirerSidebarProps) {
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-sm">Verification</CardTitle>
+          <CardTitle className="text-sm">Quick links</CardTitle>
         </CardHeader>
-        <CardContent className="flex flex-col gap-2">
-          <div className="flex items-center gap-2">
-            <Badge variant={isVerified ? "default" : "secondary"}>{verificationLabel}</Badge>
-          </div>
+        <CardContent className="flex flex-col gap-1">
+          <Link
+            to="/dashboard/hirer"
+            className="rounded-md px-2 py-1.5 text-sm text-muted-foreground hover:bg-muted hover:text-foreground"
+          >
+            My jobs
+          </Link>
+          <Link
+            to="/dashboard/hirer/contracts"
+            className="rounded-md px-2 py-1.5 text-sm text-muted-foreground hover:bg-muted hover:text-foreground"
+          >
+            Contracts
+          </Link>
+          <Link
+            to="/freelancers"
+            className="rounded-md px-2 py-1.5 text-sm text-muted-foreground hover:bg-muted hover:text-foreground"
+          >
+            Find talent
+          </Link>
           <Link
             to="/dashboard/hirer/profile"
-            className={cn(buttonVariants({ variant: "link", size: "sm" }), "h-auto p-0")}
+            className="rounded-md px-2 py-1.5 text-sm text-muted-foreground hover:bg-muted hover:text-foreground"
+          >
+            Profile
+          </Link>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-sm">Verification</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p className="text-sm text-muted-foreground">{verificationLabel}</p>
+          <Link
+            to="/dashboard/hirer/profile"
+            className={cn(buttonVariants({ variant: "link", size: "sm" }), "mt-2 h-auto p-0")}
           >
             {isVerified ? "View verification" : "Get verified"}
           </Link>
@@ -105,7 +132,7 @@ export default function HirerSidebar({ profile }: HirerSidebarProps) {
           <CardTitle className="text-sm">Hire faster</CardTitle>
         </CardHeader>
         <CardContent className="text-sm text-muted-foreground">
-          Complete your client profile and verify your account to attract top freelancers.
+          Browse the talent directory to find freelancers before your job post gets proposals.
         </CardContent>
       </Card>
     </aside>

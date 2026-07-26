@@ -8,6 +8,7 @@ import {
 } from "@lets_work/db/schema/jobs";
 import { and, eq, sql } from "drizzle-orm";
 
+import { ConflictError, ForbiddenError, NotFoundError, ValidationError } from "./errors";
 import { JobNotFoundError } from "./hirer";
 
 type ProposalRow = typeof proposal.$inferSelect;
@@ -22,34 +23,27 @@ export type ProposalWriteInput = {
   attachments?: JobAttachmentInput[];
 };
 
-export class ProposalNotFoundError extends Error {
+export class ProposalNotFoundError extends NotFoundError {
   constructor() {
-    super("Proposal not found");
-    this.name = "ProposalNotFoundError";
+    super("Proposal not found", "PROPOSAL_NOT_FOUND");
   }
 }
 
-export class ProposalForbiddenError extends Error {
+export class ProposalForbiddenError extends ForbiddenError {
   constructor(message = "You do not have access to this proposal") {
-    super(message);
-    this.name = "ProposalForbiddenError";
+    super(message, "PROPOSAL_FORBIDDEN");
   }
 }
 
-export class ProposalStatusError extends Error {
+export class ProposalStatusError extends ConflictError {
   constructor(message: string) {
-    super(message);
-    this.name = "ProposalStatusError";
+    super(message, "PROPOSAL_STATUS");
   }
 }
 
-export class ProposalValidationError extends Error {
-  errors: string[];
-
+export class ProposalValidationError extends ValidationError {
   constructor(errors: string[]) {
-    super(errors.join("; "));
-    this.name = "ProposalValidationError";
-    this.errors = errors;
+    super(errors, undefined, "PROPOSAL_VALIDATION");
   }
 }
 
@@ -88,10 +82,7 @@ export function serializeProposal(row: ProposalRow) {
   };
 }
 
-function validateProposalForSubmit(
-  row: ProposalRow,
-  jobRow: typeof job.$inferSelect,
-) {
+function validateProposalForSubmit(row: ProposalRow, jobRow: typeof job.$inferSelect) {
   const errors: string[] = [];
 
   if (!row.coverLetter || row.coverLetter.trim().length < 50) {
@@ -121,7 +112,9 @@ async function getSubmittableJob(jobId: string) {
     throw new JobNotFoundError();
   }
 
-  if (!SUBMITTABLE_JOB_STATUSES.includes(jobRow.status as (typeof SUBMITTABLE_JOB_STATUSES)[number])) {
+  if (
+    !SUBMITTABLE_JOB_STATUSES.includes(jobRow.status as (typeof SUBMITTABLE_JOB_STATUSES)[number])
+  ) {
     throw new ProposalStatusError("This job is not accepting proposals");
   }
 
@@ -129,11 +122,7 @@ async function getSubmittableJob(jobId: string) {
 }
 
 async function getOwnedProposal(proposalId: string, freelancerUserId: string) {
-  const [row] = await db
-    .select()
-    .from(proposal)
-    .where(eq(proposal.id, proposalId))
-    .limit(1);
+  const [row] = await db.select().from(proposal).where(eq(proposal.id, proposalId)).limit(1);
 
   if (!row) {
     throw new ProposalNotFoundError();

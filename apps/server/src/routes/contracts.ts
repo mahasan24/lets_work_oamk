@@ -5,19 +5,15 @@ import { getContractProgressSummary } from "../lib/contract-progress";
 import {
   cancelUserContract,
   completeUserContract,
-  ContractForbiddenError,
-  ContractNotFoundError,
-  ContractStatusError,
   disputeUserContract,
   getUserContract,
   listUserContracts,
   pauseUserContract,
   resumeUserContract,
 } from "../lib/contracts";
+import { runAction as runContractAction } from "../lib/http";
 import { COOKIE_AUTH_SECURITY } from "../lib/openapi-tags";
 import { betterAuthPlugin } from "../plugins/auth";
-
-type ErrorResponse = { status: number; body: { error: string } };
 
 const contractStatusSchema = t.Union([
   t.Literal("draft"),
@@ -27,31 +23,6 @@ const contractStatusSchema = t.Union([
   t.Literal("cancelled"),
   t.Literal("disputed"),
 ]);
-
-function handleContractError(error: unknown): ErrorResponse | null {
-  if (error instanceof ContractNotFoundError) {
-    return { status: 404, body: { error: error.message } };
-  }
-  if (error instanceof ContractForbiddenError) {
-    return { status: 403, body: { error: error.message } };
-  }
-  if (error instanceof ContractStatusError) {
-    return { status: 400, body: { error: error.message } };
-  }
-  return null;
-}
-
-async function runContractAction<T>(action: () => Promise<T>) {
-  try {
-    return { ok: true as const, data: await action() };
-  } catch (error) {
-    const mapped = handleContractError(error);
-    if (mapped) {
-      return { ok: false as const, status: mapped.status, body: mapped.body };
-    }
-    throw error;
-  }
-}
 
 export const contractRoutes = new Elysia({
   prefix: "/api/contracts",
@@ -160,9 +131,7 @@ export const contractRoutes = new Elysia({
   .post(
     "/:id/dispute",
     async ({ user, params, body, status }) => {
-      const result = await runContractAction(() =>
-        disputeUserContract(params.id, user.id, body),
-      );
+      const result = await runContractAction(() => disputeUserContract(params.id, user.id, body));
       if (!result.ok) return status(result.status, result.body);
       return result.data;
     },

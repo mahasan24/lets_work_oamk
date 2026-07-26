@@ -1,5 +1,6 @@
 import { marketplaceUserProfile } from "@lets_work/db/schema/marketplace";
 
+import { ForbiddenError } from "./errors";
 import { ensureProfile } from "./profile";
 
 function isFreelancerProfile(profile: typeof marketplaceUserProfile.$inferSelect) {
@@ -18,9 +19,8 @@ export async function requireFreelancerProfile(userId: string) {
   return profile;
 }
 
-export class FreelancerAccessError extends Error {
+export class FreelancerAccessError extends ForbiddenError {
   constructor() {
-    super("Freelancer account required");
-    this.name = "FreelancerAccessError";
+    super("Freelancer account required", "FREELANCER_ACCESS_REQUIRED");
   }
 }

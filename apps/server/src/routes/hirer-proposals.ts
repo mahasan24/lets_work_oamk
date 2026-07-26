@@ -1,12 +1,6 @@
 import { Elysia, t } from "elysia";
 
-import {
-  HirerAccessError,
-  JobForbiddenError,
-  JobNotFoundError,
-  JobStatusError,
-  requireHirerProfile,
-} from "../lib/hirer";
+import { requireHirerProfile } from "../lib/hirer";
 import {
   acceptHirerProposal,
   getHirerProposal,
@@ -16,44 +10,12 @@ import {
   shortlistHirerProposal,
   unshortlistHirerProposal,
 } from "../lib/hirer-proposals";
-import {
-  ProposalForbiddenError,
-  ProposalNotFoundError,
-  ProposalStatusError,
-} from "../lib/proposals";
+import { runGuardedAction } from "../lib/http";
 import { betterAuthPlugin } from "../plugins/auth";
 import { COOKIE_AUTH_SECURITY } from "../lib/openapi-tags";
 
-type ErrorResponse = { status: number; body: { error: string } };
-
-function handleHirerProposalError(error: unknown): ErrorResponse | null {
-  if (error instanceof HirerAccessError) {
-    return { status: 403, body: { error: error.message } };
-  }
-  if (error instanceof JobNotFoundError || error instanceof ProposalNotFoundError) {
-    return { status: 404, body: { error: error.message } };
-  }
-  if (error instanceof JobForbiddenError || error instanceof ProposalForbiddenError) {
-    return { status: 403, body: { error: error.message } };
-  }
-  if (error instanceof ProposalStatusError || error instanceof JobStatusError) {
-    return { status: 400, body: { error: error.message } };
-  }
-  return null;
-}
-
-async function runHirerProposalAction<T>(userId: string, action: () => Promise<T>) {
-  try {
-    await requireHirerProfile(userId);
-    return { ok: true as const, data: await action() };
-  } catch (error) {
-    const mapped = handleHirerProposalError(error);
-    if (mapped) {
-      return { ok: false as const, status: mapped.status, body: mapped.body };
-    }
-    throw error;
-  }
-}
+const runHirerProposalAction = <T>(userId: string, action: () => Promise<T>) =>
+  runGuardedAction(() => requireHirerProfile(userId), action);
 
 export const hirerProposalRoutes = new Elysia({
   prefix: "/api/hirer",

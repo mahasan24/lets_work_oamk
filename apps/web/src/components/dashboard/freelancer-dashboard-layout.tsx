@@ -11,8 +11,10 @@ import { Route } from "@/routes/dashboard/freelancer/route";
 import FreelancerSidebar from "./freelancer-sidebar";
 
 const NAV_ITEMS = [
-  { label: "Find work", to: "/dashboard/freelancer" as const },
-  { label: "Contracts", to: "/dashboard/freelancer/contracts" as const },
+  { label: "Find work", to: "/dashboard/freelancer" as const, exact: true },
+  { label: "My proposals", to: "/dashboard/freelancer/proposals" as const, exact: false },
+  { label: "Contracts", to: "/dashboard/freelancer/contracts" as const, exact: false },
+  { label: "Profile", to: "/dashboard/freelancer/profile" as const, exact: false },
 ] as const;
 
 export default function FreelancerDashboardLayout({ children }: { children: React.ReactNode }) {
@@ -29,6 +31,7 @@ export default function FreelancerDashboardLayout({ children }: { children: Reac
                 <Link
                   key={item.to}
                   to={item.to}
+                  activeOptions={{ exact: item.exact }}
                   className={cn("text-sm text-muted-foreground hover:text-foreground")}
                   activeProps={{ className: "text-sm font-medium text-foreground" }}
                 >
@@ -39,15 +42,27 @@ export default function FreelancerDashboardLayout({ children }: { children: Reac
           </div>
           <div className="flex items-center gap-3">
             <NotificationBell />
-            <Link
-              to="/dashboard/freelancer"
-              className="text-sm text-muted-foreground hover:text-foreground"
-            >
-              Home
-            </Link>
             <UserMenu />
           </div>
         </div>
+
+        <nav className="flex items-center gap-1 overflow-x-auto border-t border-border px-2 py-1 md:hidden">
+          {NAV_ITEMS.map((item) => (
+            <Link
+              key={item.to}
+              to={item.to}
+              activeOptions={{ exact: item.exact }}
+              className={cn(
+                "shrink-0 rounded-md px-3 py-1.5 text-sm whitespace-nowrap text-muted-foreground",
+              )}
+              activeProps={{
+                className: "bg-muted font-medium text-foreground",
+              }}
+            >
+              {item.label}
+            </Link>
+          ))}
+        </nav>
       </header>
 
       <div className="mx-auto grid w-full max-w-7xl flex-1 grid-cols-1 items-start gap-6 px-4 py-6 md:grid-cols-[280px_minmax(0,1fr)] md:px-6">

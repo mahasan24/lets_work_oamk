@@ -12,12 +12,8 @@ import { marketplaceUserProfile } from "@lets_work/db/schema/marketplace";
 import { user } from "@lets_work/db/schema/auth";
 import { and, desc, eq, gte, ilike, inArray, lte, or, sql } from "drizzle-orm";
 
-import {
-  JobForbiddenError,
-  JobNotFoundError,
-  JobStatusError,
-  JobValidationError,
-} from "./hirer";
+import { JobForbiddenError, JobNotFoundError, JobStatusError, JobValidationError } from "./hirer";
+import { buildPaginationMeta, resolvePagination } from "./http";
 import { SUPPORTED_CURRENCIES } from "./job-constants";
 
 type JobRow = typeof job.$inferSelect;
@@ -188,7 +184,10 @@ export function validateJobForPublish(row: JobRow) {
     errors.push("At least one required skill is needed");
   }
 
-  if (!row.currency || !SUPPORTED_CURRENCIES.includes(row.currency as (typeof SUPPORTED_CURRENCIES)[number])) {
+  if (
+    !row.currency ||
+    !SUPPORTED_CURRENCIES.includes(row.currency as (typeof SUPPORTED_CURRENCIES)[number])
+  ) {
     errors.push("A supported currency is required");
   }
 
@@ -311,9 +310,7 @@ export async function createHirerJob(hirerUserId: string, input: JobWriteInput) 
 }
 
 export async function listHirerJobs(hirerUserId: string, query: HirerJobListQuery) {
-  const page = Math.max(query.page ?? 1, 1);
-  const limit = Math.min(Math.max(query.limit ?? 20, 1), 100);
-  const offset = (page - 1) * limit;
+  const { page, limit, offset } = resolvePagination(query, { maxLimit: 100 });
 
   const conditions = [eq(job.hirerUserId, hirerUserId)];
 
@@ -346,12 +343,7 @@ export async function listHirerJobs(hirerUserId: string, query: HirerJobListQuer
 
   return {
     items: rows.map(serializeJob),
-    pagination: {
-      page,
-      limit,
-      total,
-      totalPages: Math.ceil(total / limit),
-    },
+    pagination: buildPaginationMeta(page, limit, total),
   };
 }
 
@@ -475,8 +467,7 @@ export async function resumeHirerJob(jobId: string, hirerUserId: string) {
     throw new JobStatusError("Only paused jobs can be resumed");
   }
 
-  const nextStatus: JobStatus =
-    existing.proposalsCount > 0 ? "in_review" : "open";
+  const nextStatus: JobStatus = existing.proposalsCount > 0 ? "in_review" : "open";
 
   const [updated] = await db
     .update(job)
@@ -576,9 +567,7 @@ export async function getHirerJobPublishReadiness(jobId: string, hirerUserId: st
 }
 
 export async function listPublicJobs(query: PublicJobListQuery) {
-  const page = Math.max(query.page ?? 1, 1);
-  const limit = Math.min(Math.max(query.limit ?? 20, 1), 100);
-  const offset = (page - 1) * limit;
+  const { page, limit, offset } = resolvePagination(query, { maxLimit: 100 });
 
   const conditions = [inArray(job.status, PUBLIC_JOB_STATUSES)];
 
@@ -665,12 +654,7 @@ export async function listPublicJobs(query: PublicJobListQuery) {
         headline: row.hirerHeadline,
       }),
     ),
-    pagination: {
-      page,
-      limit,
-      total,
-      totalPages: Math.ceil(total / limit),
-    },
+    pagination: buildPaginationMeta(page, limit, total),
   };
 }
 

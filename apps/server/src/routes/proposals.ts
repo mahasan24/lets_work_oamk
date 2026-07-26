@@ -1,14 +1,10 @@
 import { createUploadSignature } from "@lets_work/media";
 import { Elysia, t } from "elysia";
 
-import { FreelancerAccessError, requireFreelancerProfile } from "../lib/freelancer";
-import { JobNotFoundError } from "../lib/hirer";
+import { requireFreelancerProfile } from "../lib/freelancer";
+import { runGuardedAction } from "../lib/http";
 import {
   getFreelancerProposalForJob,
-  ProposalForbiddenError,
-  ProposalNotFoundError,
-  ProposalStatusError,
-  ProposalValidationError,
   saveFreelancerProposalDraft,
   submitFreelancerProposal,
   withdrawFreelancerProposal,
@@ -39,42 +35,8 @@ const proposalWriteSchema = t.Object({
   attachments: t.Optional(t.Array(proposalAttachmentSchema)),
 });
 
-type ErrorResponse = { status: number; body: { error: string; errors?: string[] } };
-
-function handleProposalError(error: unknown): ErrorResponse | null {
-  if (error instanceof FreelancerAccessError) {
-    return { status: 403, body: { error: error.message } };
-  }
-  if (error instanceof JobNotFoundError) {
-    return { status: 404, body: { error: error.message } };
-  }
-  if (error instanceof ProposalNotFoundError) {
-    return { status: 404, body: { error: error.message } };
-  }
-  if (error instanceof ProposalForbiddenError) {
-    return { status: 403, body: { error: error.message } };
-  }
-  if (error instanceof ProposalValidationError) {
-    return { status: 422, body: { error: error.message, errors: error.errors } };
-  }
-  if (error instanceof ProposalStatusError) {
-    return { status: 409, body: { error: error.message } };
-  }
-  return null;
-}
-
-async function runFreelancerAction<T>(userId: string, action: () => Promise<T>) {
-  try {
-    await requireFreelancerProfile(userId);
-    return { ok: true as const, data: await action() };
-  } catch (error) {
-    const mapped = handleProposalError(error);
-    if (mapped) {
-      return { ok: false as const, status: mapped.status, body: mapped.body };
-    }
-    throw error;
-  }
-}
+const runFreelancerAction = <T>(userId: string, action: () => Promise<T>) =>
+  runGuardedAction(() => requireFreelancerProfile(userId), action);
 
 export const freelancerProposalRoutes = new Elysia({
   prefix: "/api/freelancer",
@@ -139,7 +101,10 @@ export const freelancerProposalRoutes = new Elysia({
       auth: true,
       params: t.Object({ jobId: t.String() }),
       body: t.Optional(proposalWriteSchema),
-      detail: { summary: "Submit proposal", description: "Validates and submits a draft proposal." },
+      detail: {
+        summary: "Submit proposal",
+        description: "Validates and submits a draft proposal.",
+      },
     },
   )
   .post(

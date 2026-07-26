@@ -2,15 +2,13 @@ import { auth } from "@lets_work/auth";
 import { createUploadSignature } from "@lets_work/media";
 import { Elysia, t } from "elysia";
 
+import { requireHirerProfile } from "../lib/hirer";
+import { runAction, runGuardedAction } from "../lib/http";
 import {
-  HirerAccessError,
-  JobForbiddenError,
-  JobNotFoundError,
-  JobStatusError,
-  JobValidationError,
-  requireHirerProfile,
-} from "../lib/hirer";
-import { JOB_CATEGORY_SUGGESTIONS, mergeJobCategories, SUPPORTED_CURRENCIES } from "../lib/job-constants";
+  JOB_CATEGORY_SUGGESTIONS,
+  mergeJobCategories,
+  SUPPORTED_CURRENCIES,
+} from "../lib/job-constants";
 import {
   cancelHirerJob,
   closeHirerJob,
@@ -53,9 +51,7 @@ const jobWriteSchema = t.Object({
   country: t.Optional(t.Nullable(t.String())),
   currency: t.Optional(t.String()),
   experienceLevel: t.Optional(
-    t.Nullable(
-      t.Union([t.Literal("entry"), t.Literal("intermediate"), t.Literal("expert")]),
-    ),
+    t.Nullable(t.Union([t.Literal("entry"), t.Literal("intermediate"), t.Literal("expert")])),
   ),
   estimatedDuration: t.Optional(
     t.Nullable(
@@ -73,51 +69,10 @@ const jobWriteSchema = t.Object({
   attachments: t.Optional(t.Array(jobAttachmentSchema)),
 });
 
-type ErrorResponse = { status: number; body: { error: string; errors?: string[] } };
+const runHirerAction = <T>(userId: string, action: () => Promise<T>) =>
+  runGuardedAction(() => requireHirerProfile(userId), action);
 
-function handleJobError(error: unknown): ErrorResponse | null {
-  if (error instanceof HirerAccessError) {
-    return { status: 403, body: { error: error.message } };
-  }
-  if (error instanceof JobNotFoundError) {
-    return { status: 404, body: { error: error.message } };
-  }
-  if (error instanceof JobForbiddenError) {
-    return { status: 403, body: { error: error.message } };
-  }
-  if (error instanceof JobValidationError) {
-    return { status: 422, body: { error: error.message, errors: error.errors } };
-  }
-  if (error instanceof JobStatusError) {
-    return { status: 409, body: { error: error.message } };
-  }
-  return null;
-}
-
-async function runHirerAction<T>(userId: string, action: () => Promise<T>) {
-  try {
-    await requireHirerProfile(userId);
-    return { ok: true as const, data: await action() };
-  } catch (error) {
-    const mapped = handleJobError(error);
-    if (mapped) {
-      return { ok: false as const, status: mapped.status, body: mapped.body };
-    }
-    throw error;
-  }
-}
-
-async function runPublicAction<T>(action: () => Promise<T>) {
-  try {
-    return { ok: true as const, data: await action() };
-  } catch (error) {
-    const mapped = handleJobError(error);
-    if (mapped) {
-      return { ok: false as const, status: mapped.status, body: mapped.body };
-    }
-    throw error;
-  }
-}
+const runPublicAction = runAction;
 
 export const jobRoutes = new Elysia({
   prefix: "/api/jobs",
@@ -182,9 +137,7 @@ export const jobRoutes = new Elysia({
         budgetType: t.Optional(t.Union([t.Literal("hourly"), t.Literal("one_time")])),
         minBudget: t.Optional(t.String()),
         maxBudget: t.Optional(t.String()),
-        postedWithin: t.Optional(
-          t.Union([t.Literal("24h"), t.Literal("7d"), t.Literal("30d")]),
-        ),
+        postedWithin: t.Optional(t.Union([t.Literal("24h"), t.Literal("7d"), t.Literal("30d")])),
         remoteOnly: t.Optional(t.Boolean()),
         sort: t.Optional(t.Union([t.Literal("newest"), t.Literal("budget_high")])),
         page: t.Optional(t.Numeric()),
@@ -321,9 +274,7 @@ export const hirerJobRoutes = new Elysia({
   .patch(
     "/:id",
     async ({ user, params, body, status }) => {
-      const result = await runHirerAction(user.id, () =>
-        updateHirerJob(params.id, user.id, body),
-      );
+      const result = await runHirerAction(user.id, () => updateHirerJob(params.id, user.id, body));
       if (!result.ok) return status(result.status, result.body);
       return result.data;
     },
@@ -402,16 +353,17 @@ export const hirerJobRoutes = new Elysia({
   .post(
     "/:id/review",
     async ({ user, params, status }) => {
-      const result = await runHirerAction(user.id, () =>
-        startReviewHirerJob(params.id, user.id),
-      );
+      const result = await runHirerAction(user.id, () => startReviewHirerJob(params.id, user.id));
       if (!result.ok) return status(result.status, result.body);
       return result.data;
     },
     {
       auth: true,
       params: t.Object({ id: t.String() }),
-      detail: { summary: "Start reviewing proposals", description: "Moves an open job to in review." },
+      detail: {
+        summary: "Start reviewing proposals",
+        description: "Moves an open job to in review.",
+      },
     },
   )
   .post(

@@ -2,6 +2,9 @@ import { db } from "@lets_work/db";
 import { notification, type notificationTypeEnum } from "@lets_work/db/schema/notifications";
 import { and, desc, eq, isNull, sql } from "drizzle-orm";
 
+import { NotFoundError } from "./errors";
+import { publishToUser } from "./realtime";
+
 type NotificationType = (typeof notificationTypeEnum.enumValues)[number];
 
 export type CreateNotificationInput = {
@@ -12,10 +15,9 @@ export type CreateNotificationInput = {
   actionUrl?: string | null;
 };
 
-export class NotificationNotFoundError extends Error {
+export class NotificationNotFoundError extends NotFoundError {
   constructor() {
-    super("Notification not found");
-    this.name = "NotificationNotFoundError";
+    super("Notification not found", "NOTIFICATION_NOT_FOUND");
   }
 }
 
@@ -48,13 +50,18 @@ export async function createNotification(input: CreateNotificationInput) {
     throw new Error("Failed to create notification");
   }
 
+  publishToUser(created.userId, {
+    type: "notification:new",
+    payload: serializeNotification(created),
+  });
+
   return created;
 }
 
 export async function createNotifications(inputs: CreateNotificationInput[]) {
   if (inputs.length === 0) return [];
 
-  return db
+  const created = await db
     .insert(notification)
     .values(
       inputs.map((input) => ({
@@ -67,6 +74,15 @@ export async function createNotifications(inputs: CreateNotificationInput[]) {
       })),
     )
     .returning();
+
+  for (const row of created) {
+    publishToUser(row.userId, {
+      type: "notification:new",
+      payload: serializeNotification(row),
+    });
+  }
+
+  return created;
 }
 
 export async function listUserNotifications(
