@@ -1,0 +1,11 @@
+**/node_modules/**
+**/dist/**
+**/build/**
+**/.turbo/**
+**/.output/**
+**/routeTree.gen.ts
+**/*.gen.ts
+packages/db/src/migrations/**
+apps/server/server
+bun.lock
+*.lock

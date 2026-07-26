@@ -1,5 +1,6 @@
+import { useEffect, useState } from "react";
 import { Badge } from "@lets_work/ui/components/badge";
-import { Button, buttonVariants } from "@lets_work/ui/components/button";
+import { buttonVariants } from "@lets_work/ui/components/button";
 import {
   InputGroup,
   InputGroupAddon,
@@ -11,6 +12,14 @@ import { Link } from "@tanstack/react-router";
 import { motion } from "framer-motion";
 import { ArrowRight, Briefcase, Search, Sparkles, Users } from "lucide-react";
 
+import { authClient } from "@/lib/auth-client";
+import {
+  getDashboardHomePath,
+  shouldShowFindWorkActions,
+  shouldShowHireActions,
+} from "@/lib/dashboard-paths";
+import { profileApi, type ProfileBundle } from "@/lib/profile-api";
+
 import { AUTH_BACKGROUND_IMAGE } from "./auth-image";
 import LandingStatsBento from "./landing-stats-bento";
 
@@ -20,6 +29,34 @@ const fadeUp = {
 };
 
 export default function LandingPage() {
+  const { data: session } = authClient.useSession();
+  const [profile, setProfile] = useState<ProfileBundle | null>(null);
+
+  useEffect(() => {
+    if (!session) {
+      setProfile(null);
+      return;
+    }
+
+    let cancelled = false;
+    profileApi
+      .getMe()
+      .then((bundle) => {
+        if (!cancelled) setProfile(bundle);
+      })
+      .catch(() => {
+        if (!cancelled) setProfile(null);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [session]);
+
+  const showHire = !session || shouldShowHireActions(profile);
+  const showFindWork = !session || shouldShowFindWorkActions(profile);
+  const dashboardPath = getDashboardHomePath(profile);
+
   return (
     <div className="flex flex-col bg-background">
       <section className="bg-background">
@@ -29,10 +66,7 @@ export default function LandingPage() {
           animate="show"
           transition={{ staggerChildren: 0.1 }}
         >
-          <motion.div
-            variants={fadeUp}
-            className="flex max-w-2xl flex-col gap-5"
-          >
+          <motion.div variants={fadeUp} className="flex max-w-2xl flex-col gap-5">
             <Badge variant="secondary" className="w-fit">
               <Sparkles data-icon="inline-start" />
               AI-powered matching
@@ -41,15 +75,12 @@ export default function LandingPage() {
               How work <span className="text-primary">should work</span>
             </h1>
             <p className="max-w-lg text-base leading-relaxed text-muted-foreground md:text-lg">
-              Connect with freelancers, submit proposals, and manage contracts —
-              with escrow payments built in.
+              Connect with freelancers, submit proposals, and manage contracts — with escrow
+              payments built in.
             </p>
           </motion.div>
 
-          <motion.div
-            variants={fadeUp}
-            className="flex max-w-2xl flex-col gap-4"
-          >
+          <motion.div variants={fadeUp} className="flex max-w-2xl flex-col gap-4">
             <InputGroup className="h-11 bg-card">
               <InputGroupAddon align="inline-start">
                 <Search />
@@ -63,27 +94,33 @@ export default function LandingPage() {
             </InputGroup>
           </motion.div>
 
-          <motion.div
-            variants={fadeUp}
-            className="flex flex-col gap-3 sm:flex-row sm:items-center"
-          >
-            <Link
-              to="/login"
-              className={cn(buttonVariants({ size: "lg" }), "h-10 px-6")}
-            >
-              <Briefcase data-icon="inline-start" />
-              Hire talent
-            </Link>
-            <Link
-              to="/login"
-              className={cn(
-                buttonVariants({ variant: "ghost", size: "lg" }),
-                "h-10",
-              )}
-            >
-              <Users data-icon="inline-start" />
-              Find work
-            </Link>
+          <motion.div variants={fadeUp} className="flex flex-col gap-3 sm:flex-row sm:items-center">
+            {showHire ? (
+              <Link
+                to={session ? "/freelancers" : "/login"}
+                className={cn(buttonVariants({ size: "lg" }), "h-10 px-6")}
+              >
+                <Briefcase data-icon="inline-start" />
+                Hire talent
+              </Link>
+            ) : null}
+            {showFindWork ? (
+              <Link
+                to={session ? "/dashboard/freelancer" : "/login"}
+                className={cn(
+                  buttonVariants({ variant: showHire ? "ghost" : "default", size: "lg" }),
+                  "h-10",
+                )}
+              >
+                <Users data-icon="inline-start" />
+                Find work
+              </Link>
+            ) : null}
+            {session && !showHire && !showFindWork ? (
+              <Link to={dashboardPath} className={cn(buttonVariants({ size: "lg" }), "h-10 px-6")}>
+                Go to dashboard
+              </Link>
+            ) : null}
           </motion.div>
         </motion.div>
       </section>
@@ -109,27 +146,29 @@ export default function LandingPage() {
                 Start your next project
               </h2>
               <p className="max-w-md text-base leading-relaxed text-background/85 md:text-lg">
-                Create a free account to post jobs, send proposals, or browse
-                talent from anywhere in the world.
+                Create a free account to post jobs, send proposals, or browse talent from anywhere
+                in the world.
               </p>
             </div>
             <div className="flex shrink-0 flex-col gap-3 sm:flex-row">
               <Link
-                to="/login"
+                to={session ? dashboardPath : "/login"}
                 className={cn(buttonVariants({ size: "lg" }), "h-11 px-6")}
               >
-                Get started
+                {session ? "Go to dashboard" : "Get started"}
                 <ArrowRight data-icon="inline-end" />
               </Link>
-              <Link
-                to="/login"
-                className={cn(
-                  buttonVariants({ variant: "outline", size: "lg" }),
-                  "h-11 border-background/50 bg-background/10 px-6 text-background hover:bg-background/20 hover:text-background",
-                )}
-              >
-                Browse talent
-              </Link>
+              {showHire ? (
+                <Link
+                  to={session ? "/freelancers" : "/login"}
+                  className={cn(
+                    buttonVariants({ variant: "outline", size: "lg" }),
+                    "h-11 border-background/50 bg-background/10 px-6 text-background hover:bg-background/20 hover:text-background",
+                  )}
+                >
+                  Browse talent
+                </Link>
+              ) : null}
             </div>
           </div>
         </div>

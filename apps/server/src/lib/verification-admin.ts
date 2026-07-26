@@ -4,12 +4,12 @@ import { marketplaceUserProfile } from "@lets_work/db/schema/marketplace";
 import { userVerification } from "@lets_work/db/schema/verification";
 import { and, desc, eq } from "drizzle-orm";
 
+import { ConflictError, NotFoundError } from "./errors";
 import { refreshProfileCompletion } from "./profile";
 
-export class VerificationNotFoundError extends Error {
+export class VerificationNotFoundError extends NotFoundError {
   constructor() {
-    super("Verification not found");
-    this.name = "VerificationNotFoundError";
+    super("Verification not found", "VERIFICATION_NOT_FOUND");
   }
 }
 
@@ -31,12 +31,7 @@ export async function listPendingVerifications() {
     .from(userVerification)
     .innerJoin(user, eq(user.id, userVerification.userId))
     .leftJoin(marketplaceUserProfile, eq(marketplaceUserProfile.userId, userVerification.userId))
-    .where(
-      and(
-        eq(userVerification.type, "identity"),
-        eq(userVerification.status, "pending"),
-      ),
-    )
+    .where(and(eq(userVerification.type, "identity"), eq(userVerification.status, "pending")))
     .orderBy(desc(userVerification.createdAt));
 
   return rows.map((row) => ({
@@ -74,7 +69,7 @@ export async function approveVerification(verificationId: string) {
   const existing = await getVerificationById(verificationId);
 
   if (existing.status !== "pending") {
-    throw new Error("Only pending verifications can be approved");
+    throw new ConflictError("Only pending verifications can be approved", "VERIFICATION_STATUS");
   }
 
   const [updated] = await db
@@ -109,7 +104,7 @@ export async function rejectVerification(verificationId: string, reason?: string
   const existing = await getVerificationById(verificationId);
 
   if (existing.status !== "pending") {
-    throw new Error("Only pending verifications can be rejected");
+    throw new ConflictError("Only pending verifications can be rejected", "VERIFICATION_STATUS");
   }
 
   const [updated] = await db

@@ -29,6 +29,13 @@
       "when": 1783153600000,
       "tag": "0003_contract_lifecycle",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1783160000000,
+      "tag": "0004_saved_jobs",
+      "breakpoints": true
     }
   ]
 }

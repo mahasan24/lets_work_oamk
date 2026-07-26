@@ -1,19 +1,61 @@
+import { useEffect, useState } from "react";
 import { buttonVariants } from "@lets_work/ui/components/button";
 import { cn } from "@lets_work/ui/lib/utils";
 import { motion } from "framer-motion";
 import { Link } from "@tanstack/react-router";
 
 import UserMenu from "@/components/user-menu";
+import { authClient } from "@/lib/auth-client";
+import { shouldShowFindWorkActions, shouldShowHireActions } from "@/lib/dashboard-paths";
+import { profileApi, type ProfileBundle } from "@/lib/profile-api";
 
 import { AnimatedNavLink, navActions, navList, navLogo } from "./animated-nav-link";
 import Logo from "./logo";
 
-const navLinks = [
-  { label: "Find talent", href: "/login", isRouter: true },
-  { label: "Find work", href: "/login", isRouter: true },
-] as const;
-
 export default function MarketingHeader() {
+  const { data: session } = authClient.useSession();
+  const [profile, setProfile] = useState<ProfileBundle | null>(null);
+
+  useEffect(() => {
+    if (!session) {
+      setProfile(null);
+      return;
+    }
+
+    let cancelled = false;
+    profileApi
+      .getMe()
+      .then((bundle) => {
+        if (!cancelled) setProfile(bundle);
+      })
+      .catch(() => {
+        if (!cancelled) setProfile(null);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [session]);
+
+  // Logged-out visitors see both paths. Signed-in users only see their role's path.
+  const showFindTalent = !session || shouldShowHireActions(profile);
+  const showFindWork = !session || shouldShowFindWorkActions(profile);
+
+  const navLinks = [
+    ...(showFindTalent
+      ? [{ label: "Find talent", href: "/freelancers", isRouter: true as const }]
+      : []),
+    ...(showFindWork
+      ? [
+          {
+            label: "Find work",
+            href: session ? "/dashboard/freelancer" : "/login",
+            isRouter: true as const,
+          },
+        ]
+      : []),
+  ];
+
   return (
     <header className="bg-background">
       <motion.div
@@ -45,10 +87,7 @@ export default function MarketingHeader() {
             signUpButton={
               <Link
                 to="/login"
-                className={cn(
-                  buttonVariants({ variant: "ghost", size: "sm" }),
-                  "text-foreground",
-                )}
+                className={cn(buttonVariants({ variant: "ghost", size: "sm" }), "text-foreground")}
               >
                 Sign up
               </Link>

@@ -15,10 +15,8 @@ import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
 
 import { formatRelativeJobDate } from "@/lib/job-utils";
-import {
-  notificationsApi,
-  type AppNotification,
-} from "@/lib/notifications-api";
+import { notificationsApi, type AppNotification } from "@/lib/notifications-api";
+import { subscribeToRealtime } from "@/lib/realtime";
 
 export function NotificationBell() {
   const router = useRouter();
@@ -56,6 +54,20 @@ export function NotificationBell() {
       void load();
     }
   }, [open, load]);
+
+  // Live push: prepend new notifications and bump the unread badge instantly.
+  useEffect(() => {
+    return subscribeToRealtime("notification:new", (payload) => {
+      const incoming = payload as AppNotification;
+      if (!incoming?.id) return;
+      setItems((current) =>
+        current.some((entry) => entry.id === incoming.id)
+          ? current
+          : [incoming, ...current].slice(0, 20),
+      );
+      setUnreadCount((count) => count + 1);
+    });
+  }, []);
 
   const handleOpenItem = async (item: AppNotification) => {
     if (!item.readAt) {
@@ -102,11 +114,7 @@ export function NotificationBell() {
             type="button"
             variant="ghost"
             size="icon-sm"
-            aria-label={
-              unreadCount > 0
-                ? `Notifications, ${unreadCount} unread`
-                : "Notifications"
-            }
+            aria-label={unreadCount > 0 ? `Notifications, ${unreadCount} unread` : "Notifications"}
             className="relative"
           />
         }
@@ -125,7 +133,12 @@ export function NotificationBell() {
         <PopoverHeader className="flex flex-row items-center justify-between gap-2 border-b border-border px-3 py-2">
           <PopoverTitle>Notifications</PopoverTitle>
           {unreadCount > 0 ? (
-            <Button type="button" variant="ghost" size="sm" onClick={() => void handleMarkAllRead()}>
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              onClick={() => void handleMarkAllRead()}
+            >
               Mark all read
             </Button>
           ) : null}

@@ -2,10 +2,11 @@ import { db } from "@lets_work/db";
 import { platformUser } from "@lets_work/db/schema/platform";
 import { eq } from "drizzle-orm";
 
-export class AdminForbiddenError extends Error {
+import { ForbiddenError } from "./errors";
+
+export class AdminForbiddenError extends ForbiddenError {
   constructor() {
-    super("Admin access required");
-    this.name = "AdminForbiddenError";
+    super("Admin access required", "ADMIN_ACCESS_REQUIRED");
   }
 }
 

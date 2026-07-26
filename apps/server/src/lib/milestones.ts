@@ -1,17 +1,11 @@
 import { db } from "@lets_work/db";
 import { contract } from "@lets_work/db/schema/contracts";
 import { job } from "@lets_work/db/schema/jobs";
-import {
-  milestone,
-  milestoneSubmission,
-} from "@lets_work/db/schema/milestones";
+import { milestone, milestoneSubmission } from "@lets_work/db/schema/milestones";
 import { and, asc, desc, eq, inArray, ne, sql } from "drizzle-orm";
 
-import {
-  ContractForbiddenError,
-  ContractNotFoundError,
-  ContractStatusError,
-} from "./contracts";
+import { ContractForbiddenError, ContractNotFoundError, ContractStatusError } from "./contracts";
+import { ConflictError, ForbiddenError, NotFoundError, ValidationError } from "./errors";
 import { recordContractEvent } from "./contract-events";
 import { createNotification } from "./notifications";
 
@@ -23,31 +17,27 @@ const APPROVABLE_STATUSES = ["submitted"] as const;
 const REVISION_STATUSES = ["submitted"] as const;
 const TERMINAL_STATUSES = ["approved", "released", "cancelled"] as const;
 
-export class MilestoneNotFoundError extends Error {
+export class MilestoneNotFoundError extends NotFoundError {
   constructor() {
-    super("Milestone not found");
-    this.name = "MilestoneNotFoundError";
+    super("Milestone not found", "MILESTONE_NOT_FOUND");
   }
 }
 
-export class MilestoneForbiddenError extends Error {
+export class MilestoneForbiddenError extends ForbiddenError {
   constructor(message = "You do not have access to this milestone") {
-    super(message);
-    this.name = "MilestoneForbiddenError";
+    super(message, "MILESTONE_FORBIDDEN");
   }
 }
 
-export class MilestoneStatusError extends Error {
+export class MilestoneStatusError extends ConflictError {
   constructor(message: string) {
-    super(message);
-    this.name = "MilestoneStatusError";
+    super(message, "MILESTONE_STATUS");
   }
 }
 
-export class MilestoneValidationError extends Error {
+export class MilestoneValidationError extends ValidationError {
   constructor(message: string) {
-    super(message);
-    this.name = "MilestoneValidationError";
+    super([message], message, "MILESTONE_VALIDATION");
   }
 }
 
@@ -71,7 +61,7 @@ function serializeSubmission(row: typeof milestoneSubmission.$inferSelect) {
 
 function serializeMilestone(
   row: typeof milestone.$inferSelect,
-  submissions: typeof milestoneSubmission.$inferSelect[] = [],
+  submissions: (typeof milestoneSubmission.$inferSelect)[] = [],
 ) {
   return {
     id: row.id,
@@ -227,7 +217,7 @@ export async function listContractMilestones(contractId: string, userId: string)
           .where(inArray(milestoneSubmission.milestoneId, milestoneIds))
           .orderBy(desc(milestoneSubmission.createdAt));
 
-  const submissionsByMilestone = new Map<string, typeof milestoneSubmission.$inferSelect[]>();
+  const submissionsByMilestone = new Map<string, (typeof milestoneSubmission.$inferSelect)[]>();
   for (const submission of submissions) {
     const current = submissionsByMilestone.get(submission.milestoneId) ?? [];
     current.push(submission);
@@ -411,12 +401,7 @@ export async function startContractMilestone(milestoneId: string, userId: string
   const [updated] = await db
     .update(milestone)
     .set({ status: "in_progress", revisionNote: null })
-    .where(
-      and(
-        eq(milestone.id, milestoneId),
-        inArray(milestone.status, [...STARTABLE_STATUSES]),
-      ),
-    )
+    .where(and(eq(milestone.id, milestoneId), inArray(milestone.status, [...STARTABLE_STATUSES])))
     .returning();
 
   if (!updated) {
@@ -451,7 +436,9 @@ export async function submitContractMilestone(
   assertActiveContract(contractRow);
   assertFreelancer(contractRow, userId);
 
-  if (!SUBMITTABLE_STATUSES.includes(milestoneRow.status as (typeof SUBMITTABLE_STATUSES)[number])) {
+  if (
+    !SUBMITTABLE_STATUSES.includes(milestoneRow.status as (typeof SUBMITTABLE_STATUSES)[number])
+  ) {
     throw new MilestoneStatusError("This milestone cannot be submitted right now");
   }
 
@@ -467,10 +454,7 @@ export async function submitContractMilestone(
         revisionNote: null,
       })
       .where(
-        and(
-          eq(milestone.id, milestoneId),
-          inArray(milestone.status, [...SUBMITTABLE_STATUSES]),
-        ),
+        and(eq(milestone.id, milestoneId), inArray(milestone.status, [...SUBMITTABLE_STATUSES])),
       )
       .returning();
 
@@ -528,9 +512,7 @@ export async function approveContractMilestone(milestoneId: string, userId: stri
       approvedAt: new Date(),
       revisionNote: null,
     })
-    .where(
-      and(eq(milestone.id, milestoneId), inArray(milestone.status, [...APPROVABLE_STATUSES])),
-    )
+    .where(and(eq(milestone.id, milestoneId), inArray(milestone.status, [...APPROVABLE_STATUSES])))
     .returning();
 
   if (!updated) {
@@ -587,9 +569,7 @@ export async function requestContractMilestoneRevision(
       status: "revision_requested",
       revisionNote: note,
     })
-    .where(
-      and(eq(milestone.id, milestoneId), inArray(milestone.status, [...REVISION_STATUSES])),
-    )
+    .where(and(eq(milestone.id, milestoneId), inArray(milestone.status, [...REVISION_STATUSES])))
     .returning();
 
   if (!updated) {

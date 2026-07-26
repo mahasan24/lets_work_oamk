@@ -3,6 +3,7 @@ import { auth } from "@lets_work/auth";
 import { env } from "@lets_work/env/server";
 import { Elysia } from "elysia";
 
+import { resolveError } from "./lib/errors";
 import { openapiPlugin } from "./plugins/openapi";
 import { adminRoutes } from "./routes/admin";
 import { contractRoutes } from "./routes/contracts";
@@ -11,7 +12,10 @@ import { profileRoutes } from "./routes/profile";
 import { hirerProposalRoutes } from "./routes/hirer-proposals";
 import { hirerJobRoutes, jobRoutes } from "./routes/jobs";
 import { notificationRoutes } from "./routes/notifications";
+import { freelancerJobFeedRoutes } from "./routes/freelancer-jobs";
 import { freelancerProposalRoutes } from "./routes/proposals";
+import { clientDirectoryRoutes, freelancerDirectoryRoutes } from "./routes/public-profiles";
+import { realtimeRoutes } from "./routes/realtime";
 
 new Elysia()
   .use(
@@ -22,6 +26,26 @@ new Elysia()
       credentials: true,
     }),
   )
+  .onError(({ code, error, set }) => {
+    // Framework-level errors don't flow through our AppError hierarchy, so map
+    // the well-known Elysia codes explicitly and let everything else resolve.
+    if (code === "VALIDATION") {
+      set.status = 422;
+      return { error: error.message, code: "VALIDATION" };
+    }
+    if (code === "NOT_FOUND") {
+      set.status = 404;
+      return { error: "Not found", code: "NOT_FOUND" };
+    }
+    if (code === "PARSE") {
+      set.status = 400;
+      return { error: "Malformed request body", code: "PARSE" };
+    }
+
+    const resolved = resolveError(error);
+    set.status = resolved.status;
+    return resolved.body;
+  })
   .use(openapiPlugin)
   .all(
     "/api/auth/*",
@@ -41,15 +65,19 @@ new Elysia()
     },
   )
   .use(profileRoutes)
+  .use(freelancerDirectoryRoutes)
+  .use(clientDirectoryRoutes)
   .use(jobRoutes)
   .use(hirerJobRoutes)
   .use(hirerProposalRoutes)
   .use(freelancerProposalRoutes)
+  .use(freelancerJobFeedRoutes)
   .use(contractRoutes)
   .use(contractMilestoneRoutes)
   .use(milestoneActionRoutes)
   .use(notificationRoutes)
   .use(adminRoutes)
+  .use(realtimeRoutes)
   .get("/", () => "OK", {
     detail: {
       tags: ["Health"],

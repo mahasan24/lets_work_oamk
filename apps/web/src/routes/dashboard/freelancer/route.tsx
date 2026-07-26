@@ -6,6 +6,7 @@ import { getActiveRole } from "@/lib/dashboard-paths";
 export const Route = createFileRoute("/dashboard/freelancer")({
   component: FreelancerRouteLayout,
   beforeLoad: ({ context }) => {
+    // Hirer-only accounts (and dual accounts acting as hirers) stay out of find-work.
     if (context.profile && getActiveRole(context.profile) !== "freelancer") {
       redirect({ to: "/dashboard/hirer", throw: true });
     }

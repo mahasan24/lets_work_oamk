@@ -5,30 +5,28 @@ import { job } from "@lets_work/db/schema/jobs";
 import { marketplaceUserProfile } from "@lets_work/db/schema/marketplace";
 import { and, desc, eq, inArray, or } from "drizzle-orm";
 
+import { ConflictError, ForbiddenError, NotFoundError } from "./errors";
 import { cancelContractMilestones } from "./milestone-helpers";
 import { assertContractMilestonesCompletable } from "./milestones";
 import { recordContractEvent } from "./contract-events";
 
 type ContractStatus = (typeof contractStatusEnum.enumValues)[number];
 
-export class ContractNotFoundError extends Error {
+export class ContractNotFoundError extends NotFoundError {
   constructor() {
-    super("Contract not found");
-    this.name = "ContractNotFoundError";
+    super("Contract not found", "CONTRACT_NOT_FOUND");
   }
 }
 
-export class ContractForbiddenError extends Error {
+export class ContractForbiddenError extends ForbiddenError {
   constructor(message = "You do not have access to this contract") {
-    super(message);
-    this.name = "ContractForbiddenError";
+    super(message, "CONTRACT_FORBIDDEN");
   }
 }
 
-export class ContractStatusError extends Error {
+export class ContractStatusError extends ConflictError {
   constructor(message: string) {
-    super(message);
-    this.name = "ContractStatusError";
+    super(message, "CONTRACT_STATUS");
   }
 }
 
@@ -154,9 +152,7 @@ export async function listUserContracts(
   } else if (query?.role === "freelancer") {
     conditions.push(eq(contract.freelancerUserId, userId));
   } else {
-    conditions.push(
-      or(eq(contract.hirerUserId, userId), eq(contract.freelancerUserId, userId)),
-    );
+    conditions.push(or(eq(contract.hirerUserId, userId), eq(contract.freelancerUserId, userId)));
   }
 
   if (query?.status) {
@@ -254,11 +250,7 @@ export async function completeUserContract(contractId: string, userId: string) {
 export async function cancelUserContract(contractId: string, userId: string) {
   const existing = await getAccessibleContract(contractId, userId);
 
-  if (
-    existing.status !== "active" &&
-    existing.status !== "draft" &&
-    existing.status !== "paused"
-  ) {
+  if (existing.status !== "active" && existing.status !== "draft" && existing.status !== "paused") {
     throw new ContractStatusError("This contract cannot be cancelled");
   }
 
@@ -373,12 +365,7 @@ export async function disputeUserContract(
   const [updated] = await db
     .update(contract)
     .set({ status: "disputed" })
-    .where(
-      and(
-        eq(contract.id, contractId),
-        inArray(contract.status, ["active", "paused"]),
-      ),
-    )
+    .where(and(eq(contract.id, contractId), inArray(contract.status, ["active", "paused"])))
     .returning();
 
   if (!updated) {

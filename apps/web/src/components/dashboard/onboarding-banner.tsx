@@ -26,8 +26,8 @@ export function OnboardingBanner({ profile, role }: OnboardingBannerProps) {
         <AlertTitle>Complete your {role === "hirer" ? "client" : "freelancer"} profile</AlertTitle>
         <AlertDescription className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <span>
-            You&apos;re {profile.profileCompletion}% done. Finish your profile to unlock the full
-            dashboard.
+            You&apos;re {profile.profileCompletion}% done. A complete profile helps you get
+            discovered and win more work.
           </span>
           <Button render={<Link to={profilePath} />} nativeButton={false} size="sm">
             Continue setup
@@ -50,7 +50,12 @@ export function OnboardingBanner({ profile, role }: OnboardingBannerProps) {
         <AlertTitle>Identity verification</AlertTitle>
         <AlertDescription className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <span>{message}</span>
-          <Button render={<Link to={profilePath} />} nativeButton={false} size="sm" variant="outline">
+          <Button
+            render={<Link to={profilePath} />}
+            nativeButton={false}
+            size="sm"
+            variant="outline"
+          >
             {identity?.status === "pending" ? "View status" : "Verify identity"}
           </Button>
         </AlertDescription>

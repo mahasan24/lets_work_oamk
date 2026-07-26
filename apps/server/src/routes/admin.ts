@@ -1,42 +1,17 @@
 import { Elysia, t } from "elysia";
 
-import { AdminForbiddenError, requireAdmin } from "../lib/admin";
+import { requireAdmin } from "../lib/admin";
 import {
   approveVerification,
   listPendingVerifications,
   rejectVerification,
-  VerificationNotFoundError,
 } from "../lib/verification-admin";
+import { runGuardedAction } from "../lib/http";
 import { betterAuthPlugin } from "../plugins/auth";
 import { COOKIE_AUTH_SECURITY } from "../lib/openapi-tags";
 
-type ErrorResponse = { status: number; body: { error: string } };
-
-function handleAdminError(error: unknown): ErrorResponse | null {
-  if (error instanceof AdminForbiddenError) {
-    return { status: 403, body: { error: error.message } };
-  }
-  if (error instanceof VerificationNotFoundError) {
-    return { status: 404, body: { error: error.message } };
-  }
-  if (error instanceof Error) {
-    return { status: 409, body: { error: error.message } };
-  }
-  return null;
-}
-
-async function runAdminAction<T>(userId: string, action: () => Promise<T>) {
-  try {
-    await requireAdmin(userId);
-    return { ok: true as const, data: await action() };
-  } catch (error) {
-    const mapped = handleAdminError(error);
-    if (mapped) {
-      return { ok: false as const, status: mapped.status, body: mapped.body };
-    }
-    throw error;
-  }
-}
+const runAdminAction = <T>(userId: string, action: () => Promise<T>) =>
+  runGuardedAction(() => requireAdmin(userId), action);
 
 export const adminRoutes = new Elysia({
   prefix: "/api/admin",

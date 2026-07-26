@@ -19,29 +19,62 @@ export function getProfilePath(profile: ProfileBundle | null | undefined) {
     : "/dashboard/freelancer/profile";
 }
 
-const PROFILE_COMPLETE_THRESHOLD = 80;
+/**
+ * Hirers (and dual accounts) can post jobs and browse talent.
+ * Freelancer-only accounts cannot.
+ */
+export function canHireTalent(profile: ProfileBundle | null | undefined) {
+  if (!profile) return false;
+  const type = profile.profile.accountType;
+  return type === "hirer" || type === "both";
+}
+
+/**
+ * Freelancers (and dual accounts) can browse jobs and apply.
+ * Hirer-only accounts cannot.
+ */
+export function canFindWork(profile: ProfileBundle | null | undefined) {
+  if (!profile) return false;
+  const type = profile.profile.accountType;
+  return type === "freelancer" || type === "both";
+}
+
+/**
+ * Whether the current UI should expose hire / find-talent actions.
+ * Dual accounts only see these while acting as a hirer.
+ */
+export function shouldShowHireActions(profile: ProfileBundle | null | undefined) {
+  if (!canHireTalent(profile)) return false;
+  if (profile?.profile.accountType === "both") {
+    return profile.profile.activeRole === "hirer";
+  }
+  return true;
+}
+
+/**
+ * Whether the current UI should expose find-work / apply actions.
+ * Dual accounts only see these while acting as a freelancer.
+ */
+export function shouldShowFindWorkActions(profile: ProfileBundle | null | undefined) {
+  if (!canFindWork(profile)) return false;
+  if (profile?.profile.accountType === "both") {
+    return profile.profile.activeRole === "freelancer";
+  }
+  return true;
+}
 
 export function getOnboardingRedirectPath(
   profile: ProfileBundle | null | undefined,
-  pathname: string,
+  _pathname: string,
 ): string | null {
   if (!profile) return null;
 
-  const step = profile.profile.onboardingStep;
-
-  if (step === "role_selection") {
+  // Role selection is the only hard prerequisite: without a role we can't know
+  // which dashboard to render. Everything else (profile completion, identity
+  // verification) is surfaced via a banner, not a gate, so the user always has
+  // full access to their dashboard.
+  if (profile.profile.onboardingStep === "role_selection") {
     return "/dashboard/onboarding/role";
-  }
-
-  if (step === "profile" && profile.profileCompletion < PROFILE_COMPLETE_THRESHOLD) {
-    const profilePath = getProfilePath(profile);
-    if (
-      !pathname.startsWith(profilePath) &&
-      !pathname.startsWith("/dashboard/onboarding") &&
-      !pathname.startsWith("/dashboard/admin")
-    ) {
-      return profilePath;
-    }
   }
 
   return null;

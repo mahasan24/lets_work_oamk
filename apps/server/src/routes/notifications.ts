@@ -5,31 +5,10 @@ import {
   listUserNotifications,
   markAllNotificationsRead,
   markNotificationRead,
-  NotificationNotFoundError,
 } from "../lib/notifications";
+import { runAction as runNotificationAction } from "../lib/http";
 import { COOKIE_AUTH_SECURITY } from "../lib/openapi-tags";
 import { betterAuthPlugin } from "../plugins/auth";
-
-type ErrorResponse = { status: number; body: { error: string } };
-
-function handleNotificationError(error: unknown): ErrorResponse | null {
-  if (error instanceof NotificationNotFoundError) {
-    return { status: 404, body: { error: error.message } };
-  }
-  return null;
-}
-
-async function runNotificationAction<T>(action: () => Promise<T>) {
-  try {
-    return { ok: true as const, data: await action() };
-  } catch (error) {
-    const mapped = handleNotificationError(error);
-    if (mapped) {
-      return { ok: false as const, status: mapped.status, body: mapped.body };
-    }
-    throw error;
-  }
-}
 
 export const notificationRoutes = new Elysia({
   prefix: "/api/notifications",
@@ -90,9 +69,7 @@ export const notificationRoutes = new Elysia({
   .post(
     "/:id/read",
     async ({ user, params, status }) => {
-      const result = await runNotificationAction(() =>
-        markNotificationRead(params.id, user.id),
-      );
+      const result = await runNotificationAction(() => markNotificationRead(params.id, user.id));
       if (!result.ok) return status(result.status, result.body);
       return result.data;
     },

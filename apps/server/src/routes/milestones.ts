@@ -1,57 +1,18 @@
 import { Elysia, t } from "elysia";
 
 import {
-  ContractForbiddenError,
-  ContractNotFoundError,
-  ContractStatusError,
-} from "../lib/contracts";
-import {
   approveContractMilestone,
   createContractMilestone,
   deleteContractMilestone,
   listContractMilestones,
-  MilestoneForbiddenError,
-  MilestoneNotFoundError,
-  MilestoneStatusError,
-  MilestoneValidationError,
   requestContractMilestoneRevision,
   startContractMilestone,
   submitContractMilestone,
   updateContractMilestone,
 } from "../lib/milestones";
+import { runAction as runMilestoneAction } from "../lib/http";
 import { COOKIE_AUTH_SECURITY } from "../lib/openapi-tags";
 import { betterAuthPlugin } from "../plugins/auth";
-
-type ErrorResponse = { status: number; body: { error: string } };
-
-function handleMilestoneError(error: unknown): ErrorResponse | null {
-  if (error instanceof ContractNotFoundError || error instanceof MilestoneNotFoundError) {
-    return { status: 404, body: { error: error.message } };
-  }
-  if (error instanceof ContractForbiddenError || error instanceof MilestoneForbiddenError) {
-    return { status: 403, body: { error: error.message } };
-  }
-  if (
-    error instanceof ContractStatusError ||
-    error instanceof MilestoneStatusError ||
-    error instanceof MilestoneValidationError
-  ) {
-    return { status: 400, body: { error: error.message } };
-  }
-  return null;
-}
-
-async function runMilestoneAction<T>(action: () => Promise<T>) {
-  try {
-    return { ok: true as const, data: await action() };
-  } catch (error) {
-    const mapped = handleMilestoneError(error);
-    if (mapped) {
-      return { ok: false as const, status: mapped.status, body: mapped.body };
-    }
-    throw error;
-  }
-}
 
 const milestoneBody = t.Object({
   title: t.String({ minLength: 1 }),

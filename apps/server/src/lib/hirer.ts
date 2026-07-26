@@ -1,5 +1,6 @@
 import { marketplaceUserProfile } from "@lets_work/db/schema/marketplace";
 
+import { ConflictError, ForbiddenError, NotFoundError, ValidationError } from "./errors";
 import { ensureProfile } from "./profile";
 
 function isHirerProfile(profile: typeof marketplaceUserProfile.$inferSelect) {
@@ -16,40 +17,32 @@ export async function requireHirerProfile(userId: string) {
   return profile;
 }
 
-export class HirerAccessError extends Error {
+export class HirerAccessError extends ForbiddenError {
   constructor() {
-    super("Hirer account required");
-    this.name = "HirerAccessError";
+    super("Hirer account required", "HIRER_ACCESS_REQUIRED");
   }
 }
 
-export class JobNotFoundError extends Error {
+export class JobNotFoundError extends NotFoundError {
   constructor() {
-    super("Job not found");
-    this.name = "JobNotFoundError";
+    super("Job not found", "JOB_NOT_FOUND");
   }
 }
 
-export class JobForbiddenError extends Error {
+export class JobForbiddenError extends ForbiddenError {
   constructor(message = "You do not have access to this job") {
-    super(message);
-    this.name = "JobForbiddenError";
+    super(message, "JOB_FORBIDDEN");
   }
 }
 
-export class JobValidationError extends Error {
-  errors: string[];
-
+export class JobValidationError extends ValidationError {
   constructor(errors: string[]) {
-    super(errors.join("; "));
-    this.name = "JobValidationError";
-    this.errors = errors;
+    super(errors, undefined, "JOB_VALIDATION");
   }
 }
 
-export class JobStatusError extends Error {
+export class JobStatusError extends ConflictError {
   constructor(message: string) {
-    super(message);
-    this.name = "JobStatusError";
+    super(message, "JOB_STATUS");
   }
 }
