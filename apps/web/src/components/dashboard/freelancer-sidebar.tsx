@@ -90,6 +90,13 @@ export default function FreelancerSidebar({ profile }: FreelancerSidebarProps) {
             My proposals
           </Link>
           <Link
+            to="/dashboard/freelancer/messages"
+            search={{}}
+            className="rounded-md px-2 py-1.5 text-sm text-muted-foreground hover:bg-muted hover:text-foreground"
+          >
+            Messages
+          </Link>
+          <Link
             to="/dashboard/freelancer/contracts"
             className="rounded-md px-2 py-1.5 text-sm text-muted-foreground hover:bg-muted hover:text-foreground"
           >

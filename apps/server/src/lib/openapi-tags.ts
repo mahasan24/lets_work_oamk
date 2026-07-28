@@ -35,6 +35,14 @@ export const OPENAPI_TAGS = [
     name: "Notifications",
     description: "In-app notifications and unread state",
   },
+  {
+    name: "Realtime",
+    description: "Authenticated websocket event gateway",
+  },
+  {
+    name: "Chat",
+    description: "Conversation threads, message delivery, and read state",
+  },
 ] as const;
 
 export const COOKIE_AUTH_SECURITY = [{ cookieAuth: [] }];

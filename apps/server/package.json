@@ -21,6 +21,7 @@
     "dotenv": "catalog:",
     "drizzle-orm": "^0.45.1",
     "elysia": "^1.4.28",
+    "redis": "^6.1.0",
     "zod": "catalog:"
   },
   "devDependencies": {

@@ -54,7 +54,14 @@ export const profileRoutes = new Elysia({
     async ({ user }) => {
       return getProfileBundle(user.id);
     },
-    { auth: true, detail: { summary: "Get current profile", description: "Returns profile, portfolio, certifications, experience, and completion score." } },
+    {
+      auth: true,
+      detail: {
+        summary: "Get current profile",
+        description:
+          "Returns profile, portfolio, certifications, experience, and completion score.",
+      },
+    },
   )
   .post(
     "/initialize",
@@ -274,7 +281,13 @@ export const profileRoutes = new Elysia({
     "/uploads/sign",
     ({ query }) => {
       const folder = (query.folder ?? "portfolio") as UploadFolder;
-      const allowed: UploadFolder[] = ["avatars", "portfolio", "certifications", "videos"];
+      const allowed: UploadFolder[] = [
+        "avatars",
+        "portfolio",
+        "certifications",
+        "videos",
+        "messages",
+      ];
       if (!allowed.includes(folder)) {
         return new Response(JSON.stringify({ error: "Invalid folder" }), { status: 400 });
       }
@@ -289,6 +302,7 @@ export const profileRoutes = new Elysia({
             t.Literal("portfolio"),
             t.Literal("certifications"),
             t.Literal("videos"),
+            t.Literal("messages"),
           ]),
         ),
       }),

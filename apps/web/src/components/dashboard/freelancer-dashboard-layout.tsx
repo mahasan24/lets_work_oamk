@@ -13,6 +13,7 @@ import FreelancerSidebar from "./freelancer-sidebar";
 const NAV_ITEMS = [
   { label: "Find work", to: "/dashboard/freelancer" as const, exact: true },
   { label: "My proposals", to: "/dashboard/freelancer/proposals" as const, exact: false },
+  { label: "Messages", to: "/dashboard/freelancer/messages" as const, exact: false },
   { label: "Contracts", to: "/dashboard/freelancer/contracts" as const, exact: false },
   { label: "Profile", to: "/dashboard/freelancer/profile" as const, exact: false },
 ] as const;

@@ -12,6 +12,7 @@ import HirerSidebar from "./hirer-sidebar";
 
 const NAV_ITEMS = [
   { label: "Jobs", to: "/dashboard/hirer" as const, exact: true },
+  { label: "Messages", to: "/dashboard/hirer/messages" as const, exact: false },
   { label: "Contracts", to: "/dashboard/hirer/contracts" as const, exact: false },
   { label: "Profile", to: "/dashboard/hirer/profile" as const, exact: false },
 ] as const;

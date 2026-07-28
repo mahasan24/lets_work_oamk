@@ -1,16 +1,5 @@
-/**
- * Realtime gateway hub.
- *
- * Tracks live WebSocket connections per user and fans out events to every
- * device a user has open. The rest of the app pushes updates through
- * {@link publishToUser} (e.g. when a notification is created) so clients receive
- * changes without polling.
- *
- * This implementation keeps connections in process memory, which is correct for
- * a single server instance. For horizontal scaling, `broadcast` is the single
- * choke point to layer a Redis (or other) pub/sub fan-out on top of — publish
- * the event to every instance there and have each call {@link deliverToUser}.
- */
+import { env } from "@lets_work/env/server";
+import { createClient, type RedisClientType } from "redis";
 
 /** Minimal shape of an Elysia WebSocket connection we depend on. */
 export type RealtimeSocket = {
@@ -19,14 +8,79 @@ export type RealtimeSocket = {
 };
 
 export type RealtimeEvent = {
-  /** Stable event name, e.g. `notification:new`. */
   type: string;
   payload: unknown;
 };
 
 const connectionsByUser = new Map<string, Map<string, RealtimeSocket>>();
+const REALTIME_CHANNEL = "letswork:realtime:user-events";
+const INSTANCE_ID = crypto.randomUUID();
+
+type BroadcastEnvelope = {
+  source: string;
+  userId: string;
+  event: RealtimeEvent;
+};
+
+let publisher: RedisClientType | null = null;
+let subscriber: RedisClientType | null = null;
+let redisReady = false;
+let redisInitPromise: Promise<void> | null = null;
+
+async function ensureRedisBus() {
+  if (redisReady) return;
+  if (redisInitPromise) {
+    await redisInitPromise;
+    return;
+  }
+
+  redisInitPromise = (async () => {
+    try {
+      publisher = createClient({ url: env.REDIS_URL });
+      subscriber = publisher.duplicate();
+
+      publisher.on("error", () => {
+        redisReady = false;
+      });
+      subscriber.on("error", () => {
+        redisReady = false;
+      });
+
+      await publisher.connect();
+      await subscriber.connect();
+      await subscriber.subscribe(REALTIME_CHANNEL, (payload) => {
+        try {
+          const parsed = JSON.parse(payload) as BroadcastEnvelope;
+          if (parsed.source === INSTANCE_ID) return;
+          deliverToUser(parsed.userId, parsed.event);
+        } catch {
+          // Ignore malformed pub/sub payloads.
+        }
+      });
+      redisReady = true;
+    } catch (error) {
+      redisReady = false;
+      console.error("[realtime] failed to connect Redis pub/sub", error);
+    }
+  })();
+
+  await redisInitPromise;
+}
+
+function publishOverRedis(userId: string, event: RealtimeEvent) {
+  void ensureRedisBus().then(async () => {
+    if (!publisher || !redisReady) return;
+    const envelope: BroadcastEnvelope = {
+      source: INSTANCE_ID,
+      userId,
+      event,
+    };
+    await publisher.publish(REALTIME_CHANNEL, JSON.stringify(envelope));
+  });
+}
 
 export function registerConnection(userId: string, socket: RealtimeSocket) {
+  void ensureRedisBus();
   let sockets = connectionsByUser.get(userId);
   if (!sockets) {
     sockets = new Map();
@@ -49,7 +103,6 @@ export function connectionCount(userId: string) {
   return connectionsByUser.get(userId)?.size ?? 0;
 }
 
-/** Delivers an event to a user's connections on this instance only. */
 export function deliverToUser(userId: string, event: RealtimeEvent) {
   const sockets = connectionsByUser.get(userId);
   if (!sockets || sockets.size === 0) return;
@@ -64,10 +117,7 @@ export function deliverToUser(userId: string, event: RealtimeEvent) {
   }
 }
 
-/**
- * Publishes an event to a user across the deployment. Today this is a local
- * delivery; wire a pub/sub adapter here to reach other instances.
- */
 export function publishToUser(userId: string, event: RealtimeEvent) {
   deliverToUser(userId, event);
+  publishOverRedis(userId, event);
 }

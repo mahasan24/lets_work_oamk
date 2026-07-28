@@ -3,7 +3,7 @@ import { env } from "@lets_work/env/web";
 import { jobsApi, type UploadSignature as JobUploadSignature } from "./jobs-api";
 import { profileApi, type UploadSignature } from "./profile-api";
 
-type ProfileUploadFolder = "avatars" | "portfolio" | "certifications" | "videos";
+type ProfileUploadFolder = "avatars" | "portfolio" | "certifications" | "videos" | "messages";
 
 export async function uploadToCloudinary(
   file: File,
@@ -82,6 +82,17 @@ export async function uploadProposalAttachment(file: File) {
     url,
     fileName: file.name,
     mimeType: file.type || null,
+  };
+}
+
+export async function uploadMessageAttachment(file: File) {
+  const signature = await profileApi.getUploadSignature("messages");
+  const url = await uploadWithSignature(file, signature);
+  return {
+    fileName: file.name,
+    fileUrl: url,
+    mimeType: file.type || null,
+    sizeBytes: file.size || null,
   };
 }
 

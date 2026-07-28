@@ -6,6 +6,7 @@ import { Elysia } from "elysia";
 import { resolveError } from "./lib/errors";
 import { openapiPlugin } from "./plugins/openapi";
 import { adminRoutes } from "./routes/admin";
+import { chatRoutes } from "./routes/chat";
 import { contractRoutes } from "./routes/contracts";
 import { contractMilestoneRoutes, milestoneActionRoutes } from "./routes/milestones";
 import { profileRoutes } from "./routes/profile";
@@ -76,6 +77,7 @@ new Elysia()
   .use(contractMilestoneRoutes)
   .use(milestoneActionRoutes)
   .use(notificationRoutes)
+  .use(chatRoutes)
   .use(adminRoutes)
   .use(realtimeRoutes)
   .get("/", () => "OK", {
