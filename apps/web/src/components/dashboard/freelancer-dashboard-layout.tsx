@@ -1,6 +1,7 @@
 import { Link } from "@tanstack/react-router";
 import { cn } from "@lets_work/ui/lib/utils";
 
+import { MessagesNavLink } from "@/components/chat/messages-nav-link";
 import Logo from "@/components/marketing/logo";
 import { NotificationBell } from "@/components/dashboard/notification-bell";
 import { OnboardingBanner } from "@/components/dashboard/onboarding-banner";
@@ -10,12 +11,11 @@ import { Route } from "@/routes/dashboard/freelancer/route";
 
 import FreelancerSidebar from "./freelancer-sidebar";
 
-const NAV_ITEMS = [
-  { label: "Find work", to: "/dashboard/freelancer" as const, exact: true },
-  { label: "My proposals", to: "/dashboard/freelancer/proposals" as const, exact: false },
-  { label: "Contracts", to: "/dashboard/freelancer/contracts" as const, exact: false },
-  { label: "Profile", to: "/dashboard/freelancer/profile" as const, exact: false },
-] as const;
+const linkClass = "text-sm text-muted-foreground hover:text-foreground";
+const linkActiveClass = "text-sm font-medium text-foreground";
+const mobileLinkClass =
+  "shrink-0 rounded-md px-3 py-1.5 text-sm whitespace-nowrap text-muted-foreground";
+const mobileLinkActiveClass = "bg-muted font-medium text-foreground";
 
 export default function FreelancerDashboardLayout({ children }: { children: React.ReactNode }) {
   const { profile } = Route.useRouteContext();
@@ -27,17 +27,40 @@ export default function FreelancerDashboardLayout({ children }: { children: Reac
           <div className="flex items-center gap-8">
             <Logo />
             <nav className="hidden items-center gap-6 md:flex">
-              {NAV_ITEMS.map((item) => (
-                <Link
-                  key={item.to}
-                  to={item.to}
-                  activeOptions={{ exact: item.exact }}
-                  className={cn("text-sm text-muted-foreground hover:text-foreground")}
-                  activeProps={{ className: "text-sm font-medium text-foreground" }}
-                >
-                  {item.label}
-                </Link>
-              ))}
+              <Link
+                to="/dashboard/freelancer"
+                activeOptions={{ exact: true }}
+                className={linkClass}
+                activeProps={{ className: linkActiveClass }}
+              >
+                Find work
+              </Link>
+              <Link
+                to="/dashboard/freelancer/proposals"
+                className={linkClass}
+                activeProps={{ className: linkActiveClass }}
+              >
+                My proposals
+              </Link>
+              <MessagesNavLink
+                to="/dashboard/freelancer/messages"
+                className={linkClass}
+                activeClassName={linkActiveClass}
+              />
+              <Link
+                to="/dashboard/freelancer/contracts"
+                className={linkClass}
+                activeProps={{ className: linkActiveClass }}
+              >
+                Contracts
+              </Link>
+              <Link
+                to="/dashboard/freelancer/profile"
+                className={linkClass}
+                activeProps={{ className: linkActiveClass }}
+              >
+                Profile
+              </Link>
             </nav>
           </div>
           <div className="flex items-center gap-3">
@@ -47,21 +70,40 @@ export default function FreelancerDashboardLayout({ children }: { children: Reac
         </div>
 
         <nav className="flex items-center gap-1 overflow-x-auto border-t border-border px-2 py-1 md:hidden">
-          {NAV_ITEMS.map((item) => (
-            <Link
-              key={item.to}
-              to={item.to}
-              activeOptions={{ exact: item.exact }}
-              className={cn(
-                "shrink-0 rounded-md px-3 py-1.5 text-sm whitespace-nowrap text-muted-foreground",
-              )}
-              activeProps={{
-                className: "bg-muted font-medium text-foreground",
-              }}
-            >
-              {item.label}
-            </Link>
-          ))}
+          <Link
+            to="/dashboard/freelancer"
+            activeOptions={{ exact: true }}
+            className={mobileLinkClass}
+            activeProps={{ className: cn(mobileLinkClass, mobileLinkActiveClass) }}
+          >
+            Find work
+          </Link>
+          <Link
+            to="/dashboard/freelancer/proposals"
+            className={mobileLinkClass}
+            activeProps={{ className: cn(mobileLinkClass, mobileLinkActiveClass) }}
+          >
+            My proposals
+          </Link>
+          <MessagesNavLink
+            to="/dashboard/freelancer/messages"
+            className={mobileLinkClass}
+            activeClassName={cn(mobileLinkClass, mobileLinkActiveClass)}
+          />
+          <Link
+            to="/dashboard/freelancer/contracts"
+            className={mobileLinkClass}
+            activeProps={{ className: cn(mobileLinkClass, mobileLinkActiveClass) }}
+          >
+            Contracts
+          </Link>
+          <Link
+            to="/dashboard/freelancer/profile"
+            className={mobileLinkClass}
+            activeProps={{ className: cn(mobileLinkClass, mobileLinkActiveClass) }}
+          >
+            Profile
+          </Link>
         </nav>
       </header>
 

@@ -14,10 +14,11 @@ import { Label } from "@lets_work/ui/components/label";
 import { Skeleton } from "@lets_work/ui/components/skeleton";
 import { Textarea } from "@lets_work/ui/components/textarea";
 import { cn } from "@lets_work/ui/lib/utils";
-import { Link } from "@tanstack/react-router";
+import { Link, useNavigate } from "@tanstack/react-router";
 import { useCallback, useEffect, useState, useTransition } from "react";
 import { toast } from "sonner";
 
+import { chatApi } from "@/lib/chat-api";
 import {
   ContractsApiError,
   contractsApi,
@@ -49,9 +50,11 @@ function StatusBadge({ status }: { status: Contract["status"] }) {
 }
 
 export function ContractDetail({ contractId, role, listPath }: ContractDetailProps) {
+  const navigate = useNavigate();
   const [contract, setContract] = useState<Contract | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isPending, startTransition] = useTransition();
+  const [isOpeningChat, setIsOpeningChat] = useState(false);
   const [timelineRefreshKey, setTimelineRefreshKey] = useState(0);
   const [showDisputeDialog, setShowDisputeDialog] = useState(false);
   const [disputeReason, setDisputeReason] = useState("");
@@ -110,13 +113,29 @@ export function ContractDetail({ contractId, role, listPath }: ContractDetailPro
 
   const counterpart = role === "hirer" ? contract.freelancer : contract.hirer;
 
+  const openChat = async () => {
+    setIsOpeningChat(true);
+    try {
+      const conversation = await chatApi.createOrGetConversation({
+        participantUserId: counterpart.id,
+        contractId: contract.id,
+        jobId: contract.jobId,
+      });
+      await navigate({
+        to: role === "hirer" ? "/dashboard/hirer/messages" : "/dashboard/freelancer/messages",
+        search: { conversationId: conversation.id },
+      });
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Failed to open chat");
+    } finally {
+      setIsOpeningChat(false);
+    }
+  };
+
   return (
     <div className="flex flex-col gap-6">
       <div className="flex flex-col gap-2">
-        <Link
-          to={listPath}
-          className="text-sm text-muted-foreground hover:text-foreground"
-        >
+        <Link to={listPath} className="text-sm text-muted-foreground hover:text-foreground">
           ← Back to contracts
         </Link>
         <div className="flex flex-wrap items-center gap-3">
@@ -130,6 +149,14 @@ export function ContractDetail({ contractId, role, listPath }: ContractDetailPro
       </div>
 
       <div className="flex flex-wrap gap-2">
+        <Button
+          type="button"
+          variant="outline"
+          disabled={isOpeningChat}
+          onClick={() => void openChat()}
+        >
+          {isOpeningChat ? "Opening…" : "Message"}
+        </Button>
         {contract.status === "active" ? (
           <Button
             type="button"
@@ -177,7 +204,7 @@ export function ContractDetail({ contractId, role, listPath }: ContractDetailPro
             Resume
           </Button>
         ) : null}
-        {(contract.status === "active" || contract.status === "paused") ? (
+        {contract.status === "active" || contract.status === "paused" ? (
           <Button
             type="button"
             variant="outline"
@@ -246,11 +273,7 @@ export function ContractDetail({ contractId, role, listPath }: ContractDetailPro
             <Detail label="Rate" value={formatContractRate(contract)} />
             <Detail
               label="Started"
-              value={
-                contract.startedAt
-                  ? formatRelativeJobDate(contract.startedAt)
-                  : "Not started"
-              }
+              value={contract.startedAt ? formatRelativeJobDate(contract.startedAt) : "Not started"}
             />
             <Detail
               label="Ended"

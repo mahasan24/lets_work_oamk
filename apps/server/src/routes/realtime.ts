@@ -1,5 +1,6 @@
 import { Elysia } from "elysia";
 
+import { publishTypingState } from "../lib/chat";
 import { registerConnection, unregisterConnection } from "../lib/realtime";
 import { COOKIE_AUTH_SECURITY } from "../lib/openapi-tags";
 import { betterAuthPlugin } from "../plugins/auth";
@@ -24,10 +25,29 @@ export const realtimeRoutes = new Elysia({
       registerConnection(userId, ws);
       ws.send(JSON.stringify({ type: "connected", payload: { userId } }));
     },
-    message(ws, message) {
+    async message(ws, message) {
       // Lightweight keep-alive so proxies don't drop idle connections.
       if (message === "ping") {
         ws.send(JSON.stringify({ type: "pong", payload: null }));
+        return;
+      }
+
+      if (typeof message !== "string") return;
+      try {
+        const parsed = JSON.parse(message) as {
+          type?: string;
+          payload?: { conversationId?: string; isTyping?: boolean };
+        };
+        if (parsed.type !== "chat:typing") return;
+        const conversationId = parsed.payload?.conversationId?.trim();
+        if (!conversationId) return;
+        await publishTypingState(
+          ws.data.user.id,
+          conversationId,
+          Boolean(parsed.payload?.isTyping),
+        );
+      } catch {
+        // Ignore malformed or unsupported websocket payloads.
       }
     },
     close(ws) {

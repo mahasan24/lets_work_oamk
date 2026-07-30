@@ -3,10 +3,11 @@ import { Button } from "@lets_work/ui/components/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@lets_work/ui/components/card";
 import { Skeleton } from "@lets_work/ui/components/skeleton";
 import { Tabs, TabsList, TabsTrigger } from "@lets_work/ui/components/tabs";
-import { Link } from "@tanstack/react-router";
+import { Link, useNavigate } from "@tanstack/react-router";
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
 
+import { chatApi } from "@/lib/chat-api";
 import {
   freelancerJobsApi,
   type FreelancerProposalListResponse,
@@ -43,10 +44,12 @@ function statusVariant(status: ProposalStatus) {
 }
 
 export function MyProposals() {
+  const navigate = useNavigate();
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
   const [data, setData] = useState<FreelancerProposalListResponse | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [withdrawingId, setWithdrawingId] = useState<string | null>(null);
+  const [messagingId, setMessagingId] = useState<string | null>(null);
 
   const loadProposals = useCallback(async () => {
     setIsLoading(true);
@@ -81,6 +84,27 @@ export function MyProposals() {
       }
     },
     [loadProposals],
+  );
+
+  const openChat = useCallback(
+    async (proposal: FreelancerProposalSummary) => {
+      setMessagingId(proposal.id);
+      try {
+        const conversation = await chatApi.createOrGetConversation({
+          participantUserId: proposal.hirerUserId,
+          jobId: proposal.jobId,
+        });
+        await navigate({
+          to: "/dashboard/freelancer/messages",
+          search: { conversationId: conversation.id },
+        });
+      } catch (error) {
+        toast.error(error instanceof Error ? error.message : "Failed to open chat");
+      } finally {
+        setMessagingId(null);
+      }
+    },
+    [navigate],
   );
 
   return (
@@ -188,6 +212,16 @@ export function MyProposals() {
                     >
                       {proposal.status === "draft" ? "Finish proposal" : "View job"}
                     </Link>
+                  ) : null}
+                  {proposal.status === "shortlisted" || proposal.status === "accepted" ? (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      disabled={messagingId === proposal.id}
+                      onClick={() => void openChat(proposal)}
+                    >
+                      {messagingId === proposal.id ? "Opening…" : "Open chat"}
+                    </Button>
                   ) : null}
                   {proposal.status === "submitted" || proposal.status === "shortlisted" ? (
                     <Button

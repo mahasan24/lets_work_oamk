@@ -122,3 +122,15 @@ export function subscribeToRealtime(type: string, handler: Handler) {
     }
   };
 }
+
+/**
+ * Sends a payload through the shared websocket when connected.
+ * Useful for ephemeral signals such as typing indicators.
+ */
+export function emitRealtime(message: RealtimeMessage) {
+  shouldConnect = true;
+  connect();
+  if (socket?.readyState === WebSocket.OPEN) {
+    socket.send(JSON.stringify(message));
+  }
+}

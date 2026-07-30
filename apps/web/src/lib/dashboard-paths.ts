@@ -6,7 +6,7 @@ export function getActiveRole(profile: ProfileBundle | null | undefined): Market
   if (!profile) return "freelancer";
   if (profile.profile.accountType === "hirer") return "hirer";
   if (profile.profile.accountType === "freelancer") return "freelancer";
-  return profile.profile.activeRole;
+  return profile.profile.activeRole === "hirer" ? "hirer" : "freelancer";
 }
 
 export function getDashboardHomePath(profile: ProfileBundle | null | undefined) {
@@ -65,7 +65,7 @@ export function shouldShowFindWorkActions(profile: ProfileBundle | null | undefi
 
 export function getOnboardingRedirectPath(
   profile: ProfileBundle | null | undefined,
-  _pathname: string,
+  pathname: string,
 ): string | null {
   if (!profile) return null;
 
@@ -74,7 +74,17 @@ export function getOnboardingRedirectPath(
   // verification) is surfaced via a banner, not a gate, so the user always has
   // full access to their dashboard.
   if (profile.profile.onboardingStep === "role_selection") {
-    return "/dashboard/onboarding/role";
+    const onboardingPath = "/dashboard/onboarding/role";
+    const isAlreadyOnOnboarding =
+      pathname === onboardingPath ||
+      pathname === `${onboardingPath}/` ||
+      pathname.startsWith("/dashboard/onboarding/");
+
+    if (isAlreadyOnOnboarding) {
+      return null;
+    }
+
+    return onboardingPath;
   }
 
   return null;

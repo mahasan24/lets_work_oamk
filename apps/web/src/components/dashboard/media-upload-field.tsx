@@ -51,7 +51,26 @@ export function MediaUploadField({
         ) : (
           <img src={previewUrl} alt="" className="size-24 rounded-full object-cover" />
         )
-      ) : null}
+      ) : (
+        <div
+          aria-label={`${label} placeholder`}
+          className={
+            previewVariant === "video"
+              ? "aspect-video w-full max-w-lg rounded-md border border-dashed border-border bg-muted/20 flex items-center justify-center"
+              : previewVariant === "card"
+                ? "aspect-video w-full max-w-xs rounded-md border border-dashed border-border bg-muted/20 flex items-center justify-center"
+                : "size-24 rounded-full border border-dashed border-border bg-muted/20 flex items-center justify-center"
+          }
+        >
+          <span className="text-xs text-muted-foreground">
+            {previewVariant === "video"
+              ? "No video yet"
+              : previewVariant === "card"
+                ? "No media yet"
+                : "No photo yet"}
+          </span>
+        </div>
+      )}
       <div className="flex flex-wrap items-center gap-3">
         <input
           ref={inputRef}
@@ -104,11 +123,7 @@ export function MediaUploadDropzone({
     <div className={cn("flex flex-col gap-4", className)}>
       {previewUrl ? (
         previewVariant === "video" ? (
-          <video
-            src={previewUrl}
-            controls
-            className="aspect-video w-full bg-muted object-cover"
-          />
+          <video src={previewUrl} controls className="aspect-video w-full bg-muted object-cover" />
         ) : (
           <img src={previewUrl} alt="" className="aspect-video w-full object-cover" />
         )

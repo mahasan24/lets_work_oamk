@@ -217,12 +217,19 @@ export async function listFreelancerJobFeed(userId: string, query: JobFeedQuery)
   const whereClause = and(...conditions)!;
   const matchCount = matchCountSql(profileSkills);
 
+  // Postgres treats bare integer literals in `ORDER BY` as "select-list positions".
+  // When a freelancer has no skills, `matchCountSql()` returns a constant `0`,
+  // which would produce `ORDER BY 0` and crash with:
+  // "ORDER BY position 0 is not in select list".
+  // So for empty profile skills we fall back to deterministic date ordering.
   const orderBy =
     tab === "saved"
       ? [desc(savedJob.createdAt)]
       : tab === "newest"
         ? [desc(job.publishedAt), desc(job.createdAt)]
-        : [desc(matchCount), desc(job.publishedAt), desc(job.createdAt)];
+        : profileSkills.length === 0
+          ? [desc(job.publishedAt), desc(job.createdAt)]
+          : [desc(matchCount), desc(job.publishedAt), desc(job.createdAt)];
 
   const baseQuery = db
     .select({
@@ -335,6 +342,7 @@ export async function listFreelancerProposals(
         jobProposalsCount: job.proposalsCount,
         hirerName: user.name,
         hirerCompany: marketplaceUserProfile.companyName,
+        hirerUserId: job.hirerUserId,
       })
       .from(proposal)
       .innerJoin(job, eq(job.id, proposal.jobId))
@@ -371,6 +379,7 @@ export async function listFreelancerProposals(
       jobCurrency: row.jobCurrency,
       jobBudgetType: row.jobBudgetType,
       jobProposalsCount: row.jobProposalsCount,
+      hirerUserId: row.hirerUserId,
       hirerDisplayName: row.hirerCompany?.trim() || row.hirerName?.trim() || "Client",
       coverLetter: row.proposal.coverLetter,
       proposedRate: row.proposal.proposedRate,
