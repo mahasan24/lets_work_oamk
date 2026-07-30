@@ -94,9 +94,7 @@ export function JobProposalsDashboard({ jobId }: JobProposalsDashboardProps) {
     try {
       const response = await hirerProposalsApi.listForJob(jobId, {
         status:
-          statusFilter === "all"
-            ? undefined
-            : (statusFilter as Exclude<ProposalStatus, "draft">),
+          statusFilter === "all" ? undefined : (statusFilter as Exclude<ProposalStatus, "draft">),
         sort,
       });
       setData(response);
@@ -245,9 +243,7 @@ export function JobProposalsDashboard({ jobId }: JobProposalsDashboardProps) {
                   onClick={() => setSelectedId(item.id)}
                   className={cn(
                     "rounded-lg border p-3 text-left transition-colors",
-                    isSelected
-                      ? "border-primary bg-primary/5"
-                      : "border-border hover:bg-muted/40",
+                    isSelected ? "border-primary bg-primary/5" : "border-border hover:bg-muted/40",
                   )}
                 >
                   <div className="flex items-start gap-3">
@@ -367,13 +363,24 @@ export function JobProposalsDashboard({ jobId }: JobProposalsDashboardProps) {
                 <Button
                   type="button"
                   disabled={isPending || messageBody.trim().length === 0}
-                  onClick={() =>
-                    runAction(
-                      () => hirerProposalsApi.message(selected.id, messageBody),
-                      "Message sent",
-                      "Failed to send message",
-                    )
-                  }
+                  onClick={() => {
+                    if (!selected) return;
+                    startTransition(async () => {
+                      try {
+                        const result = await hirerProposalsApi.message(selected.id, messageBody);
+                        toast.success("Message sent");
+                        setDialogMode(null);
+                        setMessageBody("");
+                        await loadProposals();
+                        await navigate({
+                          to: "/dashboard/hirer/messages",
+                          search: { conversationId: result.conversationId },
+                        });
+                      } catch (error) {
+                        toast.error(actionErrorMessage(error, "Failed to send message"));
+                      }
+                    });
+                  }}
                 >
                   {isPending ? "Sending…" : "Send message"}
                 </Button>
@@ -386,8 +393,8 @@ export function JobProposalsDashboard({ jobId }: JobProposalsDashboardProps) {
               <DialogHeader>
                 <DialogTitle>Hire {selected.freelancer.name}?</DialogTitle>
                 <DialogDescription>
-                  This accepts their proposal, creates an active contract, marks the job as
-                  filled, and archives other active proposals.
+                  This accepts their proposal, creates an active contract, marks the job as filled,
+                  and archives other active proposals.
                 </DialogDescription>
               </DialogHeader>
               <div className="rounded-md border border-border bg-muted/30 p-3 text-sm">
@@ -421,9 +428,7 @@ export function JobProposalsDashboard({ jobId }: JobProposalsDashboardProps) {
                           params: { contractId: result.contract.id },
                         });
                       } catch (error) {
-                        toast.error(
-                          actionErrorMessage(error, "Failed to hire freelancer"),
-                        );
+                        toast.error(actionErrorMessage(error, "Failed to hire freelancer"));
                       }
                     });
                   }}
@@ -466,8 +471,7 @@ function ProposalDetailCard({
   const canUnshortlist = proposal.status === "shortlisted" && jobIsOpen;
   const canReject =
     (proposal.status === "submitted" || proposal.status === "shortlisted") && jobIsOpen;
-  const canMessage =
-    proposal.status === "shortlisted" || proposal.status === "accepted";
+  const canMessage = proposal.status === "shortlisted" || proposal.status === "accepted";
   const canHire =
     (proposal.status === "submitted" || proposal.status === "shortlisted") && jobIsOpen;
   const showActions = onShortlist || onUnshortlist || onReject || onMessage || onHire;
@@ -544,26 +548,18 @@ function ProposalDetailCard({
 
         <div className="grid gap-4 text-sm sm:grid-cols-3">
           <DetailItem label="Bid" value={formatProposedRate(proposal)} />
-          <DetailItem
-            label="Timeline"
-            value={getDurationLabel(proposal.estimatedDuration)}
-          />
+          <DetailItem label="Timeline" value={getDurationLabel(proposal.estimatedDuration)} />
           <DetailItem
             label="Submitted"
             value={
-              proposal.submittedAt
-                ? formatRelativeJobDate(proposal.submittedAt)
-                : "Not submitted"
+              proposal.submittedAt ? formatRelativeJobDate(proposal.submittedAt) : "Not submitted"
             }
           />
           <DetailItem
             label="Profile"
             value={`${proposal.freelancer.profileCompletion}% complete`}
           />
-          <DetailItem
-            label="Jobs completed"
-            value={String(proposal.freelancer.jobsCompleted)}
-          />
+          <DetailItem label="Jobs completed" value={String(proposal.freelancer.jobsCompleted)} />
           <DetailItem
             label="Rating"
             value={

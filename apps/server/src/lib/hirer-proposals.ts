@@ -16,11 +16,7 @@ import { getHirerJob, serializeJob } from "./jobs";
 import { createDefaultMilestoneForContract } from "./milestone-helpers";
 import { recordContractEvent } from "./contract-events";
 import { createNotification, createNotifications } from "./notifications";
-import {
-  ProposalNotFoundError,
-  ProposalStatusError,
-  serializeProposal,
-} from "./proposals";
+import { ProposalNotFoundError, ProposalStatusError, serializeProposal } from "./proposals";
 
 type ProposalStatus = (typeof proposalStatusEnum.enumValues)[number];
 type BudgetType = (typeof jobBudgetTypeEnum.enumValues)[number];
@@ -213,9 +209,7 @@ export async function shortlistHirerProposal(proposalId: string, hirerUserId: st
   }
 
   if (
-    !SHORTLISTABLE_STATUSES.includes(
-      row.proposal.status as (typeof SHORTLISTABLE_STATUSES)[number],
-    )
+    !SHORTLISTABLE_STATUSES.includes(row.proposal.status as (typeof SHORTLISTABLE_STATUSES)[number])
   ) {
     throw new ProposalStatusError("Only submitted proposals can be shortlisted");
   }
@@ -223,9 +217,7 @@ export async function shortlistHirerProposal(proposalId: string, hirerUserId: st
   const [updated] = await db
     .update(proposal)
     .set({ status: "shortlisted" })
-    .where(
-      and(eq(proposal.id, proposalId), inArray(proposal.status, [...SHORTLISTABLE_STATUSES])),
-    )
+    .where(and(eq(proposal.id, proposalId), inArray(proposal.status, [...SHORTLISTABLE_STATUSES])))
     .returning();
 
   if (!updated) {
@@ -280,9 +272,7 @@ export async function rejectHirerProposal(proposalId: string, hirerUserId: strin
     throw new ProposalNotFoundError();
   }
 
-  if (
-    !REJECTABLE_STATUSES.includes(row.proposal.status as (typeof REJECTABLE_STATUSES)[number])
-  ) {
+  if (!REJECTABLE_STATUSES.includes(row.proposal.status as (typeof REJECTABLE_STATUSES)[number])) {
     throw new ProposalStatusError("This proposal cannot be archived");
   }
 
@@ -397,7 +387,7 @@ export async function messageShortlistedFreelancer(
     type: "message",
     title: `New message about "${row.job.title}"`,
     body: trimmed.slice(0, 140),
-    actionUrl: `/dashboard/freelancer`,
+    actionUrl: `/dashboard/freelancer/messages?conversationId=${result.conversationId}`,
   });
 
   return {
@@ -422,9 +412,7 @@ export async function acceptHirerProposal(proposalId: string, hirerUserId: strin
     throw new ProposalStatusError("Only submitted or shortlisted proposals can be hired");
   }
 
-  if (
-    !HIRABLE_JOB_STATUSES.includes(row.job.status as (typeof HIRABLE_JOB_STATUSES)[number])
-  ) {
+  if (!HIRABLE_JOB_STATUSES.includes(row.job.status as (typeof HIRABLE_JOB_STATUSES)[number])) {
     throw new JobStatusError("This job is not open for hiring");
   }
 
@@ -436,9 +424,7 @@ export async function acceptHirerProposal(proposalId: string, hirerUserId: strin
     const [accepted] = await tx
       .update(proposal)
       .set({ status: "accepted" })
-      .where(
-        and(eq(proposal.id, proposalId), inArray(proposal.status, [...HIRABLE_STATUSES])),
-      )
+      .where(and(eq(proposal.id, proposalId), inArray(proposal.status, [...HIRABLE_STATUSES])))
       .returning();
 
     if (!accepted) {

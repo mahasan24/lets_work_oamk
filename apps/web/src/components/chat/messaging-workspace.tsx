@@ -6,11 +6,27 @@ import { Input } from "@lets_work/ui/components/input";
 import { ScrollArea } from "@lets_work/ui/components/scroll-area";
 import { cn } from "@lets_work/ui/lib/utils";
 import { Link, useNavigate } from "@tanstack/react-router";
-import { Loader2Icon, PaperclipIcon, PencilIcon, SendIcon, TrashIcon, XIcon } from "lucide-react";
+import {
+  FileIcon,
+  ImageIcon,
+  Loader2Icon,
+  MessageSquareIcon,
+  PaperclipIcon,
+  PencilIcon,
+  SendIcon,
+  TrashIcon,
+  XIcon,
+} from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 
-import { type ChatConversation, type ChatMessage, chatApi } from "@/lib/chat-api";
+import { authClient } from "@/lib/auth-client";
+import {
+  type ChatAttachment,
+  type ChatConversation,
+  type ChatMessage,
+  chatApi,
+} from "@/lib/chat-api";
 import { uploadMessageAttachment } from "@/lib/cloudinary-upload";
 import { emitRealtime, subscribeToRealtime } from "@/lib/realtime";
 
@@ -45,8 +61,54 @@ function compactBytes(value: number | null | undefined) {
   return `${(value / (1024 * 1024)).toFixed(1)} MB`;
 }
 
+function isImageAttachment(mimeType: string | null | undefined) {
+  return Boolean(mimeType?.startsWith("image/"));
+}
+
+function AttachmentPreview({ attachment }: { attachment: ChatAttachment | PendingAttachment }) {
+  const sizeLabel = compactBytes(attachment.sizeBytes);
+  const isImage = isImageAttachment(attachment.mimeType);
+
+  if (isImage) {
+    return (
+      <a
+        href={attachment.fileUrl}
+        target="_blank"
+        rel="noreferrer"
+        className="group block overflow-hidden rounded-md border border-border bg-muted/30"
+      >
+        <img
+          src={attachment.fileUrl}
+          alt={attachment.fileName}
+          className="max-h-48 w-full object-cover transition-opacity group-hover:opacity-90"
+        />
+        <span className="flex items-center gap-1.5 px-2 py-1.5 text-[11px] text-muted-foreground">
+          <ImageIcon className="size-3 shrink-0" />
+          <span className="truncate">{attachment.fileName}</span>
+          {sizeLabel ? <span className="shrink-0">· {sizeLabel}</span> : null}
+        </span>
+      </a>
+    );
+  }
+
+  return (
+    <a
+      href={attachment.fileUrl}
+      target="_blank"
+      rel="noreferrer"
+      className="inline-flex max-w-full items-center gap-2 rounded-md border border-border bg-background/80 px-2.5 py-1.5 text-xs hover:bg-muted/50"
+    >
+      <FileIcon className="size-3.5 shrink-0 text-muted-foreground" />
+      <span className="truncate font-medium">{attachment.fileName}</span>
+      {sizeLabel ? <span className="shrink-0 text-muted-foreground">· {sizeLabel}</span> : null}
+    </a>
+  );
+}
+
 export function MessagingWorkspace({ basePath, conversationId, role }: MessagingWorkspaceProps) {
   const navigate = useNavigate({ from: basePath });
+  const { data: session } = authClient.useSession();
+  const currentUserId = session?.user.id;
   const messageListRef = useRef<HTMLDivElement | null>(null);
   const typingTimerRef = useRef<number | null>(null);
   const [isLoadingConversations, setIsLoadingConversations] = useState(false);
@@ -62,6 +124,10 @@ export function MessagingWorkspace({ basePath, conversationId, role }: Messaging
   const [activeConversation, setActiveConversation] = useState<ChatConversation | null>(null);
   const [typingByUserId, setTypingByUserId] = useState<Record<string, string>>({});
   const [pendingAttachments, setPendingAttachments] = useState<PendingAttachment[]>([]);
+
+  const proposalsPath = role === "hirer" ? "/dashboard/hirer" : "/dashboard/freelancer/proposals";
+  const contractsPath =
+    role === "hirer" ? "/dashboard/hirer/contracts" : "/dashboard/freelancer/contracts";
 
   const loadConversations = useCallback(async () => {
     setIsLoadingConversations(true);
@@ -94,6 +160,10 @@ export function MessagingWorkspace({ basePath, conversationId, role }: Messaging
           chatApi.listMessages(targetConversationId, { limit: 100 }),
         ]);
         setMessages(messageResult.items);
+        const otherParticipant =
+          conversation.participants.find((participant) => participant.userId !== currentUserId) ??
+          conversation.participants[0] ??
+          null;
         setActiveConversation(
           conversations.find((entry) => entry.id === targetConversationId) ?? {
             id: conversation.id,
@@ -102,8 +172,7 @@ export function MessagingWorkspace({ basePath, conversationId, role }: Messaging
             updatedAt: conversation.updatedAt,
             lastReadAt: null,
             unreadCount: 0,
-            participant:
-              conversation.participants.find((participant) => participant.userId !== "") ?? null,
+            participant: otherParticipant,
             lastMessage: null,
           },
         );
@@ -119,7 +188,7 @@ export function MessagingWorkspace({ basePath, conversationId, role }: Messaging
         setIsLoadingMessages(false);
       }
     },
-    [conversations],
+    [conversations, currentUserId],
   );
 
   useEffect(() => {
@@ -130,6 +199,9 @@ export function MessagingWorkspace({ basePath, conversationId, role }: Messaging
     if (!conversationId) {
       setMessages([]);
       setActiveConversation(null);
+      setEditingMessageId(null);
+      setComposer("");
+      setPendingAttachments([]);
       return;
     }
     void loadMessages(conversationId);
@@ -145,16 +217,17 @@ export function MessagingWorkspace({ basePath, conversationId, role }: Messaging
     return subscribeToRealtime("chat:message:new", (payload) => {
       const incoming = payload as ChatMessage;
       if (!incoming?.id || !incoming.conversationId) return;
+
+      const isActive = conversationId === incoming.conversationId;
+      const isOwn = Boolean(currentUserId && incoming.senderId === currentUserId);
+
       setConversations((current) =>
         current.map((entry) =>
           entry.id === incoming.conversationId
             ? {
                 ...entry,
                 updatedAt: incoming.createdAt,
-                unreadCount:
-                  conversationId === incoming.conversationId
-                    ? 0
-                    : entry.unreadCount + (incoming.senderId ? 1 : 0),
+                unreadCount: isActive || isOwn ? 0 : entry.unreadCount + 1,
                 lastMessage: {
                   id: incoming.id,
                   senderId: incoming.senderId,
@@ -168,13 +241,17 @@ export function MessagingWorkspace({ basePath, conversationId, role }: Messaging
             : entry,
         ),
       );
-      if (conversationId === incoming.conversationId) {
+
+      if (isActive) {
         setMessages((current) =>
           current.some((entry) => entry.id === incoming.id) ? current : [...current, incoming],
         );
+        if (!isOwn) {
+          void chatApi.markRead(incoming.conversationId).catch(() => undefined);
+        }
       }
     });
-  }, [conversationId]);
+  }, [conversationId, currentUserId]);
 
   useEffect(() => {
     return subscribeToRealtime("chat:message:updated", (payload) => {
@@ -211,11 +288,16 @@ export function MessagingWorkspace({ basePath, conversationId, role }: Messaging
       const incoming = payload as { conversationId: string; userId: string; readAt: string };
       if (!incoming?.conversationId) return;
       if (incoming.conversationId !== conversationId) return;
+      if (currentUserId && incoming.userId === currentUserId) return;
       setMessages((current) =>
-        current.map((entry) => (entry.readAt ? entry : { ...entry, readAt: incoming.readAt })),
+        current.map((entry) =>
+          entry.senderId === currentUserId && !entry.readAt
+            ? { ...entry, readAt: incoming.readAt }
+            : entry,
+        ),
       );
     });
-  }, [conversationId]);
+  }, [conversationId, currentUserId]);
 
   useEffect(() => {
     return subscribeToRealtime("chat:typing", (payload) => {
@@ -226,6 +308,7 @@ export function MessagingWorkspace({ basePath, conversationId, role }: Messaging
       };
       if (!incoming.conversationId || !incoming.userId) return;
       if (incoming.conversationId !== conversationId) return;
+      if (currentUserId && incoming.userId === currentUserId) return;
       const typingUserId = incoming.userId;
       setTypingByUserId((current) => {
         const next = { ...current };
@@ -237,7 +320,7 @@ export function MessagingWorkspace({ basePath, conversationId, role }: Messaging
         return next;
       });
     });
-  }, [conversationId]);
+  }, [conversationId, currentUserId]);
 
   const typingParticipant = useMemo(() => {
     if (!activeConversation?.participant) return null;
@@ -246,6 +329,9 @@ export function MessagingWorkspace({ basePath, conversationId, role }: Messaging
   }, [activeConversation, typingByUserId]);
 
   const handleSelectConversation = async (targetConversationId: string) => {
+    setEditingMessageId(null);
+    setComposer("");
+    setPendingAttachments([]);
     await navigate({
       search: (current) => ({ ...current, conversationId: targetConversationId }),
       replace: true,
@@ -270,6 +356,11 @@ export function MessagingWorkspace({ basePath, conversationId, role }: Messaging
       setIsUploading(false);
       event.target.value = "";
     }
+  };
+
+  const cancelEditing = () => {
+    setEditingMessageId(null);
+    setComposer("");
   };
 
   const handleSend = async () => {
@@ -319,7 +410,7 @@ export function MessagingWorkspace({ basePath, conversationId, role }: Messaging
 
   const handleComposerChange = (value: string) => {
     setComposer(value);
-    if (!conversationId) return;
+    if (!conversationId || editingMessageId) return;
     emitRealtime({ type: "chat:typing", payload: { conversationId, isTyping: value.length > 0 } });
 
     if (typingTimerRef.current) {
@@ -329,6 +420,31 @@ export function MessagingWorkspace({ basePath, conversationId, role }: Messaging
       emitRealtime({ type: "chat:typing", payload: { conversationId, isTyping: false } });
     }, 1500);
   };
+
+  const handleComposerKeyDown = (event: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (event.key === "Enter" && !event.shiftKey) {
+      event.preventDefault();
+      void handleSend();
+    }
+  };
+
+  const emptyListCopy = isUnreadOnly
+    ? {
+        title: "No unread conversations",
+        body: "You're all caught up. Clear the unread filter to see your full inbox.",
+      }
+    : search.trim()
+      ? {
+          title: "No matching conversations",
+          body: "Try a different name or message snippet.",
+        }
+      : {
+          title: "No conversations yet",
+          body:
+            role === "hirer"
+              ? "Message a shortlisted freelancer from a job's proposals, or open chat from an active contract."
+              : "When a client messages you about a shortlisted proposal or contract, it will show up here.",
+        };
 
   return (
     <div className="grid min-h-[70vh] grid-cols-1 gap-4 lg:grid-cols-[340px_minmax(0,1fr)]">
@@ -367,50 +483,94 @@ export function MessagingWorkspace({ basePath, conversationId, role }: Messaging
                 Loading conversations...
               </div>
             ) : conversations.length === 0 ? (
-              <div className="px-4 py-6 text-sm text-muted-foreground">
-                No conversations yet. Start from a proposal or contract workflow.
+              <div className="flex flex-col items-start gap-3 px-4 py-8">
+                <div className="flex size-10 items-center justify-center rounded-full bg-muted">
+                  <MessageSquareIcon className="size-5 text-muted-foreground" />
+                </div>
+                <div className="flex flex-col gap-1">
+                  <p className="text-sm font-medium">{emptyListCopy.title}</p>
+                  <p className="text-xs text-muted-foreground">{emptyListCopy.body}</p>
+                </div>
+                {!isUnreadOnly && !search.trim() ? (
+                  <div className="flex flex-wrap gap-2">
+                    <Link
+                      to={proposalsPath}
+                      className={cn(buttonVariants({ variant: "outline", size: "sm" }))}
+                    >
+                      {role === "hirer" ? "View jobs" : "My proposals"}
+                    </Link>
+                    <Link
+                      to={contractsPath}
+                      className={cn(buttonVariants({ variant: "outline", size: "sm" }))}
+                    >
+                      Contracts
+                    </Link>
+                  </div>
+                ) : null}
               </div>
             ) : (
               <ul className="divide-y divide-border">
-                {conversations.map((entry) => (
-                  <li key={entry.id}>
-                    <button
-                      type="button"
-                      onClick={() => void handleSelectConversation(entry.id)}
-                      className={cn(
-                        "flex w-full items-start gap-3 px-4 py-3 text-left transition-colors hover:bg-muted/40",
-                        entry.id === conversationId && "bg-muted/60",
-                      )}
-                    >
-                      <Avatar className="mt-0.5 size-9">
-                        <AvatarImage src={entry.participant?.image ?? undefined} />
-                        <AvatarFallback>
-                          {(entry.participant?.name ?? "?").slice(0, 2).toUpperCase()}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div className="min-w-0 flex-1">
-                        <div className="flex items-center justify-between gap-2">
-                          <p className="truncate text-sm font-medium">
-                            {entry.participant?.name ?? "Unknown user"}
-                          </p>
-                          <span className="shrink-0 text-[11px] text-muted-foreground">
-                            {formatTimestamp(entry.updatedAt)}
-                          </span>
+                {conversations.map((entry) => {
+                  const hasUnread = entry.unreadCount > 0;
+                  return (
+                    <li key={entry.id}>
+                      <button
+                        type="button"
+                        onClick={() => void handleSelectConversation(entry.id)}
+                        className={cn(
+                          "flex w-full items-start gap-3 px-4 py-3 text-left transition-colors hover:bg-muted/40",
+                          entry.id === conversationId && "bg-muted/60",
+                        )}
+                      >
+                        <div className="relative mt-0.5">
+                          <Avatar className="size-9">
+                            <AvatarImage src={entry.participant?.image ?? undefined} />
+                            <AvatarFallback>
+                              {(entry.participant?.name ?? "?").slice(0, 2).toUpperCase()}
+                            </AvatarFallback>
+                          </Avatar>
+                          {hasUnread ? (
+                            <span className="absolute -top-0.5 -right-0.5 size-2.5 rounded-full bg-primary ring-2 ring-card" />
+                          ) : null}
                         </div>
-                        <p className="mt-0.5 line-clamp-2 text-xs text-muted-foreground">
-                          {entry.lastMessage?.deletedAt
-                            ? "Message deleted"
-                            : (entry.lastMessage?.body ?? "Sent an attachment")}
-                        </p>
-                        {entry.unreadCount > 0 ? (
-                          <Badge variant="secondary" className="mt-1">
-                            {entry.unreadCount} unread
-                          </Badge>
-                        ) : null}
-                      </div>
-                    </button>
-                  </li>
-                ))}
+                        <div className="min-w-0 flex-1">
+                          <div className="flex items-center justify-between gap-2">
+                            <p
+                              className={cn(
+                                "truncate text-sm",
+                                hasUnread ? "font-semibold text-foreground" : "font-medium",
+                              )}
+                            >
+                              {entry.participant?.name ?? "Unknown user"}
+                            </p>
+                            <div className="flex shrink-0 items-center gap-1.5">
+                              <span className="text-[11px] text-muted-foreground">
+                                {formatTimestamp(entry.updatedAt)}
+                              </span>
+                              {hasUnread ? (
+                                <Badge className="h-5 min-w-5 justify-center px-1.5 text-[10px]">
+                                  {entry.unreadCount > 99 ? "99+" : entry.unreadCount}
+                                </Badge>
+                              ) : null}
+                            </div>
+                          </div>
+                          <p
+                            className={cn(
+                              "mt-0.5 line-clamp-2 text-xs",
+                              hasUnread
+                                ? "font-medium text-foreground/80"
+                                : "text-muted-foreground",
+                            )}
+                          >
+                            {entry.lastMessage?.deletedAt
+                              ? "Message deleted"
+                              : (entry.lastMessage?.body ?? "Sent an attachment")}
+                          </p>
+                        </div>
+                      </button>
+                    </li>
+                  );
+                })}
               </ul>
             )}
           </ScrollArea>
@@ -434,7 +594,7 @@ export function MessagingWorkspace({ basePath, conversationId, role }: Messaging
                       {activeConversation?.participant?.name ?? "Conversation"}
                     </CardTitle>
                     {typingParticipant ? (
-                      <p className="text-xs text-muted-foreground">Typing...</p>
+                      <p className="text-xs text-primary">Typing...</p>
                     ) : (
                       <p className="text-xs text-muted-foreground">
                         {role === "freelancer" ? "Client chat" : "Freelancer chat"}
@@ -466,88 +626,123 @@ export function MessagingWorkspace({ basePath, conversationId, role }: Messaging
                     Loading messages...
                   </div>
                 ) : messages.length === 0 ? (
-                  <div className="text-sm text-muted-foreground">
-                    No messages yet. Send the first message to start this conversation.
+                  <div className="flex h-full flex-col items-center justify-center gap-2 px-6 text-center">
+                    <div className="flex size-12 items-center justify-center rounded-full bg-muted">
+                      <MessageSquareIcon className="size-5 text-muted-foreground" />
+                    </div>
+                    <p className="text-sm font-medium">Start the conversation</p>
+                    <p className="max-w-xs text-xs text-muted-foreground">
+                      Say hello, ask about timeline, or share a file to get things moving.
+                    </p>
                   </div>
                 ) : (
                   <div className="flex flex-col gap-3">
-                    {messages.map((entry) => (
-                      <div
-                        key={entry.id}
-                        className="rounded-lg border border-border bg-card px-3 py-2"
-                      >
-                        <div className="flex items-center justify-between gap-2">
-                          <p className="text-xs text-muted-foreground">
-                            {formatTimestamp(entry.createdAt)}
-                          </p>
-                          <div className="flex items-center gap-1">
-                            <Button
-                              type="button"
-                              size="icon-sm"
-                              variant="ghost"
-                              onClick={() => {
-                                setEditingMessageId(entry.id);
-                                setComposer(entry.body ?? "");
-                              }}
-                              aria-label="Edit message"
+                    {messages.map((entry) => {
+                      const isOwn = Boolean(currentUserId && entry.senderId === currentUserId);
+                      const canModify = isOwn && !entry.deletedAt;
+                      return (
+                        <div
+                          key={entry.id}
+                          className={cn("flex", isOwn ? "justify-end" : "justify-start")}
+                        >
+                          <div
+                            className={cn(
+                              "max-w-[85%] rounded-2xl px-3 py-2",
+                              isOwn
+                                ? "rounded-br-md bg-primary text-primary-foreground"
+                                : "rounded-bl-md border border-border bg-card",
+                            )}
+                          >
+                            <div className="flex items-center justify-between gap-3">
+                              <p
+                                className={cn(
+                                  "text-[11px]",
+                                  isOwn ? "text-primary-foreground/70" : "text-muted-foreground",
+                                )}
+                              >
+                                {formatTimestamp(entry.createdAt)}
+                                {entry.editedAt && !entry.deletedAt ? " · Edited" : ""}
+                              </p>
+                              {canModify ? (
+                                <div className="flex items-center gap-0.5">
+                                  <Button
+                                    type="button"
+                                    size="icon-sm"
+                                    variant="ghost"
+                                    className="text-primary-foreground/80 hover:bg-primary-foreground/10 hover:text-primary-foreground"
+                                    onClick={() => {
+                                      setEditingMessageId(entry.id);
+                                      setComposer(entry.body ?? "");
+                                      setPendingAttachments([]);
+                                    }}
+                                    aria-label="Edit message"
+                                  >
+                                    <PencilIcon className="size-3.5" />
+                                  </Button>
+                                  <Button
+                                    type="button"
+                                    size="icon-sm"
+                                    variant="ghost"
+                                    className="text-primary-foreground/80 hover:bg-primary-foreground/10 hover:text-primary-foreground"
+                                    onClick={() => void handleDeleteMessage(entry.id)}
+                                    aria-label="Delete message"
+                                  >
+                                    <TrashIcon className="size-3.5" />
+                                  </Button>
+                                </div>
+                              ) : null}
+                            </div>
+                            <p
+                              className={cn(
+                                "mt-1 whitespace-pre-wrap text-sm",
+                                entry.deletedAt && "italic opacity-70",
+                              )}
                             >
-                              <PencilIcon className="size-3.5" />
-                            </Button>
-                            <Button
-                              type="button"
-                              size="icon-sm"
-                              variant="ghost"
-                              onClick={() => void handleDeleteMessage(entry.id)}
-                              aria-label="Delete message"
-                            >
-                              <TrashIcon className="size-3.5" />
-                            </Button>
+                              {entry.deletedAt ? "This message was deleted." : (entry.body ?? "")}
+                            </p>
+                            {!entry.deletedAt && entry.attachments.length > 0 ? (
+                              <ul className="mt-2 space-y-2">
+                                {entry.attachments.map((attachment) => (
+                                  <li key={attachment.id}>
+                                    <AttachmentPreview attachment={attachment} />
+                                  </li>
+                                ))}
+                              </ul>
+                            ) : null}
+                            {isOwn && !entry.deletedAt ? (
+                              <p className="mt-1 text-right text-[10px] text-primary-foreground/65">
+                                {entry.readAt ? "Read" : "Sent"}
+                              </p>
+                            ) : null}
                           </div>
                         </div>
-                        <p
-                          className={cn(
-                            "mt-1 text-sm",
-                            entry.deletedAt && "italic text-muted-foreground",
-                          )}
-                        >
-                          {entry.deletedAt
-                            ? "This message was deleted."
-                            : (entry.body ?? "(Attachment only)")}
-                        </p>
-                        {entry.attachments.length > 0 ? (
-                          <ul className="mt-2 space-y-1">
-                            {entry.attachments.map((attachment) => (
-                              <li key={attachment.id}>
-                                <a
-                                  href={attachment.fileUrl}
-                                  target="_blank"
-                                  rel="noreferrer"
-                                  className="inline-flex items-center gap-2 text-xs text-primary hover:underline"
-                                >
-                                  <PaperclipIcon className="size-3.5" />
-                                  {attachment.fileName}
-                                  {attachment.sizeBytes
-                                    ? ` · ${compactBytes(attachment.sizeBytes)}`
-                                    : ""}
-                                </a>
-                              </li>
-                            ))}
-                          </ul>
-                        ) : null}
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 )}
               </div>
 
               <div className="border-t border-border px-4 py-3">
+                {editingMessageId ? (
+                  <div className="mb-2 flex items-center justify-between rounded-md bg-muted/60 px-2.5 py-1.5 text-xs">
+                    <span className="font-medium">Editing message</span>
+                    <Button type="button" size="sm" variant="ghost" onClick={cancelEditing}>
+                      Cancel
+                    </Button>
+                  </div>
+                ) : null}
+
                 {pendingAttachments.length > 0 ? (
                   <ul className="mb-2 flex flex-wrap gap-2">
                     {pendingAttachments.map((attachment, index) => (
                       <li key={`${attachment.fileUrl}-${index}`}>
                         <Badge variant="secondary" className="gap-1">
-                          <PaperclipIcon className="size-3" />
-                          {attachment.fileName}
+                          {isImageAttachment(attachment.mimeType) ? (
+                            <ImageIcon className="size-3" />
+                          ) : (
+                            <PaperclipIcon className="size-3" />
+                          )}
+                          <span className="max-w-32 truncate">{attachment.fileName}</span>
                           <button
                             type="button"
                             onClick={() =>
@@ -556,6 +751,7 @@ export function MessagingWorkspace({ basePath, conversationId, role }: Messaging
                               )
                             }
                             className="ml-1 inline-flex"
+                            aria-label="Remove attachment"
                           >
                             <XIcon className="size-3" />
                           </button>
@@ -569,20 +765,32 @@ export function MessagingWorkspace({ basePath, conversationId, role }: Messaging
                   <textarea
                     value={composer}
                     onChange={(event) => handleComposerChange(event.target.value)}
-                    placeholder="Type your message..."
+                    onKeyDown={handleComposerKeyDown}
+                    placeholder={
+                      editingMessageId
+                        ? "Update your message..."
+                        : "Type your message... (Enter to send)"
+                    }
                     className="min-h-20 flex-1 rounded-md border border-input bg-background px-3 py-2 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring"
                   />
                   <div className="flex flex-col gap-2">
-                    <label
-                      className={cn(
-                        buttonVariants({ variant: "outline", size: "icon-sm" }),
-                        "cursor-pointer",
-                        isUploading && "pointer-events-none opacity-60",
-                      )}
-                    >
-                      <PaperclipIcon className="size-4" />
-                      <input type="file" multiple className="hidden" onChange={handleFileSelect} />
-                    </label>
+                    {!editingMessageId ? (
+                      <label
+                        className={cn(
+                          buttonVariants({ variant: "outline", size: "icon-sm" }),
+                          "cursor-pointer",
+                          isUploading && "pointer-events-none opacity-60",
+                        )}
+                      >
+                        <PaperclipIcon className="size-4" />
+                        <input
+                          type="file"
+                          multiple
+                          className="hidden"
+                          onChange={handleFileSelect}
+                        />
+                      </label>
+                    ) : null}
                     <Button
                       type="button"
                       size="icon-sm"
@@ -605,8 +813,16 @@ export function MessagingWorkspace({ basePath, conversationId, role }: Messaging
             </CardContent>
           </>
         ) : (
-          <CardContent className="flex h-[62vh] items-center justify-center text-sm text-muted-foreground">
-            Select a conversation to open your messages.
+          <CardContent className="flex h-[62vh] flex-col items-center justify-center gap-3 px-6 text-center">
+            <div className="flex size-12 items-center justify-center rounded-full bg-muted">
+              <MessageSquareIcon className="size-5 text-muted-foreground" />
+            </div>
+            <div className="flex flex-col gap-1">
+              <p className="text-sm font-medium">Select a conversation</p>
+              <p className="max-w-sm text-xs text-muted-foreground">
+                Choose someone from the list, or start a chat from a proposal or contract.
+              </p>
+            </div>
           </CardContent>
         )}
       </Card>

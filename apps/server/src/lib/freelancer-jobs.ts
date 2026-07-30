@@ -342,6 +342,7 @@ export async function listFreelancerProposals(
         jobProposalsCount: job.proposalsCount,
         hirerName: user.name,
         hirerCompany: marketplaceUserProfile.companyName,
+        hirerUserId: job.hirerUserId,
       })
       .from(proposal)
       .innerJoin(job, eq(job.id, proposal.jobId))
@@ -378,6 +379,7 @@ export async function listFreelancerProposals(
       jobCurrency: row.jobCurrency,
       jobBudgetType: row.jobBudgetType,
       jobProposalsCount: row.jobProposalsCount,
+      hirerUserId: row.hirerUserId,
       hirerDisplayName: row.hirerCompany?.trim() || row.hirerName?.trim() || "Client",
       coverLetter: row.proposal.coverLetter,
       proposedRate: row.proposal.proposedRate,

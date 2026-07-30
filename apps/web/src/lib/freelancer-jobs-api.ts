@@ -85,6 +85,7 @@ export type FreelancerProposalSummary = {
   jobCurrency: string;
   jobBudgetType: BudgetType;
   jobProposalsCount: number;
+  hirerUserId: string;
   hirerDisplayName: string;
   coverLetter: string;
   proposedRate: string | null;

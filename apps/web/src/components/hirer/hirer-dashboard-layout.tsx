@@ -1,6 +1,7 @@
 import { Link } from "@tanstack/react-router";
 import { cn } from "@lets_work/ui/lib/utils";
 
+import { MessagesNavLink } from "@/components/chat/messages-nav-link";
 import Logo from "@/components/marketing/logo";
 import { NotificationBell } from "@/components/dashboard/notification-bell";
 import { OnboardingBanner } from "@/components/dashboard/onboarding-banner";
@@ -10,12 +11,11 @@ import { Route } from "@/routes/dashboard/hirer/route";
 
 import HirerSidebar from "./hirer-sidebar";
 
-const NAV_ITEMS = [
-  { label: "Jobs", to: "/dashboard/hirer" as const, exact: true },
-  { label: "Messages", to: "/dashboard/hirer/messages" as const, exact: false },
-  { label: "Contracts", to: "/dashboard/hirer/contracts" as const, exact: false },
-  { label: "Profile", to: "/dashboard/hirer/profile" as const, exact: false },
-] as const;
+const linkClass = "text-sm text-muted-foreground hover:text-foreground";
+const linkActiveClass = "text-sm font-medium text-foreground";
+const mobileLinkClass =
+  "shrink-0 rounded-md px-3 py-1.5 text-sm whitespace-nowrap text-muted-foreground";
+const mobileLinkActiveClass = "bg-muted font-medium text-foreground";
 
 export default function HirerDashboardLayout({ children }: { children: React.ReactNode }) {
   const { profile } = Route.useRouteContext();
@@ -27,17 +27,33 @@ export default function HirerDashboardLayout({ children }: { children: React.Rea
           <div className="flex items-center gap-8">
             <Logo />
             <nav className="hidden items-center gap-6 md:flex">
-              {NAV_ITEMS.map((item) => (
-                <Link
-                  key={item.to}
-                  to={item.to}
-                  activeOptions={{ exact: item.exact }}
-                  className={cn("text-sm text-muted-foreground hover:text-foreground")}
-                  activeProps={{ className: "text-sm font-medium text-foreground" }}
-                >
-                  {item.label}
-                </Link>
-              ))}
+              <Link
+                to="/dashboard/hirer"
+                activeOptions={{ exact: true }}
+                className={linkClass}
+                activeProps={{ className: linkActiveClass }}
+              >
+                Jobs
+              </Link>
+              <MessagesNavLink
+                to="/dashboard/hirer/messages"
+                className={linkClass}
+                activeClassName={linkActiveClass}
+              />
+              <Link
+                to="/dashboard/hirer/contracts"
+                className={linkClass}
+                activeProps={{ className: linkActiveClass }}
+              >
+                Contracts
+              </Link>
+              <Link
+                to="/dashboard/hirer/profile"
+                className={linkClass}
+                activeProps={{ className: linkActiveClass }}
+              >
+                Profile
+              </Link>
             </nav>
           </div>
           <div className="flex items-center gap-3">
@@ -53,21 +69,33 @@ export default function HirerDashboardLayout({ children }: { children: React.Rea
         </div>
 
         <nav className="flex items-center gap-1 overflow-x-auto border-t border-border px-2 py-1 md:hidden">
-          {NAV_ITEMS.map((item) => (
-            <Link
-              key={item.to}
-              to={item.to}
-              activeOptions={{ exact: item.exact }}
-              className={cn(
-                "shrink-0 rounded-md px-3 py-1.5 text-sm whitespace-nowrap text-muted-foreground",
-              )}
-              activeProps={{
-                className: "bg-muted font-medium text-foreground",
-              }}
-            >
-              {item.label}
-            </Link>
-          ))}
+          <Link
+            to="/dashboard/hirer"
+            activeOptions={{ exact: true }}
+            className={mobileLinkClass}
+            activeProps={{ className: cn(mobileLinkClass, mobileLinkActiveClass) }}
+          >
+            Jobs
+          </Link>
+          <MessagesNavLink
+            to="/dashboard/hirer/messages"
+            className={mobileLinkClass}
+            activeClassName={cn(mobileLinkClass, mobileLinkActiveClass)}
+          />
+          <Link
+            to="/dashboard/hirer/contracts"
+            className={mobileLinkClass}
+            activeProps={{ className: cn(mobileLinkClass, mobileLinkActiveClass) }}
+          >
+            Contracts
+          </Link>
+          <Link
+            to="/dashboard/hirer/profile"
+            className={mobileLinkClass}
+            activeProps={{ className: cn(mobileLinkClass, mobileLinkActiveClass) }}
+          >
+            Profile
+          </Link>
         </nav>
       </header>
 
