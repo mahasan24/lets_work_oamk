@@ -32,6 +32,10 @@ export const OPENAPI_TAGS = [
     description: "Milestone planning, submissions, and approval on active contracts",
   },
   {
+    name: "Payments",
+    description: "Stripe Checkout funding and milestone escrow",
+  },
+  {
     name: "Notifications",
     description: "In-app notifications and unread state",
   },
