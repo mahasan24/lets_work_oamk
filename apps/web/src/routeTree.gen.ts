@@ -9,70 +9,47 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as SuccessRouteRouteImport } from './routes/success/route'
-import { Route as ResetPasswordRouteRouteImport } from './routes/reset-password/route'
-import { Route as LoginRouteRouteImport } from './routes/login/route'
-import { Route as FreelancersRouteRouteImport } from './routes/freelancers/route'
-import { Route as ForgotPasswordRouteRouteImport } from './routes/forgot-password/route'
-import { Route as DashboardRouteRouteImport } from './routes/dashboard/route'
-import { Route as ClientsRouteRouteImport } from './routes/clients/route'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as SuccessIndexRouteImport } from './routes/success/index'
-import { Route as ResetPasswordIndexRouteImport } from './routes/reset-password/index'
-import { Route as LoginIndexRouteImport } from './routes/login/index'
-import { Route as FreelancersIndexRouteImport } from './routes/freelancers/index'
-import { Route as ForgotPasswordIndexRouteImport } from './routes/forgot-password/index'
-import { Route as DashboardIndexRouteImport } from './routes/dashboard/index'
-import { Route as FreelancersUserIdRouteImport } from './routes/freelancers/$userId'
+import { Route as ClientsRouteRouteImport } from './routes/clients/route'
+import { Route as DashboardRouteRouteImport } from './routes/dashboard/route'
+import { Route as ForgotPasswordRouteRouteImport } from './routes/forgot-password/route'
+import { Route as FreelancersRouteRouteImport } from './routes/freelancers/route'
+import { Route as LoginRouteRouteImport } from './routes/login/route'
+import { Route as ResetPasswordRouteRouteImport } from './routes/reset-password/route'
+import { Route as SuccessRouteRouteImport } from './routes/success/route'
 import { Route as ClientsUserIdRouteImport } from './routes/clients/$userId'
-import { Route as DashboardHirerRouteRouteImport } from './routes/dashboard/hirer/route'
+import { Route as DashboardIndexRouteImport } from './routes/dashboard/index'
 import { Route as DashboardFreelancerRouteRouteImport } from './routes/dashboard/freelancer/route'
-import { Route as DashboardHirerIndexRouteImport } from './routes/dashboard/hirer/index'
+import { Route as DashboardHirerRouteRouteImport } from './routes/dashboard/hirer/route'
+import { Route as ForgotPasswordIndexRouteImport } from './routes/forgot-password/index'
+import { Route as FreelancersIndexRouteImport } from './routes/freelancers/index'
+import { Route as FreelancersUserIdRouteImport } from './routes/freelancers/$userId'
+import { Route as LoginIndexRouteImport } from './routes/login/index'
+import { Route as ResetPasswordIndexRouteImport } from './routes/reset-password/index'
+import { Route as SuccessIndexRouteImport } from './routes/success/index'
 import { Route as DashboardFreelancerIndexRouteImport } from './routes/dashboard/freelancer/index'
-import { Route as DashboardHirerProfileRouteImport } from './routes/dashboard/hirer/profile'
-import { Route as DashboardHirerMessagesRouteImport } from './routes/dashboard/hirer/messages'
-import { Route as DashboardFreelancerProposalsRouteImport } from './routes/dashboard/freelancer/proposals'
-import { Route as DashboardFreelancerProfileRouteImport } from './routes/dashboard/freelancer/profile'
 import { Route as DashboardFreelancerMessagesRouteImport } from './routes/dashboard/freelancer/messages'
-import { Route as DashboardOnboardingRoleIndexRouteImport } from './routes/dashboard/onboarding/role/index'
-import { Route as DashboardHirerContractsIndexRouteImport } from './routes/dashboard/hirer/contracts/index'
-import { Route as DashboardFreelancerContractsIndexRouteImport } from './routes/dashboard/freelancer/contracts/index'
+import { Route as DashboardFreelancerProfileRouteImport } from './routes/dashboard/freelancer/profile'
+import { Route as DashboardFreelancerProposalsRouteImport } from './routes/dashboard/freelancer/proposals'
+import { Route as DashboardHirerIndexRouteImport } from './routes/dashboard/hirer/index'
+import { Route as DashboardHirerMessagesRouteImport } from './routes/dashboard/hirer/messages'
+import { Route as DashboardHirerProfileRouteImport } from './routes/dashboard/hirer/profile'
 import { Route as DashboardAdminVerificationsIndexRouteImport } from './routes/dashboard/admin/verifications/index'
-import { Route as DashboardHirerJobsNewRouteImport } from './routes/dashboard/hirer/jobs/new'
-import { Route as DashboardHirerJobsJobIdRouteImport } from './routes/dashboard/hirer/jobs/$jobId'
-import { Route as DashboardHirerContractsContractIdRouteImport } from './routes/dashboard/hirer/contracts/$contractId'
-import { Route as DashboardFreelancerJobsSlugRouteImport } from './routes/dashboard/freelancer/jobs/$slug'
+import { Route as DashboardFreelancerContractsIndexRouteImport } from './routes/dashboard/freelancer/contracts/index'
 import { Route as DashboardFreelancerContractsContractIdRouteImport } from './routes/dashboard/freelancer/contracts/$contractId'
+import { Route as DashboardFreelancerJobsSlugRouteImport } from './routes/dashboard/freelancer/jobs/$slug'
+import { Route as DashboardFreelancerPaymentsIndexRouteImport } from './routes/dashboard/freelancer/payments/index'
+import { Route as DashboardHirerContractsIndexRouteImport } from './routes/dashboard/hirer/contracts/index'
+import { Route as DashboardHirerContractsContractIdRouteImport } from './routes/dashboard/hirer/contracts/$contractId'
+import { Route as DashboardHirerJobsJobIdRouteImport } from './routes/dashboard/hirer/jobs/$jobId'
+import { Route as DashboardHirerJobsNewRouteImport } from './routes/dashboard/hirer/jobs/new'
+import { Route as DashboardHirerPaymentsIndexRouteImport } from './routes/dashboard/hirer/payments/index'
+import { Route as DashboardOnboardingRoleIndexRouteImport } from './routes/dashboard/onboarding/role/index'
 import { Route as DashboardHirerJobsJobIdProposalsRouteImport } from './routes/dashboard/hirer/jobs/$jobId.proposals'
 
-const SuccessRouteRoute = SuccessRouteRouteImport.update({
-  id: '/success',
-  path: '/success',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ResetPasswordRouteRoute = ResetPasswordRouteRouteImport.update({
-  id: '/reset-password',
-  path: '/reset-password',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const LoginRouteRoute = LoginRouteRouteImport.update({
-  id: '/login',
-  path: '/login',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const FreelancersRouteRoute = FreelancersRouteRouteImport.update({
-  id: '/freelancers',
-  path: '/freelancers',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ForgotPasswordRouteRoute = ForgotPasswordRouteRouteImport.update({
-  id: '/forgot-password',
-  path: '/forgot-password',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const DashboardRouteRoute = DashboardRouteRouteImport.update({
-  id: '/dashboard',
-  path: '/dashboard',
+const IndexRoute = IndexRouteImport.update({
+  id: '/',
+  path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ClientsRouteRoute = ClientsRouteRouteImport.update({
@@ -80,54 +57,44 @@ const ClientsRouteRoute = ClientsRouteRouteImport.update({
   path: '/clients',
   getParentRoute: () => rootRouteImport,
 } as any)
-const IndexRoute = IndexRouteImport.update({
-  id: '/',
-  path: '/',
+const DashboardRouteRoute = DashboardRouteRouteImport.update({
+  id: '/dashboard',
+  path: '/dashboard',
   getParentRoute: () => rootRouteImport,
 } as any)
-const SuccessIndexRoute = SuccessIndexRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => SuccessRouteRoute,
+const ForgotPasswordRouteRoute = ForgotPasswordRouteRouteImport.update({
+  id: '/forgot-password',
+  path: '/forgot-password',
+  getParentRoute: () => rootRouteImport,
 } as any)
-const ResetPasswordIndexRoute = ResetPasswordIndexRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => ResetPasswordRouteRoute,
+const FreelancersRouteRoute = FreelancersRouteRouteImport.update({
+  id: '/freelancers',
+  path: '/freelancers',
+  getParentRoute: () => rootRouteImport,
 } as any)
-const LoginIndexRoute = LoginIndexRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => LoginRouteRoute,
+const LoginRouteRoute = LoginRouteRouteImport.update({
+  id: '/login',
+  path: '/login',
+  getParentRoute: () => rootRouteImport,
 } as any)
-const FreelancersIndexRoute = FreelancersIndexRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => FreelancersRouteRoute,
+const ResetPasswordRouteRoute = ResetPasswordRouteRouteImport.update({
+  id: '/reset-password',
+  path: '/reset-password',
+  getParentRoute: () => rootRouteImport,
 } as any)
-const ForgotPasswordIndexRoute = ForgotPasswordIndexRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => ForgotPasswordRouteRoute,
-} as any)
-const DashboardIndexRoute = DashboardIndexRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => DashboardRouteRoute,
-} as any)
-const FreelancersUserIdRoute = FreelancersUserIdRouteImport.update({
-  id: '/$userId',
-  path: '/$userId',
-  getParentRoute: () => FreelancersRouteRoute,
+const SuccessRouteRoute = SuccessRouteRouteImport.update({
+  id: '/success',
+  path: '/success',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const ClientsUserIdRoute = ClientsUserIdRouteImport.update({
   id: '/$userId',
   path: '/$userId',
   getParentRoute: () => ClientsRouteRoute,
 } as any)
-const DashboardHirerRouteRoute = DashboardHirerRouteRouteImport.update({
-  id: '/hirer',
-  path: '/hirer',
+const DashboardIndexRoute = DashboardIndexRouteImport.update({
+  id: '/',
+  path: '/',
   getParentRoute: () => DashboardRouteRoute,
 } as any)
 const DashboardFreelancerRouteRoute =
@@ -136,37 +103,45 @@ const DashboardFreelancerRouteRoute =
     path: '/freelancer',
     getParentRoute: () => DashboardRouteRoute,
   } as any)
-const DashboardHirerIndexRoute = DashboardHirerIndexRouteImport.update({
+const DashboardHirerRouteRoute = DashboardHirerRouteRouteImport.update({
+  id: '/hirer',
+  path: '/hirer',
+  getParentRoute: () => DashboardRouteRoute,
+} as any)
+const ForgotPasswordIndexRoute = ForgotPasswordIndexRouteImport.update({
   id: '/',
   path: '/',
-  getParentRoute: () => DashboardHirerRouteRoute,
+  getParentRoute: () => ForgotPasswordRouteRoute,
+} as any)
+const FreelancersIndexRoute = FreelancersIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => FreelancersRouteRoute,
+} as any)
+const FreelancersUserIdRoute = FreelancersUserIdRouteImport.update({
+  id: '/$userId',
+  path: '/$userId',
+  getParentRoute: () => FreelancersRouteRoute,
+} as any)
+const LoginIndexRoute = LoginIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => LoginRouteRoute,
+} as any)
+const ResetPasswordIndexRoute = ResetPasswordIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => ResetPasswordRouteRoute,
+} as any)
+const SuccessIndexRoute = SuccessIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => SuccessRouteRoute,
 } as any)
 const DashboardFreelancerIndexRoute =
   DashboardFreelancerIndexRouteImport.update({
     id: '/',
     path: '/',
-    getParentRoute: () => DashboardFreelancerRouteRoute,
-  } as any)
-const DashboardHirerProfileRoute = DashboardHirerProfileRouteImport.update({
-  id: '/profile',
-  path: '/profile',
-  getParentRoute: () => DashboardHirerRouteRoute,
-} as any)
-const DashboardHirerMessagesRoute = DashboardHirerMessagesRouteImport.update({
-  id: '/messages',
-  path: '/messages',
-  getParentRoute: () => DashboardHirerRouteRoute,
-} as any)
-const DashboardFreelancerProposalsRoute =
-  DashboardFreelancerProposalsRouteImport.update({
-    id: '/proposals',
-    path: '/proposals',
-    getParentRoute: () => DashboardFreelancerRouteRoute,
-  } as any)
-const DashboardFreelancerProfileRoute =
-  DashboardFreelancerProfileRouteImport.update({
-    id: '/profile',
-    path: '/profile',
     getParentRoute: () => DashboardFreelancerRouteRoute,
   } as any)
 const DashboardFreelancerMessagesRoute =
@@ -175,17 +150,38 @@ const DashboardFreelancerMessagesRoute =
     path: '/messages',
     getParentRoute: () => DashboardFreelancerRouteRoute,
   } as any)
-const DashboardOnboardingRoleIndexRoute =
-  DashboardOnboardingRoleIndexRouteImport.update({
-    id: '/onboarding/role/',
-    path: '/onboarding/role/',
-    getParentRoute: () => DashboardRouteRoute,
+const DashboardFreelancerProfileRoute =
+  DashboardFreelancerProfileRouteImport.update({
+    id: '/profile',
+    path: '/profile',
+    getParentRoute: () => DashboardFreelancerRouteRoute,
   } as any)
-const DashboardHirerContractsIndexRoute =
-  DashboardHirerContractsIndexRouteImport.update({
-    id: '/contracts/',
-    path: '/contracts/',
-    getParentRoute: () => DashboardHirerRouteRoute,
+const DashboardFreelancerProposalsRoute =
+  DashboardFreelancerProposalsRouteImport.update({
+    id: '/proposals',
+    path: '/proposals',
+    getParentRoute: () => DashboardFreelancerRouteRoute,
+  } as any)
+const DashboardHirerIndexRoute = DashboardHirerIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => DashboardHirerRouteRoute,
+} as any)
+const DashboardHirerMessagesRoute = DashboardHirerMessagesRouteImport.update({
+  id: '/messages',
+  path: '/messages',
+  getParentRoute: () => DashboardHirerRouteRoute,
+} as any)
+const DashboardHirerProfileRoute = DashboardHirerProfileRouteImport.update({
+  id: '/profile',
+  path: '/profile',
+  getParentRoute: () => DashboardHirerRouteRoute,
+} as any)
+const DashboardAdminVerificationsIndexRoute =
+  DashboardAdminVerificationsIndexRouteImport.update({
+    id: '/admin/verifications/',
+    path: '/admin/verifications/',
+    getParentRoute: () => DashboardRouteRoute,
   } as any)
 const DashboardFreelancerContractsIndexRoute =
   DashboardFreelancerContractsIndexRouteImport.update({
@@ -193,27 +189,11 @@ const DashboardFreelancerContractsIndexRoute =
     path: '/contracts/',
     getParentRoute: () => DashboardFreelancerRouteRoute,
   } as any)
-const DashboardAdminVerificationsIndexRoute =
-  DashboardAdminVerificationsIndexRouteImport.update({
-    id: '/admin/verifications/',
-    path: '/admin/verifications/',
-    getParentRoute: () => DashboardRouteRoute,
-  } as any)
-const DashboardHirerJobsNewRoute = DashboardHirerJobsNewRouteImport.update({
-  id: '/jobs/new',
-  path: '/jobs/new',
-  getParentRoute: () => DashboardHirerRouteRoute,
-} as any)
-const DashboardHirerJobsJobIdRoute = DashboardHirerJobsJobIdRouteImport.update({
-  id: '/jobs/$jobId',
-  path: '/jobs/$jobId',
-  getParentRoute: () => DashboardHirerRouteRoute,
-} as any)
-const DashboardHirerContractsContractIdRoute =
-  DashboardHirerContractsContractIdRouteImport.update({
+const DashboardFreelancerContractsContractIdRoute =
+  DashboardFreelancerContractsContractIdRouteImport.update({
     id: '/contracts/$contractId',
     path: '/contracts/$contractId',
-    getParentRoute: () => DashboardHirerRouteRoute,
+    getParentRoute: () => DashboardFreelancerRouteRoute,
   } as any)
 const DashboardFreelancerJobsSlugRoute =
   DashboardFreelancerJobsSlugRouteImport.update({
@@ -221,11 +201,45 @@ const DashboardFreelancerJobsSlugRoute =
     path: '/jobs/$slug',
     getParentRoute: () => DashboardFreelancerRouteRoute,
   } as any)
-const DashboardFreelancerContractsContractIdRoute =
-  DashboardFreelancerContractsContractIdRouteImport.update({
+const DashboardFreelancerPaymentsIndexRoute =
+  DashboardFreelancerPaymentsIndexRouteImport.update({
+    id: '/payments/',
+    path: '/payments/',
+    getParentRoute: () => DashboardFreelancerRouteRoute,
+  } as any)
+const DashboardHirerContractsIndexRoute =
+  DashboardHirerContractsIndexRouteImport.update({
+    id: '/contracts/',
+    path: '/contracts/',
+    getParentRoute: () => DashboardHirerRouteRoute,
+  } as any)
+const DashboardHirerContractsContractIdRoute =
+  DashboardHirerContractsContractIdRouteImport.update({
     id: '/contracts/$contractId',
     path: '/contracts/$contractId',
-    getParentRoute: () => DashboardFreelancerRouteRoute,
+    getParentRoute: () => DashboardHirerRouteRoute,
+  } as any)
+const DashboardHirerJobsJobIdRoute = DashboardHirerJobsJobIdRouteImport.update({
+  id: '/jobs/$jobId',
+  path: '/jobs/$jobId',
+  getParentRoute: () => DashboardHirerRouteRoute,
+} as any)
+const DashboardHirerJobsNewRoute = DashboardHirerJobsNewRouteImport.update({
+  id: '/jobs/new',
+  path: '/jobs/new',
+  getParentRoute: () => DashboardHirerRouteRoute,
+} as any)
+const DashboardHirerPaymentsIndexRoute =
+  DashboardHirerPaymentsIndexRouteImport.update({
+    id: '/payments/',
+    path: '/payments/',
+    getParentRoute: () => DashboardHirerRouteRoute,
+  } as any)
+const DashboardOnboardingRoleIndexRoute =
+  DashboardOnboardingRoleIndexRouteImport.update({
+    id: '/onboarding/role/',
+    path: '/onboarding/role/',
+    getParentRoute: () => DashboardRouteRoute,
   } as any)
 const DashboardHirerJobsJobIdProposalsRoute =
   DashboardHirerJobsJobIdProposalsRouteImport.update({
@@ -267,7 +281,9 @@ export interface FileRoutesByFullPath {
   '/dashboard/hirer/jobs/new': typeof DashboardHirerJobsNewRoute
   '/dashboard/admin/verifications/': typeof DashboardAdminVerificationsIndexRoute
   '/dashboard/freelancer/contracts/': typeof DashboardFreelancerContractsIndexRoute
+  '/dashboard/freelancer/payments/': typeof DashboardFreelancerPaymentsIndexRoute
   '/dashboard/hirer/contracts/': typeof DashboardHirerContractsIndexRoute
+  '/dashboard/hirer/payments/': typeof DashboardHirerPaymentsIndexRoute
   '/dashboard/onboarding/role/': typeof DashboardOnboardingRoleIndexRoute
   '/dashboard/hirer/jobs/$jobId/proposals': typeof DashboardHirerJobsJobIdProposalsRoute
 }
@@ -296,7 +312,9 @@ export interface FileRoutesByTo {
   '/dashboard/hirer/jobs/new': typeof DashboardHirerJobsNewRoute
   '/dashboard/admin/verifications': typeof DashboardAdminVerificationsIndexRoute
   '/dashboard/freelancer/contracts': typeof DashboardFreelancerContractsIndexRoute
+  '/dashboard/freelancer/payments': typeof DashboardFreelancerPaymentsIndexRoute
   '/dashboard/hirer/contracts': typeof DashboardHirerContractsIndexRoute
+  '/dashboard/hirer/payments': typeof DashboardHirerPaymentsIndexRoute
   '/dashboard/onboarding/role': typeof DashboardOnboardingRoleIndexRoute
   '/dashboard/hirer/jobs/$jobId/proposals': typeof DashboardHirerJobsJobIdProposalsRoute
 }
@@ -334,7 +352,9 @@ export interface FileRoutesById {
   '/dashboard/hirer/jobs/new': typeof DashboardHirerJobsNewRoute
   '/dashboard/admin/verifications/': typeof DashboardAdminVerificationsIndexRoute
   '/dashboard/freelancer/contracts/': typeof DashboardFreelancerContractsIndexRoute
+  '/dashboard/freelancer/payments/': typeof DashboardFreelancerPaymentsIndexRoute
   '/dashboard/hirer/contracts/': typeof DashboardHirerContractsIndexRoute
+  '/dashboard/hirer/payments/': typeof DashboardHirerPaymentsIndexRoute
   '/dashboard/onboarding/role/': typeof DashboardOnboardingRoleIndexRoute
   '/dashboard/hirer/jobs/$jobId/proposals': typeof DashboardHirerJobsJobIdProposalsRoute
 }
@@ -373,7 +393,9 @@ export interface FileRouteTypes {
     | '/dashboard/hirer/jobs/new'
     | '/dashboard/admin/verifications/'
     | '/dashboard/freelancer/contracts/'
+    | '/dashboard/freelancer/payments/'
     | '/dashboard/hirer/contracts/'
+    | '/dashboard/hirer/payments/'
     | '/dashboard/onboarding/role/'
     | '/dashboard/hirer/jobs/$jobId/proposals'
   fileRoutesByTo: FileRoutesByTo
@@ -402,7 +424,9 @@ export interface FileRouteTypes {
     | '/dashboard/hirer/jobs/new'
     | '/dashboard/admin/verifications'
     | '/dashboard/freelancer/contracts'
+    | '/dashboard/freelancer/payments'
     | '/dashboard/hirer/contracts'
+    | '/dashboard/hirer/payments'
     | '/dashboard/onboarding/role'
     | '/dashboard/hirer/jobs/$jobId/proposals'
   id:
@@ -439,7 +463,9 @@ export interface FileRouteTypes {
     | '/dashboard/hirer/jobs/new'
     | '/dashboard/admin/verifications/'
     | '/dashboard/freelancer/contracts/'
+    | '/dashboard/freelancer/payments/'
     | '/dashboard/hirer/contracts/'
+    | '/dashboard/hirer/payments/'
     | '/dashboard/onboarding/role/'
     | '/dashboard/hirer/jobs/$jobId/proposals'
   fileRoutesById: FileRoutesById
@@ -457,46 +483,11 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/success': {
-      id: '/success'
-      path: '/success'
-      fullPath: '/success'
-      preLoaderRoute: typeof SuccessRouteRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/reset-password': {
-      id: '/reset-password'
-      path: '/reset-password'
-      fullPath: '/reset-password'
-      preLoaderRoute: typeof ResetPasswordRouteRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/login': {
-      id: '/login'
-      path: '/login'
-      fullPath: '/login'
-      preLoaderRoute: typeof LoginRouteRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/freelancers': {
-      id: '/freelancers'
-      path: '/freelancers'
-      fullPath: '/freelancers'
-      preLoaderRoute: typeof FreelancersRouteRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/forgot-password': {
-      id: '/forgot-password'
-      path: '/forgot-password'
-      fullPath: '/forgot-password'
-      preLoaderRoute: typeof ForgotPasswordRouteRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/dashboard': {
-      id: '/dashboard'
-      path: '/dashboard'
-      fullPath: '/dashboard'
-      preLoaderRoute: typeof DashboardRouteRouteImport
+    '/': {
+      id: '/'
+      path: '/'
+      fullPath: '/'
+      preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/clients': {
@@ -506,61 +497,47 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ClientsRouteRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/': {
-      id: '/'
-      path: '/'
-      fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
+    '/dashboard': {
+      id: '/dashboard'
+      path: '/dashboard'
+      fullPath: '/dashboard'
+      preLoaderRoute: typeof DashboardRouteRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/success/': {
-      id: '/success/'
-      path: '/'
-      fullPath: '/success/'
-      preLoaderRoute: typeof SuccessIndexRouteImport
-      parentRoute: typeof SuccessRouteRoute
+    '/forgot-password': {
+      id: '/forgot-password'
+      path: '/forgot-password'
+      fullPath: '/forgot-password'
+      preLoaderRoute: typeof ForgotPasswordRouteRouteImport
+      parentRoute: typeof rootRouteImport
     }
-    '/reset-password/': {
-      id: '/reset-password/'
-      path: '/'
-      fullPath: '/reset-password/'
-      preLoaderRoute: typeof ResetPasswordIndexRouteImport
-      parentRoute: typeof ResetPasswordRouteRoute
+    '/freelancers': {
+      id: '/freelancers'
+      path: '/freelancers'
+      fullPath: '/freelancers'
+      preLoaderRoute: typeof FreelancersRouteRouteImport
+      parentRoute: typeof rootRouteImport
     }
-    '/login/': {
-      id: '/login/'
-      path: '/'
-      fullPath: '/login/'
-      preLoaderRoute: typeof LoginIndexRouteImport
-      parentRoute: typeof LoginRouteRoute
+    '/login': {
+      id: '/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof LoginRouteRouteImport
+      parentRoute: typeof rootRouteImport
     }
-    '/freelancers/': {
-      id: '/freelancers/'
-      path: '/'
-      fullPath: '/freelancers/'
-      preLoaderRoute: typeof FreelancersIndexRouteImport
-      parentRoute: typeof FreelancersRouteRoute
+    '/reset-password': {
+      id: '/reset-password'
+      path: '/reset-password'
+      fullPath: '/reset-password'
+      preLoaderRoute: typeof ResetPasswordRouteRouteImport
+      parentRoute: typeof rootRouteImport
     }
-    '/forgot-password/': {
-      id: '/forgot-password/'
-      path: '/'
-      fullPath: '/forgot-password/'
-      preLoaderRoute: typeof ForgotPasswordIndexRouteImport
-      parentRoute: typeof ForgotPasswordRouteRoute
-    }
-    '/dashboard/': {
-      id: '/dashboard/'
-      path: '/'
-      fullPath: '/dashboard/'
-      preLoaderRoute: typeof DashboardIndexRouteImport
-      parentRoute: typeof DashboardRouteRoute
-    }
-    '/freelancers/$userId': {
-      id: '/freelancers/$userId'
-      path: '/$userId'
-      fullPath: '/freelancers/$userId'
-      preLoaderRoute: typeof FreelancersUserIdRouteImport
-      parentRoute: typeof FreelancersRouteRoute
+    '/success': {
+      id: '/success'
+      path: '/success'
+      fullPath: '/success'
+      preLoaderRoute: typeof SuccessRouteRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/clients/$userId': {
       id: '/clients/$userId'
@@ -569,11 +546,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ClientsUserIdRouteImport
       parentRoute: typeof ClientsRouteRoute
     }
-    '/dashboard/hirer': {
-      id: '/dashboard/hirer'
-      path: '/hirer'
-      fullPath: '/dashboard/hirer'
-      preLoaderRoute: typeof DashboardHirerRouteRouteImport
+    '/dashboard/': {
+      id: '/dashboard/'
+      path: '/'
+      fullPath: '/dashboard/'
+      preLoaderRoute: typeof DashboardIndexRouteImport
       parentRoute: typeof DashboardRouteRoute
     }
     '/dashboard/freelancer': {
@@ -583,46 +560,60 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardFreelancerRouteRouteImport
       parentRoute: typeof DashboardRouteRoute
     }
-    '/dashboard/hirer/': {
-      id: '/dashboard/hirer/'
+    '/dashboard/hirer': {
+      id: '/dashboard/hirer'
+      path: '/hirer'
+      fullPath: '/dashboard/hirer'
+      preLoaderRoute: typeof DashboardHirerRouteRouteImport
+      parentRoute: typeof DashboardRouteRoute
+    }
+    '/forgot-password/': {
+      id: '/forgot-password/'
       path: '/'
-      fullPath: '/dashboard/hirer/'
-      preLoaderRoute: typeof DashboardHirerIndexRouteImport
-      parentRoute: typeof DashboardHirerRouteRoute
+      fullPath: '/forgot-password/'
+      preLoaderRoute: typeof ForgotPasswordIndexRouteImport
+      parentRoute: typeof ForgotPasswordRouteRoute
+    }
+    '/freelancers/': {
+      id: '/freelancers/'
+      path: '/'
+      fullPath: '/freelancers/'
+      preLoaderRoute: typeof FreelancersIndexRouteImport
+      parentRoute: typeof FreelancersRouteRoute
+    }
+    '/freelancers/$userId': {
+      id: '/freelancers/$userId'
+      path: '/$userId'
+      fullPath: '/freelancers/$userId'
+      preLoaderRoute: typeof FreelancersUserIdRouteImport
+      parentRoute: typeof FreelancersRouteRoute
+    }
+    '/login/': {
+      id: '/login/'
+      path: '/'
+      fullPath: '/login/'
+      preLoaderRoute: typeof LoginIndexRouteImport
+      parentRoute: typeof LoginRouteRoute
+    }
+    '/reset-password/': {
+      id: '/reset-password/'
+      path: '/'
+      fullPath: '/reset-password/'
+      preLoaderRoute: typeof ResetPasswordIndexRouteImport
+      parentRoute: typeof ResetPasswordRouteRoute
+    }
+    '/success/': {
+      id: '/success/'
+      path: '/'
+      fullPath: '/success/'
+      preLoaderRoute: typeof SuccessIndexRouteImport
+      parentRoute: typeof SuccessRouteRoute
     }
     '/dashboard/freelancer/': {
       id: '/dashboard/freelancer/'
       path: '/'
       fullPath: '/dashboard/freelancer/'
       preLoaderRoute: typeof DashboardFreelancerIndexRouteImport
-      parentRoute: typeof DashboardFreelancerRouteRoute
-    }
-    '/dashboard/hirer/profile': {
-      id: '/dashboard/hirer/profile'
-      path: '/profile'
-      fullPath: '/dashboard/hirer/profile'
-      preLoaderRoute: typeof DashboardHirerProfileRouteImport
-      parentRoute: typeof DashboardHirerRouteRoute
-    }
-    '/dashboard/hirer/messages': {
-      id: '/dashboard/hirer/messages'
-      path: '/messages'
-      fullPath: '/dashboard/hirer/messages'
-      preLoaderRoute: typeof DashboardHirerMessagesRouteImport
-      parentRoute: typeof DashboardHirerRouteRoute
-    }
-    '/dashboard/freelancer/proposals': {
-      id: '/dashboard/freelancer/proposals'
-      path: '/proposals'
-      fullPath: '/dashboard/freelancer/proposals'
-      preLoaderRoute: typeof DashboardFreelancerProposalsRouteImport
-      parentRoute: typeof DashboardFreelancerRouteRoute
-    }
-    '/dashboard/freelancer/profile': {
-      id: '/dashboard/freelancer/profile'
-      path: '/profile'
-      fullPath: '/dashboard/freelancer/profile'
-      preLoaderRoute: typeof DashboardFreelancerProfileRouteImport
       parentRoute: typeof DashboardFreelancerRouteRoute
     }
     '/dashboard/freelancer/messages': {
@@ -632,26 +623,40 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardFreelancerMessagesRouteImport
       parentRoute: typeof DashboardFreelancerRouteRoute
     }
-    '/dashboard/onboarding/role/': {
-      id: '/dashboard/onboarding/role/'
-      path: '/onboarding/role'
-      fullPath: '/dashboard/onboarding/role/'
-      preLoaderRoute: typeof DashboardOnboardingRoleIndexRouteImport
-      parentRoute: typeof DashboardRouteRoute
+    '/dashboard/freelancer/profile': {
+      id: '/dashboard/freelancer/profile'
+      path: '/profile'
+      fullPath: '/dashboard/freelancer/profile'
+      preLoaderRoute: typeof DashboardFreelancerProfileRouteImport
+      parentRoute: typeof DashboardFreelancerRouteRoute
     }
-    '/dashboard/hirer/contracts/': {
-      id: '/dashboard/hirer/contracts/'
-      path: '/contracts'
-      fullPath: '/dashboard/hirer/contracts/'
-      preLoaderRoute: typeof DashboardHirerContractsIndexRouteImport
+    '/dashboard/freelancer/proposals': {
+      id: '/dashboard/freelancer/proposals'
+      path: '/proposals'
+      fullPath: '/dashboard/freelancer/proposals'
+      preLoaderRoute: typeof DashboardFreelancerProposalsRouteImport
+      parentRoute: typeof DashboardFreelancerRouteRoute
+    }
+    '/dashboard/hirer/': {
+      id: '/dashboard/hirer/'
+      path: '/'
+      fullPath: '/dashboard/hirer/'
+      preLoaderRoute: typeof DashboardHirerIndexRouteImport
       parentRoute: typeof DashboardHirerRouteRoute
     }
-    '/dashboard/freelancer/contracts/': {
-      id: '/dashboard/freelancer/contracts/'
-      path: '/contracts'
-      fullPath: '/dashboard/freelancer/contracts/'
-      preLoaderRoute: typeof DashboardFreelancerContractsIndexRouteImport
-      parentRoute: typeof DashboardFreelancerRouteRoute
+    '/dashboard/hirer/messages': {
+      id: '/dashboard/hirer/messages'
+      path: '/messages'
+      fullPath: '/dashboard/hirer/messages'
+      preLoaderRoute: typeof DashboardHirerMessagesRouteImport
+      parentRoute: typeof DashboardHirerRouteRoute
+    }
+    '/dashboard/hirer/profile': {
+      id: '/dashboard/hirer/profile'
+      path: '/profile'
+      fullPath: '/dashboard/hirer/profile'
+      preLoaderRoute: typeof DashboardHirerProfileRouteImport
+      parentRoute: typeof DashboardHirerRouteRoute
     }
     '/dashboard/admin/verifications/': {
       id: '/dashboard/admin/verifications/'
@@ -660,18 +665,39 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardAdminVerificationsIndexRouteImport
       parentRoute: typeof DashboardRouteRoute
     }
-    '/dashboard/hirer/jobs/new': {
-      id: '/dashboard/hirer/jobs/new'
-      path: '/jobs/new'
-      fullPath: '/dashboard/hirer/jobs/new'
-      preLoaderRoute: typeof DashboardHirerJobsNewRouteImport
-      parentRoute: typeof DashboardHirerRouteRoute
+    '/dashboard/freelancer/contracts/': {
+      id: '/dashboard/freelancer/contracts/'
+      path: '/contracts'
+      fullPath: '/dashboard/freelancer/contracts/'
+      preLoaderRoute: typeof DashboardFreelancerContractsIndexRouteImport
+      parentRoute: typeof DashboardFreelancerRouteRoute
     }
-    '/dashboard/hirer/jobs/$jobId': {
-      id: '/dashboard/hirer/jobs/$jobId'
-      path: '/jobs/$jobId'
-      fullPath: '/dashboard/hirer/jobs/$jobId'
-      preLoaderRoute: typeof DashboardHirerJobsJobIdRouteImport
+    '/dashboard/freelancer/contracts/$contractId': {
+      id: '/dashboard/freelancer/contracts/$contractId'
+      path: '/contracts/$contractId'
+      fullPath: '/dashboard/freelancer/contracts/$contractId'
+      preLoaderRoute: typeof DashboardFreelancerContractsContractIdRouteImport
+      parentRoute: typeof DashboardFreelancerRouteRoute
+    }
+    '/dashboard/freelancer/jobs/$slug': {
+      id: '/dashboard/freelancer/jobs/$slug'
+      path: '/jobs/$slug'
+      fullPath: '/dashboard/freelancer/jobs/$slug'
+      preLoaderRoute: typeof DashboardFreelancerJobsSlugRouteImport
+      parentRoute: typeof DashboardFreelancerRouteRoute
+    }
+    '/dashboard/freelancer/payments/': {
+      id: '/dashboard/freelancer/payments/'
+      path: '/payments'
+      fullPath: '/dashboard/freelancer/payments/'
+      preLoaderRoute: typeof DashboardFreelancerPaymentsIndexRouteImport
+      parentRoute: typeof DashboardFreelancerRouteRoute
+    }
+    '/dashboard/hirer/contracts/': {
+      id: '/dashboard/hirer/contracts/'
+      path: '/contracts'
+      fullPath: '/dashboard/hirer/contracts/'
+      preLoaderRoute: typeof DashboardHirerContractsIndexRouteImport
       parentRoute: typeof DashboardHirerRouteRoute
     }
     '/dashboard/hirer/contracts/$contractId': {
@@ -681,19 +707,33 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardHirerContractsContractIdRouteImport
       parentRoute: typeof DashboardHirerRouteRoute
     }
-    '/dashboard/freelancer/jobs/$slug': {
-      id: '/dashboard/freelancer/jobs/$slug'
-      path: '/jobs/$slug'
-      fullPath: '/dashboard/freelancer/jobs/$slug'
-      preLoaderRoute: typeof DashboardFreelancerJobsSlugRouteImport
-      parentRoute: typeof DashboardFreelancerRouteRoute
+    '/dashboard/hirer/jobs/$jobId': {
+      id: '/dashboard/hirer/jobs/$jobId'
+      path: '/jobs/$jobId'
+      fullPath: '/dashboard/hirer/jobs/$jobId'
+      preLoaderRoute: typeof DashboardHirerJobsJobIdRouteImport
+      parentRoute: typeof DashboardHirerRouteRoute
     }
-    '/dashboard/freelancer/contracts/$contractId': {
-      id: '/dashboard/freelancer/contracts/$contractId'
-      path: '/contracts/$contractId'
-      fullPath: '/dashboard/freelancer/contracts/$contractId'
-      preLoaderRoute: typeof DashboardFreelancerContractsContractIdRouteImport
-      parentRoute: typeof DashboardFreelancerRouteRoute
+    '/dashboard/hirer/jobs/new': {
+      id: '/dashboard/hirer/jobs/new'
+      path: '/jobs/new'
+      fullPath: '/dashboard/hirer/jobs/new'
+      preLoaderRoute: typeof DashboardHirerJobsNewRouteImport
+      parentRoute: typeof DashboardHirerRouteRoute
+    }
+    '/dashboard/hirer/payments/': {
+      id: '/dashboard/hirer/payments/'
+      path: '/payments'
+      fullPath: '/dashboard/hirer/payments/'
+      preLoaderRoute: typeof DashboardHirerPaymentsIndexRouteImport
+      parentRoute: typeof DashboardHirerRouteRoute
+    }
+    '/dashboard/onboarding/role/': {
+      id: '/dashboard/onboarding/role/'
+      path: '/onboarding/role'
+      fullPath: '/dashboard/onboarding/role/'
+      preLoaderRoute: typeof DashboardOnboardingRoleIndexRouteImport
+      parentRoute: typeof DashboardRouteRoute
     }
     '/dashboard/hirer/jobs/$jobId/proposals': {
       id: '/dashboard/hirer/jobs/$jobId/proposals'
@@ -725,6 +765,7 @@ interface DashboardFreelancerRouteRouteChildren {
   DashboardFreelancerContractsContractIdRoute: typeof DashboardFreelancerContractsContractIdRoute
   DashboardFreelancerJobsSlugRoute: typeof DashboardFreelancerJobsSlugRoute
   DashboardFreelancerContractsIndexRoute: typeof DashboardFreelancerContractsIndexRoute
+  DashboardFreelancerPaymentsIndexRoute: typeof DashboardFreelancerPaymentsIndexRoute
 }
 
 const DashboardFreelancerRouteRouteChildren: DashboardFreelancerRouteRouteChildren =
@@ -738,6 +779,8 @@ const DashboardFreelancerRouteRouteChildren: DashboardFreelancerRouteRouteChildr
     DashboardFreelancerJobsSlugRoute: DashboardFreelancerJobsSlugRoute,
     DashboardFreelancerContractsIndexRoute:
       DashboardFreelancerContractsIndexRoute,
+    DashboardFreelancerPaymentsIndexRoute:
+      DashboardFreelancerPaymentsIndexRoute,
   }
 
 const DashboardFreelancerRouteRouteWithChildren =
@@ -768,6 +811,7 @@ interface DashboardHirerRouteRouteChildren {
   DashboardHirerJobsJobIdRoute: typeof DashboardHirerJobsJobIdRouteWithChildren
   DashboardHirerJobsNewRoute: typeof DashboardHirerJobsNewRoute
   DashboardHirerContractsIndexRoute: typeof DashboardHirerContractsIndexRoute
+  DashboardHirerPaymentsIndexRoute: typeof DashboardHirerPaymentsIndexRoute
 }
 
 const DashboardHirerRouteRouteChildren: DashboardHirerRouteRouteChildren = {
@@ -779,6 +823,7 @@ const DashboardHirerRouteRouteChildren: DashboardHirerRouteRouteChildren = {
   DashboardHirerJobsJobIdRoute: DashboardHirerJobsJobIdRouteWithChildren,
   DashboardHirerJobsNewRoute: DashboardHirerJobsNewRoute,
   DashboardHirerContractsIndexRoute: DashboardHirerContractsIndexRoute,
+  DashboardHirerPaymentsIndexRoute: DashboardHirerPaymentsIndexRoute,
 }
 
 const DashboardHirerRouteRouteWithChildren =

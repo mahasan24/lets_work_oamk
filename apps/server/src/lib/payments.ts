@@ -5,15 +5,18 @@ import { contract } from "@lets_work/db/schema/contracts";
 import { milestone } from "@lets_work/db/schema/milestones";
 import { payment, stripeCustomer } from "@lets_work/db/schema/payments";
 import { env } from "@lets_work/env/server";
-import { and, eq, inArray } from "drizzle-orm";
+import { and, count, desc, eq, inArray, isNotNull, isNull, or } from "drizzle-orm";
+import { alias } from "drizzle-orm/pg-core";
 
 import { ConflictError, ForbiddenError, NotFoundError, ValidationError } from "./errors";
+import { buildPaginationMeta, resolvePagination } from "./http";
 import {
   MilestoneForbiddenError,
   MilestoneNotFoundError,
   MilestoneStatusError,
 } from "./milestones";
 import { createNotification } from "./notifications";
+import { tryTransferReleasedPayment } from "./stripe-connect";
 
 export class PaymentNotFoundError extends NotFoundError {
   constructor() {
@@ -36,6 +39,19 @@ async function notifyQuietly(input: Parameters<typeof createNotification>[0]) {
 }
 
 function serializePayment(row: typeof payment.$inferSelect) {
+  const payoutStatus =
+    row.status === "pending"
+      ? ("awaiting_funding" as const)
+      : row.status === "held"
+        ? ("in_escrow" as const)
+        : row.status === "succeeded" && row.stripeTransferId
+          ? ("paid_out" as const)
+          : row.status === "succeeded"
+            ? ("awaiting_payout" as const)
+            : row.status === "refunded"
+              ? ("refunded" as const)
+              : ("failed" as const);
+
   return {
     id: row.id,
     contractId: row.contractId,
@@ -43,10 +59,12 @@ function serializePayment(row: typeof payment.$inferSelect) {
     payerUserId: row.payerUserId,
     payeeUserId: row.payeeUserId,
     status: row.status,
+    payoutStatus,
     amount: row.amount,
     currency: row.currency,
     stripeCheckoutSessionId: row.stripeCheckoutSessionId,
     stripePaymentIntentId: row.stripePaymentIntentId,
+    stripeTransferId: row.stripeTransferId,
     description: row.description,
     paidAt: row.paidAt,
     createdAt: row.createdAt,
@@ -331,8 +349,7 @@ export async function markPaymentHeldFromCheckout(sessionId: string) {
 }
 
 /**
- * Releases held escrow after milestone approval (platform-hold MVP bookkeeping).
- * Stripe Connect transfers can replace this later.
+ * Releases held escrow after milestone approval and attempts a Connect transfer.
  */
 export async function releaseMilestoneEscrow(milestoneId: string) {
   const [held] = await db
@@ -372,9 +389,94 @@ export async function releaseMilestoneEscrow(milestoneId: string) {
     )
     .returning();
 
+  const transferred = await tryTransferReleasedPayment(updatedPayment);
+  const finalPayment = transferred ?? updatedPayment;
+
   return {
-    payment: serializePayment(updatedPayment),
+    payment: serializePayment(finalPayment),
     milestoneId: updatedMilestone?.id ?? milestoneId,
+  };
+}
+
+export type ListPaymentsInput = {
+  page?: number;
+  limit?: number;
+  status?: "pending" | "held" | "succeeded" | "refunded" | "failed";
+  role?: "payer" | "payee";
+};
+
+export async function listPaymentsForUser(userId: string, input: ListPaymentsInput = {}) {
+  const { page, limit, offset } = resolvePagination(input);
+  const payer = alias(user, "payment_payer");
+  const payee = alias(user, "payment_payee");
+  const involvement = or(eq(payment.payerUserId, userId), eq(payment.payeeUserId, userId))!;
+
+  const conditions = [involvement];
+  if (input.role === "payer") {
+    conditions.length = 0;
+    conditions.push(eq(payment.payerUserId, userId));
+  } else if (input.role === "payee") {
+    conditions.length = 0;
+    conditions.push(eq(payment.payeeUserId, userId));
+  }
+  if (input.status) {
+    conditions.push(eq(payment.status, input.status));
+  }
+
+  const whereClause = and(...conditions);
+
+  const [[totalRow], [awaitingPayoutRow], [inEscrowRow], [paidOutRow], rows] = await Promise.all([
+    db.select({ total: count() }).from(payment).where(whereClause),
+    db
+      .select({ total: count() })
+      .from(payment)
+      .where(and(involvement, eq(payment.status, "succeeded"), isNull(payment.stripeTransferId))),
+    db
+      .select({ total: count() })
+      .from(payment)
+      .where(and(involvement, eq(payment.status, "held"))),
+    db
+      .select({ total: count() })
+      .from(payment)
+      .where(
+        and(involvement, eq(payment.status, "succeeded"), isNotNull(payment.stripeTransferId)),
+      ),
+    db
+      .select({
+        payment,
+        milestoneTitle: milestone.title,
+        contractTitle: contract.title,
+        payerName: payer.name,
+        payeeName: payee.name,
+      })
+      .from(payment)
+      .leftJoin(milestone, eq(milestone.id, payment.milestoneId))
+      .leftJoin(contract, eq(contract.id, payment.contractId))
+      .innerJoin(payer, eq(payer.id, payment.payerUserId))
+      .leftJoin(payee, eq(payee.id, payment.payeeUserId))
+      .where(whereClause)
+      .orderBy(desc(payment.createdAt))
+      .limit(limit)
+      .offset(offset),
+  ]);
+
+  const items = rows.map((row) => ({
+    ...serializePayment(row.payment),
+    milestoneTitle: row.milestoneTitle,
+    contractTitle: row.contractTitle,
+    payerName: row.payerName,
+    payeeName: row.payeeName,
+    direction: row.payment.payerUserId === userId ? ("out" as const) : ("in" as const),
+  }));
+
+  return {
+    items,
+    pagination: buildPaginationMeta(page, limit, totalRow?.total ?? 0),
+    summary: {
+      awaitingPayout: awaitingPayoutRow?.total ?? 0,
+      inEscrow: inEscrowRow?.total ?? 0,
+      paidOut: paidOutRow?.total ?? 0,
+    },
   };
 }
 

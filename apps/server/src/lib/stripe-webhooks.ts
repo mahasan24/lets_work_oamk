@@ -6,6 +6,7 @@ import { eq } from "drizzle-orm";
 import type Stripe from "stripe";
 
 import { markPaymentHeldFromCheckout } from "./payments";
+import { syncConnectAccountByStripeId } from "./stripe-connect";
 
 export async function verifyStripeWebhookEvent(rawBody: string, signature: string | null) {
   if (!signature) {
@@ -63,6 +64,11 @@ export async function processStripeWebhookEvent(event: Stripe.Event) {
       case "checkout.session.async_payment_succeeded": {
         const session = event.data.object as Stripe.Checkout.Session;
         await markPaymentHeldFromCheckout(session.id);
+        break;
+      }
+      case "account.updated": {
+        const account = event.data.object as Stripe.Account;
+        await syncConnectAccountByStripeId(account.id);
         break;
       }
       default:

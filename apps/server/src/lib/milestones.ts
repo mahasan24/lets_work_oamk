@@ -526,8 +526,8 @@ export async function approveContractMilestone(milestoneId: string, userId: stri
     userId: contractRow.freelancerUserId,
     type: "contract",
     title: "Milestone approved",
-    body: `"${updated.title}" was approved and escrow was released.`,
-    actionUrl: `/dashboard/freelancer/contracts/${contractRow.id}`,
+    body: `"${updated.title}" was approved and escrow was released. Check Payments if Connect payout is pending.`,
+    actionUrl: `/dashboard/freelancer/payments`,
   });
 
   await recordContractEvent({
