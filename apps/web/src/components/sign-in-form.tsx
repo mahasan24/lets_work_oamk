@@ -1,10 +1,5 @@
 import { Button, buttonVariants } from "@lets_work/ui/components/button";
-import {
-  Field,
-  FieldError,
-  FieldGroup,
-  FieldLabel,
-} from "@lets_work/ui/components/field";
+import { Field, FieldError, FieldGroup, FieldLabel } from "@lets_work/ui/components/field";
 import { Input } from "@lets_work/ui/components/input";
 import { cn } from "@lets_work/ui/lib/utils";
 import { useForm } from "@tanstack/react-form";
@@ -33,12 +28,27 @@ export default function SignInForm({ onSwitchToSignUp }: { onSwitchToSignUp: () 
           password: value.password,
         },
         {
-          onSuccess: () => {
+          onSuccess: async () => {
+            const pending = sessionStorage.getItem("pendingAccountType");
+            if (pending === "hirer" || pending === "freelancer") {
+              try {
+                const { profileApi } = await import("@/lib/profile-api");
+                await profileApi.initialize(pending);
+                sessionStorage.removeItem("pendingAccountType");
+              } catch {
+                // Role onboarding can still capture account type.
+              }
+            }
             navigate({ to: "/dashboard" });
             toast.success("Welcome back");
           },
           onError: (error) => {
-            toast.error(error.error.message || error.error.statusText);
+            const message = error.error.message || error.error.statusText;
+            toast.error(
+              message.toLowerCase().includes("verif")
+                ? "Verify your email before signing in. Check your inbox for the link."
+                : message,
+            );
           },
         },
       );
@@ -101,7 +111,10 @@ export default function SignInForm({ onSwitchToSignUp }: { onSwitchToSignUp: () 
                   <FieldLabel htmlFor={field.name}>Password</FieldLabel>
                   <Link
                     to="/forgot-password"
-                    className={cn(buttonVariants({ variant: "link", size: "sm" }), "h-auto p-0 text-xs")}
+                    className={cn(
+                      buttonVariants({ variant: "link", size: "sm" }),
+                      "h-auto p-0 text-xs",
+                    )}
                   >
                     Forgot?
                   </Link>

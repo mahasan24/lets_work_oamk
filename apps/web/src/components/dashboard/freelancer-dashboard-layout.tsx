@@ -1,6 +1,7 @@
 import { Link } from "@tanstack/react-router";
 import { cn } from "@lets_work/ui/lib/utils";
 
+import { EmailVerificationBanner } from "@/components/dashboard/email-verification-banner";
 import { MessagesNavLink } from "@/components/chat/messages-nav-link";
 import Logo from "@/components/marketing/logo";
 import { NotificationBell } from "@/components/dashboard/notification-bell";
@@ -124,6 +125,7 @@ export default function FreelancerDashboardLayout({ children }: { children: Reac
       <div className="mx-auto grid w-full max-w-7xl flex-1 grid-cols-1 items-start gap-6 px-4 py-6 md:grid-cols-[280px_minmax(0,1fr)] md:px-6">
         <FreelancerSidebar profile={profile} />
         <main className="flex min-w-0 flex-col gap-4">
+          <EmailVerificationBanner />
           {profile && shouldShowOnboardingBanner(profile) ? (
             <OnboardingBanner profile={profile} role="freelancer" />
           ) : null}

@@ -3,6 +3,7 @@ import { cn } from "@lets_work/ui/lib/utils";
 
 import { MessagesNavLink } from "@/components/chat/messages-nav-link";
 import Logo from "@/components/marketing/logo";
+import { EmailVerificationBanner } from "@/components/dashboard/email-verification-banner";
 import { NotificationBell } from "@/components/dashboard/notification-bell";
 import { OnboardingBanner } from "@/components/dashboard/onboarding-banner";
 import UserMenu from "@/components/user-menu";
@@ -116,6 +117,7 @@ export default function HirerDashboardLayout({ children }: { children: React.Rea
       <div className="mx-auto grid w-full max-w-7xl flex-1 grid-cols-1 items-start gap-6 px-4 py-6 md:grid-cols-[280px_minmax(0,1fr)] md:px-6">
         <HirerSidebar profile={profile} />
         <main className="flex min-w-0 flex-col gap-4">
+          <EmailVerificationBanner />
           {profile && shouldShowOnboardingBanner(profile) ? (
             <OnboardingBanner profile={profile} role="hirer" />
           ) : null}

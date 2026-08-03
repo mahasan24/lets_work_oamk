@@ -7,29 +7,20 @@ import {
   FieldLabel,
 } from "@lets_work/ui/components/field";
 import { Input } from "@lets_work/ui/components/input";
-import {
-  ToggleGroup,
-  ToggleGroupItem,
-} from "@lets_work/ui/components/toggle-group";
+import { ToggleGroup, ToggleGroupItem } from "@lets_work/ui/components/toggle-group";
 import { useForm } from "@tanstack/react-form";
-import { Link, useNavigate } from "@tanstack/react-router";
+import { Link } from "@tanstack/react-router";
 import { toast } from "sonner";
 import z from "zod";
 
 import { authClient } from "@/lib/auth-client";
-import { profileApi } from "@/lib/profile-api";
 
 import Loader from "./loader";
 import { OAuthButtons } from "./oauth-buttons";
 
 type AccountType = "hirer" | "freelancer";
 
-export default function SignUpForm({
-  onSwitchToSignIn,
-}: {
-  onSwitchToSignIn: () => void;
-}) {
-  const navigate = useNavigate({ from: "/" });
+export default function SignUpForm({ onSwitchToSignIn }: { onSwitchToSignIn: () => void }) {
   const { isPending } = authClient.useSession();
 
   const form = useForm({
@@ -40,6 +31,9 @@ export default function SignUpForm({
       accountType: "freelancer" as AccountType,
     },
     onSubmit: async ({ value }) => {
+      if (typeof window !== "undefined") {
+        sessionStorage.setItem("pendingAccountType", value.accountType);
+      }
       await authClient.signUp.email(
         {
           email: value.email,
@@ -47,14 +41,9 @@ export default function SignUpForm({
           name: value.name,
         },
         {
-          onSuccess: async () => {
-            try {
-              await profileApi.initialize(value.accountType);
-            } catch {
-              toast.error("Account created, but failed to save account type");
-            }
-            navigate({ to: "/dashboard" });
-            toast.success("Account created");
+          onSuccess: () => {
+            toast.success("Check your email to verify your account, then sign in");
+            onSwitchToSignIn();
           },
           onError: (error) => {
             toast.error(error.error.message || error.error.statusText);
@@ -79,17 +68,10 @@ export default function SignUpForm({
   return (
     <div className="flex w-full max-w-sm flex-col gap-8">
       <div className="flex flex-col gap-2">
-        <h1 className="font-display text-2xl font-bold tracking-tight">
-          Sign up
-        </h1>
+        <h1 className="font-display text-2xl font-bold tracking-tight">Sign up</h1>
         <p className="text-sm text-muted-foreground">
           Already have an account?{" "}
-          <Button
-            type="button"
-            variant="link"
-            className="h-auto p-0"
-            onClick={onSwitchToSignIn}
-          >
+          <Button type="button" variant="link" className="h-auto p-0" onClick={onSwitchToSignIn}>
             Log in
           </Button>
         </p>
@@ -130,9 +112,7 @@ export default function SignUpForm({
 
           <form.Field name="name">
             {(field) => (
-              <Field
-                data-invalid={field.state.meta.errors.length > 0 || undefined}
-              >
+              <Field data-invalid={field.state.meta.errors.length > 0 || undefined}>
                 <FieldLabel htmlFor={field.name}>Full name</FieldLabel>
                 <Input
                   id={field.name}
@@ -150,9 +130,7 @@ export default function SignUpForm({
 
           <form.Field name="email">
             {(field) => (
-              <Field
-                data-invalid={field.state.meta.errors.length > 0 || undefined}
-              >
+              <Field data-invalid={field.state.meta.errors.length > 0 || undefined}>
                 <FieldLabel htmlFor={field.name}>Email</FieldLabel>
                 <Input
                   id={field.name}
@@ -171,9 +149,7 @@ export default function SignUpForm({
 
           <form.Field name="password">
             {(field) => (
-              <Field
-                data-invalid={field.state.meta.errors.length > 0 || undefined}
-              >
+              <Field data-invalid={field.state.meta.errors.length > 0 || undefined}>
                 <FieldLabel htmlFor={field.name}>Password</FieldLabel>
                 <Input
                   id={field.name}

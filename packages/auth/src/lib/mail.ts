@@ -63,3 +63,35 @@ export function sendPasswordResetEmail({
 
   return sendEmail({ to, subject, text, html });
 }
+
+export function sendEmailVerificationEmail({
+  to,
+  name,
+  url,
+}: {
+  to: string;
+  name: string;
+  url: string;
+}) {
+  const subject = "Verify your Lets Work email";
+  const text = [
+    `Hi ${name},`,
+    "",
+    "Please verify your email address to finish setting up your Lets Work account.",
+    `Verify email: ${url}`,
+    "",
+    "If you did not create an account, you can ignore this email.",
+    "",
+    "— Lets Work",
+  ].join("\n");
+
+  const html = `
+    <p>Hi ${name},</p>
+    <p>Please verify your email address to finish setting up your Lets Work account.</p>
+    <p><a href="${url}">Verify email</a></p>
+    <p>If you did not create an account, you can ignore this email.</p>
+    <p>— Lets Work</p>
+  `;
+
+  return sendEmail({ to, subject, text, html });
+}

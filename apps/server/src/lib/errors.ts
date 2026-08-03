@@ -104,6 +104,7 @@ export function resolveError(error: unknown): MappedError {
   const mapped = mapAppError(error);
   if (mapped) return mapped;
 
+  // Keep console fallback so logging works even if pino isn't loaded yet.
   console.error("[api] Unhandled error:", error);
 
   return {
