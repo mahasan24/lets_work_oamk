@@ -13,10 +13,12 @@ import { profileRoutes } from "./routes/profile";
 import { hirerProposalRoutes } from "./routes/hirer-proposals";
 import { hirerJobRoutes, jobRoutes } from "./routes/jobs";
 import { notificationRoutes } from "./routes/notifications";
+import { paymentRoutes } from "./routes/payments";
 import { freelancerJobFeedRoutes } from "./routes/freelancer-jobs";
 import { freelancerProposalRoutes } from "./routes/proposals";
 import { clientDirectoryRoutes, freelancerDirectoryRoutes } from "./routes/public-profiles";
 import { realtimeRoutes } from "./routes/realtime";
+import { stripeWebhookRoutes } from "./routes/stripe-webhooks";
 
 new Elysia()
   .use(
@@ -76,6 +78,8 @@ new Elysia()
   .use(contractRoutes)
   .use(contractMilestoneRoutes)
   .use(milestoneActionRoutes)
+  .use(paymentRoutes)
+  .use(stripeWebhookRoutes)
   .use(notificationRoutes)
   .use(chatRoutes)
   .use(adminRoutes)

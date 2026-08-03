@@ -11,7 +11,7 @@ import { createNotification } from "./notifications";
 
 const EDITABLE_STATUSES = ["pending"] as const;
 const DELETABLE_STATUSES = ["pending"] as const;
-const STARTABLE_STATUSES = ["pending", "funded"] as const;
+const STARTABLE_STATUSES = ["funded"] as const;
 const SUBMITTABLE_STATUSES = ["in_progress", "revision_requested"] as const;
 const APPROVABLE_STATUSES = ["submitted"] as const;
 const REVISION_STATUSES = ["submitted"] as const;
@@ -519,12 +519,15 @@ export async function approveContractMilestone(milestoneId: string, userId: stri
     throw new MilestoneStatusError("Only submitted milestones can be approved");
   }
 
+  const { releaseMilestoneEscrow } = await import("./payments");
+  await releaseMilestoneEscrow(updated.id);
+
   await notifyQuietly({
     userId: contractRow.freelancerUserId,
     type: "contract",
     title: "Milestone approved",
-    body: `"${updated.title}" was approved.`,
-    actionUrl: `/dashboard/freelancer/contracts/${contractRow.id}`,
+    body: `"${updated.title}" was approved and escrow was released. Check Payments if Connect payout is pending.`,
+    actionUrl: `/dashboard/freelancer/payments`,
   });
 
   await recordContractEvent({

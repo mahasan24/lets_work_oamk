@@ -26,6 +26,7 @@ import {
   type Milestone,
   type MilestoneListResponse,
 } from "@/lib/milestones-api";
+import { PaymentsApiError, paymentsApi } from "@/lib/payments-api";
 
 type ContractMilestonesProps = {
   contract: Contract;
@@ -39,6 +40,7 @@ function statusVariant(status: Milestone["status"]) {
   switch (status) {
     case "approved":
     case "released":
+    case "funded":
       return "default" as const;
     case "submitted":
       return "secondary" as const;
@@ -170,10 +172,7 @@ export function ContractMilestones({ contract, role, onChanged }: ContractMilest
           </p>
         ) : (
           items.map((milestone) => (
-            <div
-              key={milestone.id}
-              className="rounded-lg border p-4 space-y-3"
-            >
+            <div key={milestone.id} className="rounded-lg border p-4 space-y-3">
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <div className="space-y-1">
                   <div className="flex flex-wrap items-center gap-2">
@@ -184,9 +183,7 @@ export function ContractMilestones({ contract, role, onChanged }: ContractMilest
                   </div>
                   <p className="text-sm text-muted-foreground">
                     {formatMilestoneAmount(milestone)}
-                    {milestone.dueDate
-                      ? ` · Due ${formatRelativeJobDate(milestone.dueDate)}`
-                      : ""}
+                    {milestone.dueDate ? ` · Due ${formatRelativeJobDate(milestone.dueDate)}` : ""}
                   </p>
                   {milestone.description ? (
                     <p className="text-sm text-muted-foreground">{milestone.description}</p>
@@ -198,7 +195,30 @@ export function ContractMilestones({ contract, role, onChanged }: ContractMilest
                   ) : null}
                 </div>
                 <div className="flex flex-wrap gap-2">
-                  {role === "freelancer" && isActive && milestone.status === "pending" ? (
+                  {role === "hirer" && isActive && milestone.status === "pending" ? (
+                    <Button
+                      type="button"
+                      size="sm"
+                      disabled={isPending}
+                      onClick={() =>
+                        startTransition(async () => {
+                          try {
+                            const { checkoutUrl } = await paymentsApi.fundMilestone(milestone.id);
+                            window.location.assign(checkoutUrl);
+                          } catch (error) {
+                            toast.error(
+                              error instanceof PaymentsApiError
+                                ? error.message
+                                : "Failed to start funding",
+                            );
+                          }
+                        })
+                      }
+                    >
+                      Fund escrow
+                    </Button>
+                  ) : null}
+                  {role === "freelancer" && isActive && milestone.status === "funded" ? (
                     <Button
                       type="button"
                       size="sm"
@@ -215,9 +235,15 @@ export function ContractMilestones({ contract, role, onChanged }: ContractMilest
                       Start
                     </Button>
                   ) : null}
+                  {role === "freelancer" && isActive && milestone.status === "pending" ? (
+                    <p className="text-xs text-muted-foreground self-center">
+                      Waiting for client to fund escrow
+                    </p>
+                  ) : null}
                   {role === "freelancer" &&
                   isActive &&
-                  (milestone.status === "in_progress" || milestone.status === "revision_requested") ? (
+                  (milestone.status === "in_progress" ||
+                    milestone.status === "revision_requested") ? (
                     <Button
                       type="button"
                       size="sm"
@@ -236,12 +262,12 @@ export function ContractMilestones({ contract, role, onChanged }: ContractMilest
                         onClick={() =>
                           runAction(
                             () => milestonesApi.approve(milestone.id),
-                            "Milestone approved",
+                            "Milestone approved — escrow released",
                             "Failed to approve milestone",
                           )
                         }
                       >
-                        Approve
+                        Approve & release
                       </Button>
                       <Button
                         type="button"
@@ -426,8 +452,7 @@ export function ContractMilestones({ contract, role, onChanged }: ContractMilest
               <DialogHeader>
                 <DialogTitle>Request revision</DialogTitle>
                 <DialogDescription>
-                  Tell the freelancer what needs to change before you approve{" "}
-                  {selected.title}.
+                  Tell the freelancer what needs to change before you approve {selected.title}.
                 </DialogDescription>
               </DialogHeader>
               <div className="space-y-2">
