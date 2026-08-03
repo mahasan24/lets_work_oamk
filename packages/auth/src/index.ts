@@ -108,4 +108,5 @@ export function createAuth() {
 
 export { stripeClient } from "./lib/stripe";
 export { getRedis } from "./lib/redis";
+export { sendEmail, sendEmailVerificationEmail, sendPasswordResetEmail } from "./lib/mail";
 export const auth = createAuth();

@@ -108,6 +108,12 @@ export default function FreelancerSidebar({ profile }: FreelancerSidebarProps) {
           >
             Payments
           </Link>
+          <Link
+            to="/dashboard/freelancer/invoices"
+            className="rounded-md px-2 py-1.5 text-sm text-muted-foreground hover:bg-muted hover:text-foreground"
+          >
+            Invoices
+          </Link>
         </CardContent>
       </Card>
 

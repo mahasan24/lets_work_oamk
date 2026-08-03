@@ -36,6 +36,10 @@ export const OPENAPI_TAGS = [
     description: "Stripe Checkout funding and milestone escrow",
   },
   {
+    name: "Invoices",
+    description: "Milestone escrow invoices and printable HTML receipts",
+  },
+  {
     name: "Reviews",
     description: "Contract reviews and public reputation",
   },

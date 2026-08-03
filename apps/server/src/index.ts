@@ -17,6 +17,7 @@ import { hirerProposalRoutes } from "./routes/hirer-proposals";
 import { hirerJobRoutes, jobRoutes } from "./routes/jobs";
 import { notificationRoutes } from "./routes/notifications";
 import { paymentRoutes } from "./routes/payments";
+import { invoiceRoutes } from "./routes/invoices";
 import { freelancerJobFeedRoutes } from "./routes/freelancer-jobs";
 import { freelancerProposalRoutes } from "./routes/proposals";
 import { clientDirectoryRoutes, freelancerDirectoryRoutes } from "./routes/public-profiles";
@@ -87,6 +88,7 @@ new Elysia()
   .use(contractMilestoneRoutes)
   .use(milestoneActionRoutes)
   .use(paymentRoutes)
+  .use(invoiceRoutes)
   .use(stripeWebhookRoutes)
   .use(notificationRoutes)
   .use(chatRoutes)

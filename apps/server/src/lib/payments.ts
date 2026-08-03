@@ -345,6 +345,11 @@ export async function markPaymentHeldFromCheckout(sessionId: string) {
     });
   }
 
+  if (updated.status === "held") {
+    const { createInvoiceForPayment } = await import("./invoices");
+    await createInvoiceForPayment(updated.id);
+  }
+
   return serializePayment(updated);
 }
 

@@ -104,6 +104,12 @@ export default function HirerSidebar({ profile }: HirerSidebarProps) {
             Payments
           </Link>
           <Link
+            to="/dashboard/hirer/invoices"
+            className="rounded-md px-2 py-1.5 text-sm text-muted-foreground hover:bg-muted hover:text-foreground"
+          >
+            Invoices
+          </Link>
+          <Link
             to="/dashboard/hirer/messages"
             search={{}}
             className="rounded-md px-2 py-1.5 text-sm text-muted-foreground hover:bg-muted hover:text-foreground"
