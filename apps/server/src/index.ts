@@ -18,6 +18,7 @@ import { freelancerJobFeedRoutes } from "./routes/freelancer-jobs";
 import { freelancerProposalRoutes } from "./routes/proposals";
 import { clientDirectoryRoutes, freelancerDirectoryRoutes } from "./routes/public-profiles";
 import { realtimeRoutes } from "./routes/realtime";
+import { contractReviewRoutes, publicReviewRoutes } from "./routes/reviews";
 import { stripeWebhookRoutes } from "./routes/stripe-webhooks";
 
 new Elysia()
@@ -69,6 +70,7 @@ new Elysia()
   )
   .use(profileRoutes)
   .use(freelancerDirectoryRoutes)
+  .use(publicReviewRoutes)
   .use(clientDirectoryRoutes)
   .use(jobRoutes)
   .use(hirerJobRoutes)
@@ -76,6 +78,7 @@ new Elysia()
   .use(freelancerProposalRoutes)
   .use(freelancerJobFeedRoutes)
   .use(contractRoutes)
+  .use(contractReviewRoutes)
   .use(contractMilestoneRoutes)
   .use(milestoneActionRoutes)
   .use(paymentRoutes)

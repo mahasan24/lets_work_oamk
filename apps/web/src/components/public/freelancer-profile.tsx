@@ -5,6 +5,7 @@ import { Separator } from "@lets_work/ui/components/separator";
 import { ExternalLink, Star } from "lucide-react";
 
 import { VerifiedBadge } from "@/components/public/verified-badge";
+import { PublicReviewsList } from "@/components/public/public-reviews-list";
 import {
   formatDateRange,
   formatHourlyRate,
@@ -63,6 +64,11 @@ export function FreelancerPublicProfile({ profile }: { profile: PublicFreelancer
             <p className="text-sm text-muted-foreground">
               {profile.jobsCompleted} job{profile.jobsCompleted === 1 ? "" : "s"} completed
             </p>
+            {typeof profile.reputationScore === "number" ? (
+              <p className="text-sm text-muted-foreground">
+                Reputation score {profile.reputationScore}/100
+              </p>
+            ) : null}
           </div>
         </CardContent>
       </Card>
@@ -186,6 +192,8 @@ export function FreelancerPublicProfile({ profile }: { profile: PublicFreelancer
           </CardContent>
         </Card>
       ) : null}
+
+      <PublicReviewsList userId={profile.userId} />
     </div>
   );
 }

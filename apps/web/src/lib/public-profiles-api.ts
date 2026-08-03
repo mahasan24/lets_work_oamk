@@ -58,6 +58,7 @@ export type FreelancerCard = {
   avgRating: string | null;
   reviewCount: number;
   jobsCompleted: number;
+  reputationScore: number;
 };
 
 export type Pagination = {
