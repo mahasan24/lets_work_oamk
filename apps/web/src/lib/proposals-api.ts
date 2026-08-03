@@ -56,12 +56,7 @@ export type ProposalAttachment = {
 };
 
 export type ProposalStatus =
-  | "draft"
-  | "submitted"
-  | "shortlisted"
-  | "accepted"
-  | "rejected"
-  | "withdrawn";
+  "draft" | "submitted" | "shortlisted" | "accepted" | "rejected" | "withdrawn";
 
 export type Proposal = {
   id: string;
@@ -85,8 +80,7 @@ export type ProposalWriteInput = {
 };
 
 export const proposalsApi = {
-  getForJob: (jobId: string) =>
-    apiFetch<Proposal | null>(`/api/freelancer/jobs/${jobId}/proposal`),
+  getForJob: (jobId: string) => apiFetch<Proposal | null>(`/api/freelancer/jobs/${jobId}/proposal`),
 
   saveDraft: (jobId: string, body: ProposalWriteInput) =>
     apiFetch<Proposal>(`/api/freelancer/jobs/${jobId}/proposal`, {
@@ -99,6 +93,15 @@ export const proposalsApi = {
       method: "POST",
       body: JSON.stringify(body ?? {}),
     }),
+
+  aiAssist: (jobId: string, body: { mode: "generate" | "enhance"; coverLetter?: string }) =>
+    apiFetch<{ coverLetter: string; mode: "generate" | "enhance"; model: string }>(
+      `/api/freelancer/jobs/${jobId}/proposal/ai-assist`,
+      {
+        method: "POST",
+        body: JSON.stringify(body),
+      },
+    ),
 
   withdraw: (proposalId: string) =>
     apiFetch<Proposal>(`/api/freelancer/proposals/${proposalId}/withdraw`, {

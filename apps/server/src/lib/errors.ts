@@ -77,6 +77,12 @@ export class ValidationError extends AppError {
   }
 }
 
+export class ServiceUnavailableError extends AppError {
+  constructor(message = "Service unavailable", code = "SERVICE_UNAVAILABLE") {
+    super(message, { status: 503, code });
+  }
+}
+
 /**
  * Maps an {@link AppError} to a response payload. Returns `null` for anything
  * else so callers can decide how to treat unexpected errors (typically a 500).
