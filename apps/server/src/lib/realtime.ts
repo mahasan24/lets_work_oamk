@@ -1,5 +1,5 @@
-import { env } from "@lets_work/env/server";
-import { createClient, type RedisClientType } from "redis";
+import { getRedis } from "@lets_work/auth";
+import type { RedisClientType } from "redis";
 
 /** Minimal shape of an Elysia WebSocket connection we depend on. */
 export type RealtimeSocket = {
@@ -36,8 +36,9 @@ async function ensureRedisBus() {
 
   redisInitPromise = (async () => {
     try {
-      publisher = createClient({ url: env.REDIS_URL });
-      subscriber = publisher.duplicate();
+      const shared = await getRedis();
+      publisher = shared;
+      subscriber = shared.duplicate();
 
       publisher.on("error", () => {
         redisReady = false;
@@ -46,8 +47,10 @@ async function ensureRedisBus() {
         redisReady = false;
       });
 
-      await publisher.connect();
-      await subscriber.connect();
+      if (!subscriber.isOpen) {
+        await subscriber.connect();
+      }
+
       await subscriber.subscribe(REALTIME_CHANNEL, (payload) => {
         try {
           const parsed = JSON.parse(payload) as BroadcastEnvelope;

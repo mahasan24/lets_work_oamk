@@ -12,6 +12,7 @@ import { and, asc, desc, eq, gte, ilike, inArray, lte, or, sql, type SQL } from 
 
 import { NotFoundError } from "./errors";
 import { buildPaginationMeta, resolvePagination } from "./http";
+import { computeReputationScore } from "./reviews";
 
 type ProfileRow = typeof marketplaceUserProfile.$inferSelect;
 type UserRow = typeof user.$inferSelect;
@@ -100,6 +101,7 @@ function freelancerOrderBy(sort: FreelancerSort | undefined): SQL[] {
 }
 
 function serializeFreelancerCard(profile: ProfileRow, owner: Pick<UserRow, "name" | "image">) {
+  const avgRating = profile.avgRating != null ? Number(profile.avgRating) : null;
   return {
     userId: profile.userId,
     name: owner.name,
@@ -116,6 +118,11 @@ function serializeFreelancerCard(profile: ProfileRow, owner: Pick<UserRow, "name
     avgRating: profile.avgRating,
     reviewCount: profile.reviewCount,
     jobsCompleted: profile.jobsCompleted,
+    reputationScore: computeReputationScore({
+      avgRating: avgRating != null && Number.isFinite(avgRating) ? avgRating : null,
+      reviewCount: profile.reviewCount,
+      jobsCompleted: profile.jobsCompleted,
+    }),
   };
 }
 

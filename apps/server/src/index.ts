@@ -3,8 +3,11 @@ import { auth } from "@lets_work/auth";
 import { env } from "@lets_work/env/server";
 import { Elysia } from "elysia";
 
-import { resolveError } from "./lib/errors";
+import { logger } from "./plugins/request-logging";
+import { apiRateLimitPlugin } from "./plugins/api-rate-limit";
+import { requestLoggingPlugin } from "./plugins/request-logging";
 import { openapiPlugin } from "./plugins/openapi";
+import { resolveError } from "./lib/errors";
 import { adminRoutes } from "./routes/admin";
 import { chatRoutes } from "./routes/chat";
 import { contractRoutes } from "./routes/contracts";
@@ -14,18 +17,22 @@ import { hirerProposalRoutes } from "./routes/hirer-proposals";
 import { hirerJobRoutes, jobRoutes } from "./routes/jobs";
 import { notificationRoutes } from "./routes/notifications";
 import { paymentRoutes } from "./routes/payments";
+import { invoiceRoutes } from "./routes/invoices";
 import { freelancerJobFeedRoutes } from "./routes/freelancer-jobs";
 import { freelancerProposalRoutes } from "./routes/proposals";
 import { clientDirectoryRoutes, freelancerDirectoryRoutes } from "./routes/public-profiles";
 import { realtimeRoutes } from "./routes/realtime";
+import { contractReviewRoutes, publicReviewRoutes } from "./routes/reviews";
 import { stripeWebhookRoutes } from "./routes/stripe-webhooks";
 
 new Elysia()
+  .use(requestLoggingPlugin)
+  .use(apiRateLimitPlugin)
   .use(
     cors({
       origin: env.CORS_ORIGIN,
       methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
-      allowedHeaders: ["Content-Type", "Authorization"],
+      allowedHeaders: ["Content-Type", "Authorization", "X-Request-Id"],
       credentials: true,
     }),
   )
@@ -69,6 +76,7 @@ new Elysia()
   )
   .use(profileRoutes)
   .use(freelancerDirectoryRoutes)
+  .use(publicReviewRoutes)
   .use(clientDirectoryRoutes)
   .use(jobRoutes)
   .use(hirerJobRoutes)
@@ -76,9 +84,11 @@ new Elysia()
   .use(freelancerProposalRoutes)
   .use(freelancerJobFeedRoutes)
   .use(contractRoutes)
+  .use(contractReviewRoutes)
   .use(contractMilestoneRoutes)
   .use(milestoneActionRoutes)
   .use(paymentRoutes)
+  .use(invoiceRoutes)
   .use(stripeWebhookRoutes)
   .use(notificationRoutes)
   .use(chatRoutes)
@@ -92,6 +102,6 @@ new Elysia()
     },
   })
   .listen(3000, () => {
-    console.log("Server is running on http://localhost:3000");
-    console.log("OpenAPI docs at http://localhost:3000/openapi");
+    logger.info("Server is running on http://localhost:3000");
+    logger.info("OpenAPI docs at http://localhost:3000/openapi");
   });

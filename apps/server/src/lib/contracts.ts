@@ -9,6 +9,7 @@ import { ConflictError, ForbiddenError, NotFoundError } from "./errors";
 import { cancelContractMilestones } from "./milestone-helpers";
 import { assertContractMilestonesCompletable } from "./milestones";
 import { recordContractEvent } from "./contract-events";
+import { incrementJobsCompleted } from "./reviews";
 
 type ContractStatus = (typeof contractStatusEnum.enumValues)[number];
 
@@ -235,6 +236,8 @@ export async function completeUserContract(contractId: string, userId: string) {
   if (!updated) {
     throw new ContractStatusError("Only active contracts can be completed");
   }
+
+  await incrementJobsCompleted(updated.freelancerUserId);
 
   await recordContractEvent({
     contractId,

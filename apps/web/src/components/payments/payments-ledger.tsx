@@ -153,6 +153,12 @@ export function PaymentsLedger({ role }: PaymentsLedgerProps) {
             ? "Escrow funding and release history for milestones you pay for."
             : "Earnings, escrow holds, and Stripe Connect payouts."}
         </p>
+        <Link
+          to={role === "hirer" ? "/dashboard/hirer/invoices" : "/dashboard/freelancer/invoices"}
+          className="text-sm text-muted-foreground hover:text-foreground w-fit"
+        >
+          View invoices →
+        </Link>
       </div>
 
       {role === "freelancer" ? (

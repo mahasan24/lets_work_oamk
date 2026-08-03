@@ -29,6 +29,7 @@ import {
 import { formatRelativeJobDate } from "@/lib/job-utils";
 
 import { ContractMilestones } from "./contract-milestones";
+import { ContractReviews } from "./contract-reviews";
 import { ContractTimeline } from "./contract-timeline";
 
 type ContractDetailProps = {
@@ -302,6 +303,12 @@ export function ContractDetail({ contractId, role, listPath }: ContractDetailPro
           void load();
           setTimelineRefreshKey((value) => value + 1);
         }}
+      />
+
+      <ContractReviews
+        contractId={contract.id}
+        counterpartName={counterpart.name}
+        enabled={contract.status === "completed"}
       />
 
       <ContractTimeline contractId={contract.id} refreshKey={timelineRefreshKey} />
