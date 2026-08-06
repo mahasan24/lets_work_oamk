@@ -26,6 +26,7 @@ import {
   startReviewHirerJob,
   updateHirerJob,
 } from "../lib/jobs";
+import { optimizeJobDescription } from "../lib/ai-job-description";
 import { ensureProfile } from "../lib/profile";
 import { betterAuthPlugin } from "../plugins/auth";
 import { COOKIE_AUTH_SECURITY } from "../lib/openapi-tags";
@@ -255,6 +256,39 @@ export const hirerJobRoutes = new Elysia({
       detail: {
         summary: "Check publish readiness",
         description: "Returns validation errors that must be resolved before publishing.",
+      },
+    },
+  )
+  .post(
+    "/:id/ai-assist",
+    async ({ user, params, body, status }) => {
+      const result = await runHirerAction(user.id, () =>
+        optimizeJobDescription({
+          jobId: params.id,
+          userId: user.id,
+          mode: body.mode,
+          title: body.title,
+          category: body.category,
+          description: body.description,
+          requiredSkills: body.requiredSkills,
+        }),
+      );
+      if (!result.ok) return status(result.status, result.body);
+      return result.data;
+    },
+    {
+      auth: true,
+      params: t.Object({ id: t.String() }),
+      body: t.Object({
+        mode: t.Union([t.Literal("generate"), t.Literal("enhance")]),
+        title: t.Optional(t.String()),
+        category: t.Optional(t.String()),
+        description: t.Optional(t.String()),
+        requiredSkills: t.Optional(t.Array(t.String())),
+      }),
+      detail: {
+        summary: "AI draft or enhance job description",
+        description: "Uses Gemini to generate or improve the job post description.",
       },
     },
   )

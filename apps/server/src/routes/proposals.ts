@@ -9,6 +9,7 @@ import {
   submitFreelancerProposal,
   withdrawFreelancerProposal,
 } from "../lib/proposals";
+import { generateProposalCoverLetter } from "../lib/ai-proposal";
 import { betterAuthPlugin } from "../plugins/auth";
 import { COOKIE_AUTH_SECURITY } from "../lib/openapi-tags";
 
@@ -86,6 +87,34 @@ export const freelancerProposalRoutes = new Elysia({
       params: t.Object({ jobId: t.String() }),
       body: proposalWriteSchema,
       detail: { summary: "Save proposal draft" },
+    },
+  )
+  .post(
+    "/jobs/:jobId/proposal/ai-assist",
+    async ({ user, params, body, status }) => {
+      const result = await runFreelancerAction(user.id, () =>
+        generateProposalCoverLetter({
+          jobId: params.jobId,
+          userId: user.id,
+          mode: body.mode,
+          coverLetter: body.coverLetter,
+        }),
+      );
+      if (!result.ok) return status(result.status, result.body);
+      return result.data;
+    },
+    {
+      auth: true,
+      params: t.Object({ jobId: t.String() }),
+      body: t.Object({
+        mode: t.Union([t.Literal("generate"), t.Literal("enhance")]),
+        coverLetter: t.Optional(t.String()),
+      }),
+      detail: {
+        summary: "AI draft or enhance proposal cover letter",
+        description:
+          "Uses Gemini with the job posting and freelancer profile to generate or improve the cover letter.",
+      },
     },
   )
   .post(

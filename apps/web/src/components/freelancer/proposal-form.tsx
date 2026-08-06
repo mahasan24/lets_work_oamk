@@ -1,13 +1,14 @@
 import { Alert, AlertDescription, AlertTitle } from "@lets_work/ui/components/alert";
 import { Badge } from "@lets_work/ui/components/badge";
 import { Button } from "@lets_work/ui/components/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@lets_work/ui/components/card";
 import {
-  Field,
-  FieldDescription,
-  FieldGroup,
-  FieldLabel,
-} from "@lets_work/ui/components/field";
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@lets_work/ui/components/card";
+import { Field, FieldDescription, FieldGroup, FieldLabel } from "@lets_work/ui/components/field";
 import { Input } from "@lets_work/ui/components/input";
 import {
   Select,
@@ -18,12 +19,16 @@ import {
 } from "@lets_work/ui/components/select";
 import { Textarea } from "@lets_work/ui/components/textarea";
 import { cn } from "@lets_work/ui/lib/utils";
-import { FileIcon, XIcon } from "lucide-react";
+import { FileIcon, SparklesIcon, XIcon } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
 import { uploadProposalAttachment } from "@/lib/cloudinary-upload";
-import { ESTIMATED_DURATION_OPTIONS, getDurationLabel, type EstimatedDuration } from "@/lib/job-options";
+import {
+  ESTIMATED_DURATION_OPTIONS,
+  getDurationLabel,
+  type EstimatedDuration,
+} from "@/lib/job-options";
 import type { PublicJob } from "@/lib/jobs-api";
 import {
   getProposalStatusLabel,
@@ -73,6 +78,8 @@ export function ProposalForm({ job, onSubmitted }: ProposalFormProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [isWithdrawing, setIsWithdrawing] = useState(false);
+  const [isAiPending, setIsAiPending] = useState(false);
+  const [aiMode, setAiMode] = useState<"generate" | "enhance" | null>(null);
 
   const isReadOnly =
     proposal?.status === "submitted" ||
@@ -80,8 +87,7 @@ export function ProposalForm({ job, onSubmitted }: ProposalFormProps) {
     proposal?.status === "accepted" ||
     proposal?.status === "rejected";
 
-  const rateLabel =
-    job.budgetType === "hourly" ? "Your hourly rate" : "Your bid amount";
+  const rateLabel = job.budgetType === "hourly" ? "Your hourly rate" : "Your bid amount";
   const ratePlaceholder = job.budgetType === "hourly" ? "e.g. 55" : "e.g. 2500";
 
   useEffect(() => {
@@ -98,6 +104,36 @@ export function ProposalForm({ job, onSubmitted }: ProposalFormProps) {
 
   const updateForm = <K extends keyof FormState>(key: K, value: FormState[K]) => {
     setForm((current) => ({ ...current, [key]: value }));
+  };
+
+  const handleAiAssist = async (mode: "generate" | "enhance") => {
+    if (isReadOnly || isAiPending) return;
+    if (mode === "enhance" && form.coverLetter.trim().length < 20) {
+      toast.error("Write a short draft first, or use Write with AI.");
+      return;
+    }
+
+    setAiMode(mode);
+    setIsAiPending(true);
+    try {
+      const result = await proposalsApi.aiAssist(job.id, {
+        mode,
+        coverLetter: form.coverLetter,
+      });
+      updateForm("coverLetter", result.coverLetter);
+      toast.success(mode === "generate" ? "Cover letter drafted with AI" : "Cover letter enhanced");
+    } catch (error) {
+      toast.error(
+        error instanceof ProposalsApiError
+          ? error.message
+          : error instanceof Error
+            ? error.message
+            : "AI assist failed",
+      );
+    } finally {
+      setIsAiPending(false);
+      setAiMode(null);
+    }
   };
 
   const handleUpload = async (file: File) => {
@@ -219,15 +255,46 @@ export function ProposalForm({ job, onSubmitted }: ProposalFormProps) {
 
         <FieldGroup>
           <Field>
-            <FieldLabel>Cover letter</FieldLabel>
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <FieldLabel>Cover letter</FieldLabel>
+              {!isReadOnly ? (
+                <div className="flex flex-wrap gap-2">
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="outline"
+                    disabled={isAiPending || isSaving || isSubmitting}
+                    onClick={() => void handleAiAssist("generate")}
+                  >
+                    <SparklesIcon className="size-3.5" />
+                    {isAiPending && aiMode === "generate" ? "Writing…" : "Write with AI"}
+                  </Button>
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="outline"
+                    disabled={
+                      isAiPending || isSaving || isSubmitting || form.coverLetter.trim().length < 20
+                    }
+                    onClick={() => void handleAiAssist("enhance")}
+                  >
+                    <SparklesIcon className="size-3.5" />
+                    {isAiPending && aiMode === "enhance" ? "Enhancing…" : "Enhance with AI"}
+                  </Button>
+                </div>
+              ) : null}
+            </div>
             <Textarea
               value={form.coverLetter}
-              disabled={isReadOnly}
+              disabled={isReadOnly || isAiPending}
               onChange={(event) => updateForm("coverLetter", event.target.value)}
               placeholder="Introduce yourself, highlight relevant experience, and explain your approach..."
               rows={8}
             />
-            <FieldDescription>Minimum 50 characters when submitting.</FieldDescription>
+            <FieldDescription>
+              Minimum 50 characters when submitting. AI uses this job and your profile to draft or
+              improve the letter — edit before you submit.
+            </FieldDescription>
           </Field>
 
           <div className="grid gap-4 sm:grid-cols-2">
@@ -242,7 +309,8 @@ export function ProposalForm({ job, onSubmitted }: ProposalFormProps) {
                 placeholder={ratePlaceholder}
               />
               <FieldDescription>
-                Job budget: {job.budgetType === "hourly" ? "hourly" : "fixed price"} ({job.currency})
+                Job budget: {job.budgetType === "hourly" ? "hourly" : "fixed price"} ({job.currency}
+                )
               </FieldDescription>
             </Field>
 
@@ -341,10 +409,17 @@ export function ProposalForm({ job, onSubmitted }: ProposalFormProps) {
         <div className="flex flex-wrap gap-3">
           {!isReadOnly ? (
             <>
-              <Button variant="outline" disabled={isSaving || isSubmitting} onClick={() => void saveDraft()}>
+              <Button
+                variant="outline"
+                disabled={isSaving || isSubmitting || isAiPending}
+                onClick={() => void saveDraft()}
+              >
                 {isSaving ? "Saving..." : "Save draft"}
               </Button>
-              <Button disabled={isSaving || isSubmitting} onClick={() => void submitProposal()}>
+              <Button
+                disabled={isSaving || isSubmitting || isAiPending}
+                onClick={() => void submitProposal()}
+              >
                 {isSubmitting ? "Submitting..." : "Submit proposal"}
               </Button>
             </>

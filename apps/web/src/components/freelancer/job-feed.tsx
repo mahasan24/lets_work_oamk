@@ -62,6 +62,8 @@ export function JobFeed({
   const [isLoading, setIsLoading] = useState(true);
   const [showFilters, setShowFilters] = useState(false);
   const [savingJobId, setSavingJobId] = useState<string | null>(null);
+  const [isAiLoading, setIsAiLoading] = useState(false);
+  const [showingAi, setShowingAi] = useState(false);
 
   // Sync on back/forward and reset, but leave whitespace the user is mid-typing alone.
   useEffect(() => {
@@ -78,6 +80,7 @@ export function JobFeed({
 
   const loadFeed = useCallback(async () => {
     setIsLoading(true);
+    setShowingAi(false);
     try {
       const response = await freelancerJobsApi.feed({
         tab: filters.tab,
@@ -128,6 +131,24 @@ export function JobFeed({
     }
   }, []);
 
+  const loadAiRecommendations = async () => {
+    if (isAiLoading) return;
+    setIsAiLoading(true);
+    try {
+      const response = await freelancerJobsApi.aiRecommendations({ limit: 8 });
+      setItems(response.items);
+      setProfileSkills(response.profileSkills);
+      setTotal(response.items.length);
+      setTotalPages(1);
+      setShowingAi(true);
+      toast.success("AI recommendations ready");
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "AI recommendations failed");
+    } finally {
+      setIsAiLoading(false);
+    }
+  };
+
   const activeFilterCount = useMemo(() => {
     let count = 0;
     if (filters.search) count += 1;
@@ -170,16 +191,47 @@ export function JobFeed({
           </TabsList>
         </Tabs>
 
-        <Button variant="outline" size="sm" onClick={() => setShowFilters((open) => !open)}>
-          <SlidersHorizontal className="size-4" />
-          Filters
-          {activeFilterCount > 0 ? (
-            <Badge variant="secondary" className="ml-1">
-              {activeFilterCount}
-            </Badge>
+        <div className="flex flex-wrap items-center gap-2">
+          {filters.tab === "best_match" && profileSkills.length > 0 ? (
+            <Button
+              type="button"
+              variant={showingAi ? "default" : "outline"}
+              size="sm"
+              disabled={isAiLoading || isLoading}
+              onClick={() => void loadAiRecommendations()}
+            >
+              <Sparkles className="size-4" />
+              {isAiLoading ? "Ranking…" : showingAi ? "Refresh AI picks" : "AI recommendations"}
+            </Button>
           ) : null}
-        </Button>
+          {showingAi ? (
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              disabled={isLoading}
+              onClick={() => void loadFeed()}
+            >
+              Show skill matches
+            </Button>
+          ) : null}
+          <Button variant="outline" size="sm" onClick={() => setShowFilters((open) => !open)}>
+            <SlidersHorizontal className="size-4" />
+            Filters
+            {activeFilterCount > 0 ? (
+              <Badge variant="secondary" className="ml-1">
+                {activeFilterCount}
+              </Badge>
+            ) : null}
+          </Button>
+        </div>
       </div>
+
+      {showingAi ? (
+        <p className="text-sm text-muted-foreground">
+          Showing Gemini-ranked picks for your profile. Reasons appear under each job.
+        </p>
+      ) : null}
 
       {showFilters ? (
         <Card>
@@ -512,6 +564,16 @@ function JobFeedCard({
       </CardHeader>
       <CardContent className="flex flex-col gap-3">
         <p className="line-clamp-2 text-sm text-muted-foreground">{item.description}</p>
+
+        {item.aiReason ? (
+          <p className="rounded-md border border-border bg-muted/40 px-3 py-2 text-sm">
+            <span className="font-medium">Why it fits: </span>
+            {item.aiReason}
+            {typeof item.aiScore === "number" ? (
+              <span className="text-muted-foreground"> · AI score {item.aiScore}</span>
+            ) : null}
+          </p>
+        ) : null}
 
         {item.requiredSkills.length > 0 ? (
           <div className="flex flex-wrap gap-1.5">

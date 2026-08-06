@@ -1,6 +1,12 @@
 import { Alert, AlertDescription, AlertTitle } from "@lets_work/ui/components/alert";
 import { Button } from "@lets_work/ui/components/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@lets_work/ui/components/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@lets_work/ui/components/card";
 import { Checkbox } from "@lets_work/ui/components/checkbox";
 import {
   Field,
@@ -21,7 +27,7 @@ import { Separator } from "@lets_work/ui/components/separator";
 import { Textarea } from "@lets_work/ui/components/textarea";
 import { cn } from "@lets_work/ui/lib/utils";
 import { Link } from "@tanstack/react-router";
-import { FileIcon, XIcon } from "lucide-react";
+import { FileIcon, SparklesIcon, XIcon } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 
@@ -137,7 +143,8 @@ function validateStep(step: number, form: FormState) {
 
   if (step === 0) {
     if (form.title.trim().length < 3) errors.push("Title must be at least 3 characters");
-    if (form.description.trim().length < 10) errors.push("Description must be at least 10 characters");
+    if (form.description.trim().length < 10)
+      errors.push("Description must be at least 10 characters");
     if (!form.category.trim()) errors.push("Category is required");
   }
 
@@ -178,6 +185,8 @@ export default function JobFormWizard({ jobId }: JobFormWizardProps) {
   const [isSaving, setIsSaving] = useState(false);
   const [isPublishing, setIsPublishing] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
+  const [isAiPending, setIsAiPending] = useState(false);
+  const [aiMode, setAiMode] = useState<"generate" | "enhance" | null>(null);
   const [readiness, setReadiness] = useState<JobPublishReadiness | null>(null);
   const [categoryOptions, setCategoryOptions] = useState<string[]>([]);
 
@@ -219,6 +228,53 @@ export default function JobFormWizard({ jobId }: JobFormWizardProps) {
 
   const updateForm = <K extends keyof FormState>(key: K, value: FormState[K]) => {
     setForm((current) => (current ? { ...current, [key]: value } : current));
+  };
+
+  const handleAiAssist = async (mode: "generate" | "enhance") => {
+    if (!form || isReadOnly || isAiPending) return;
+    if (mode === "generate" && form.title.trim().length < 3) {
+      toast.error("Add a job title before generating a description.");
+      return;
+    }
+    if (mode === "enhance" && form.description.trim().length < 20) {
+      toast.error("Write a short draft first, or use Write with AI.");
+      return;
+    }
+
+    setAiMode(mode);
+    setIsAiPending(true);
+    try {
+      const result = await jobsApi.aiAssist(jobId, {
+        mode,
+        title: form.title,
+        category: form.category,
+        description: form.description,
+        requiredSkills: form.requiredSkills,
+      });
+      setForm((current) => {
+        if (!current) return current;
+        return {
+          ...current,
+          description: result.description,
+          title: result.suggestedTitle?.trim() ? result.suggestedTitle : current.title,
+          requiredSkills:
+            result.suggestedSkills && result.suggestedSkills.length > 0
+              ? Array.from(new Set([...current.requiredSkills, ...result.suggestedSkills])).slice(
+                  0,
+                  20,
+                )
+              : current.requiredSkills,
+        };
+      });
+      toast.success(
+        mode === "generate" ? "Description drafted with AI" : "Description enhanced with AI",
+      );
+    } catch (error) {
+      toast.error(error instanceof JobsApiError ? error.message : "AI assist failed");
+    } finally {
+      setIsAiPending(false);
+      setAiMode(null);
+    }
   };
 
   const saveDraft = async (options?: { silent?: boolean }) => {
@@ -322,10 +378,15 @@ export default function JobFormWizard({ jobId }: JobFormWizardProps) {
             </Link>
           ) : null}
         </div>
-        {!isReadOnly ? <JobActionsMenu job={job} onUpdated={(updated) => {
-          setJob(updated);
-          setForm(jobToFormState(updated));
-        }} /> : null}
+        {!isReadOnly ? (
+          <JobActionsMenu
+            job={job}
+            onUpdated={(updated) => {
+              setJob(updated);
+              setForm(jobToFormState(updated));
+            }}
+          />
+        ) : null}
       </div>
 
       <div className="flex flex-wrap gap-2">
@@ -391,14 +452,49 @@ export default function JobFormWizard({ jobId }: JobFormWizardProps) {
                 />
               </Field>
               <Field>
-                <FieldLabel>Description</FieldLabel>
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <FieldLabel>Description</FieldLabel>
+                  {!isReadOnly ? (
+                    <div className="flex flex-wrap gap-2">
+                      <Button
+                        type="button"
+                        size="sm"
+                        variant="outline"
+                        disabled={isAiPending || isSaving || isPublishing}
+                        onClick={() => void handleAiAssist("generate")}
+                      >
+                        <SparklesIcon className="size-3.5" />
+                        {isAiPending && aiMode === "generate" ? "Writing…" : "Write with AI"}
+                      </Button>
+                      <Button
+                        type="button"
+                        size="sm"
+                        variant="outline"
+                        disabled={
+                          isAiPending ||
+                          isSaving ||
+                          isPublishing ||
+                          form.description.trim().length < 20
+                        }
+                        onClick={() => void handleAiAssist("enhance")}
+                      >
+                        <SparklesIcon className="size-3.5" />
+                        {isAiPending && aiMode === "enhance" ? "Enhancing…" : "Enhance with AI"}
+                      </Button>
+                    </div>
+                  ) : null}
+                </div>
                 <Textarea
                   value={form.description}
-                  disabled={isReadOnly}
+                  disabled={isReadOnly || isAiPending}
                   onChange={(e) => updateForm("description", e.target.value)}
                   placeholder="Describe the project scope, deliverables, and ideal candidate..."
                   rows={8}
                 />
+                <FieldDescription>
+                  AI can draft or improve this from your title and category. Review before
+                  publishing.
+                </FieldDescription>
               </Field>
             </FieldGroup>
           ) : null}
@@ -415,9 +511,7 @@ export default function JobFormWizard({ jobId }: JobFormWizardProps) {
                   }}
                 >
                   <SelectTrigger className={cn(inputClassName, "w-full")}>
-                    <span className="truncate">
-                      {getBudgetTypeLabel(form.budgetType)}
-                    </span>
+                    <span className="truncate">{getBudgetTypeLabel(form.budgetType)}</span>
                   </SelectTrigger>
                   <SelectContent>
                     <SelectGroup>
@@ -510,7 +604,10 @@ export default function JobFormWizard({ jobId }: JobFormWizardProps) {
                   value={form.experienceLevel || "none"}
                   disabled={isReadOnly}
                   onValueChange={(value) =>
-                    updateForm("experienceLevel", value === "none" ? "" : (value as ExperienceLevel))
+                    updateForm(
+                      "experienceLevel",
+                      value === "none" ? "" : (value as ExperienceLevel),
+                    )
                   }
                 >
                   <SelectTrigger className={cn(inputClassName, "w-full")}>
@@ -609,9 +706,7 @@ export default function JobFormWizard({ jobId }: JobFormWizardProps) {
                 />
                 <FieldContent>
                   <FieldLabel htmlFor="remote-only">Remote only</FieldLabel>
-                  <FieldDescription>
-                    Freelancers can work from anywhere.
-                  </FieldDescription>
+                  <FieldDescription>Freelancers can work from anywhere.</FieldDescription>
                 </FieldContent>
               </Field>
               {!form.remoteOnly ? (
@@ -704,14 +799,17 @@ export default function JobFormWizard({ jobId }: JobFormWizardProps) {
               <div className="grid gap-4 sm:grid-cols-2">
                 <ReviewItem label="Title" value={form.title} />
                 <ReviewItem label="Category" value={form.category} />
-                <ReviewItem label="Budget" value={formatBudgetRange({
-                  budgetType: form.budgetType,
-                  currency: form.currency,
-                  budgetMin: form.budgetMin || null,
-                  budgetMax: form.budgetMax || null,
-                  hourlyRateMin: form.hourlyRateMin || null,
-                  hourlyRateMax: form.hourlyRateMax || null,
-                })} />
+                <ReviewItem
+                  label="Budget"
+                  value={formatBudgetRange({
+                    budgetType: form.budgetType,
+                    currency: form.currency,
+                    budgetMin: form.budgetMin || null,
+                    budgetMax: form.budgetMax || null,
+                    hourlyRateMin: form.hourlyRateMin || null,
+                    hourlyRateMax: form.hourlyRateMax || null,
+                  })}
+                />
                 <ReviewItem
                   label="Experience"
                   value={getExperienceLevelLabel(form.experienceLevel || null)}
@@ -733,11 +831,7 @@ export default function JobFormWizard({ jobId }: JobFormWizardProps) {
               ) : null}
               <ReviewItem
                 label="Attachments"
-                value={
-                  form.attachments.length > 0
-                    ? `${form.attachments.length} file(s)`
-                    : "None"
-                }
+                value={form.attachments.length > 0 ? `${form.attachments.length} file(s)` : "None"}
               />
 
               {job.status === "draft" && readiness && !readiness.ready ? (

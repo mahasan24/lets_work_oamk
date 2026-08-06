@@ -6,6 +6,7 @@ import {
   saveJobForFreelancer,
   unsaveJobForFreelancer,
 } from "../lib/freelancer-jobs";
+import { getAiJobRecommendations } from "../lib/ai-job-match";
 import { requireFreelancerProfile } from "../lib/freelancer";
 import { runGuardedAction } from "../lib/http";
 import { COOKIE_AUTH_SECURITY } from "../lib/openapi-tags";
@@ -115,6 +116,29 @@ export const freelancerJobFeedRoutes = new Elysia({
         limit: t.Optional(t.String()),
       }),
       detail: { summary: "List my proposals" },
+    },
+  )
+  .post(
+    "/job-recommendations",
+    async ({ user, body, status }) => {
+      const result = await runFeedAction(user.id, () =>
+        getAiJobRecommendations(user.id, { limit: body?.limit }),
+      );
+      if (!result.ok) return status(result.status, result.body);
+      return result.data;
+    },
+    {
+      auth: true,
+      body: t.Optional(
+        t.Object({
+          limit: t.Optional(t.Numeric({ minimum: 1, maximum: 12 })),
+        }),
+      ),
+      detail: {
+        summary: "AI job recommendations",
+        description:
+          "Re-ranks top skill-matched open jobs with Gemini and returns short fit reasons.",
+      },
     },
   )
   .post(

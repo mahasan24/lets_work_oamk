@@ -98,6 +98,12 @@ export default function HirerSidebar({ profile }: HirerSidebarProps) {
             Contracts
           </Link>
           <Link
+            to="/dashboard/hirer/disputes"
+            className="rounded-md px-2 py-1.5 text-sm text-muted-foreground hover:bg-muted hover:text-foreground"
+          >
+            Disputes
+          </Link>
+          <Link
             to="/dashboard/hirer/payments"
             className="rounded-md px-2 py-1.5 text-sm text-muted-foreground hover:bg-muted hover:text-foreground"
           >

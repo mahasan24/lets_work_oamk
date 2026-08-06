@@ -139,7 +139,9 @@ export const contractRoutes = new Elysia({
       auth: true,
       params: t.Object({ id: t.String() }),
       body: t.Object({
-        reason: t.String({ minLength: 1 }),
+        reason: t.String({ minLength: 5 }),
+        description: t.String({ minLength: 20 }),
+        milestoneId: t.Optional(t.Nullable(t.String())),
       }),
       detail: { summary: "Open a contract dispute" },
     },
