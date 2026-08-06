@@ -1,11 +1,6 @@
 import { env } from "@lets_work/env/web";
 
-import type {
-  BudgetType,
-  EstimatedDuration,
-  ExperienceLevel,
-  JobStatus,
-} from "./job-options";
+import type { BudgetType, EstimatedDuration, ExperienceLevel, JobStatus } from "./job-options";
 
 const API_BASE = env.VITE_SERVER_URL;
 
@@ -198,12 +193,7 @@ export const jobsApi = {
 
   getPublic: (slug: string) => apiFetch<PublicJob>(`/api/jobs/public/${slug}`),
 
-  listMine: (query?: {
-    status?: JobStatus;
-    search?: string;
-    page?: number;
-    limit?: number;
-  }) =>
+  listMine: (query?: { status?: JobStatus; search?: string; page?: number; limit?: number }) =>
     apiFetch<JobListResponse>(
       `/api/hirer/jobs${buildQuery({
         status: query?.status,
@@ -233,8 +223,28 @@ export const jobsApi = {
   getPublishReadiness: (id: string) =>
     apiFetch<JobPublishReadiness>(`/api/hirer/jobs/${id}/readiness`),
 
-  publish: (id: string) =>
-    apiFetch<Job>(`/api/hirer/jobs/${id}/publish`, { method: "POST" }),
+  aiAssist: (
+    id: string,
+    body: {
+      mode: "generate" | "enhance";
+      title?: string;
+      category?: string;
+      description?: string;
+      requiredSkills?: string[];
+    },
+  ) =>
+    apiFetch<{
+      description: string;
+      suggestedTitle?: string;
+      suggestedSkills?: string[];
+      mode: "generate" | "enhance";
+      model: string;
+    }>(`/api/hirer/jobs/${id}/ai-assist`, {
+      method: "POST",
+      body: JSON.stringify(body),
+    }),
+
+  publish: (id: string) => apiFetch<Job>(`/api/hirer/jobs/${id}/publish`, { method: "POST" }),
 
   pause: (id: string) => apiFetch<Job>(`/api/hirer/jobs/${id}/pause`, { method: "POST" }),
 
@@ -242,8 +252,7 @@ export const jobsApi = {
 
   close: (id: string) => apiFetch<Job>(`/api/hirer/jobs/${id}/close`, { method: "POST" }),
 
-  startReview: (id: string) =>
-    apiFetch<Job>(`/api/hirer/jobs/${id}/review`, { method: "POST" }),
+  startReview: (id: string) => apiFetch<Job>(`/api/hirer/jobs/${id}/review`, { method: "POST" }),
 
   fill: (id: string) => apiFetch<Job>(`/api/hirer/jobs/${id}/fill`, { method: "POST" }),
 

@@ -48,6 +48,9 @@ export type JobFeedItem = PublicJob & {
   proposalStatus: ProposalStatus | null;
   proposalSubmittedAt: string | null;
   isSaved: boolean;
+  /** Present when loaded from AI recommendations. */
+  aiScore?: number;
+  aiReason?: string;
 };
 
 export type JobFeedResponse = {
@@ -160,5 +163,15 @@ export const freelancerJobsApi = {
   unsaveJob: (jobId: string) =>
     apiFetch<{ saved: boolean }>(`/api/freelancer/saved-jobs/${encodeURIComponent(jobId)}`, {
       method: "DELETE",
+    }),
+
+  aiRecommendations: (body?: { limit?: number }) =>
+    apiFetch<{
+      items: JobFeedItem[];
+      model: string | null;
+      profileSkills: string[];
+    }>("/api/freelancer/job-recommendations", {
+      method: "POST",
+      body: JSON.stringify(body ?? {}),
     }),
 };
