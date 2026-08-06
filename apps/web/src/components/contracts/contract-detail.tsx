@@ -26,6 +26,7 @@ import {
   getContractStatusLabel,
   type Contract,
 } from "@/lib/contracts-api";
+import { disputesApi, type Dispute } from "@/lib/disputes-api";
 import { formatRelativeJobDate } from "@/lib/job-utils";
 
 import { ContractMilestones } from "./contract-milestones";
@@ -53,20 +54,28 @@ function StatusBadge({ status }: { status: Contract["status"] }) {
 export function ContractDetail({ contractId, role, listPath }: ContractDetailProps) {
   const navigate = useNavigate();
   const [contract, setContract] = useState<Contract | null>(null);
+  const [activeDispute, setActiveDispute] = useState<Dispute | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isPending, startTransition] = useTransition();
   const [isOpeningChat, setIsOpeningChat] = useState(false);
   const [timelineRefreshKey, setTimelineRefreshKey] = useState(0);
   const [showDisputeDialog, setShowDisputeDialog] = useState(false);
   const [disputeReason, setDisputeReason] = useState("");
+  const [disputeDescription, setDisputeDescription] = useState("");
 
   const load = useCallback(async () => {
     setIsLoading(true);
     try {
-      setContract(await contractsApi.get(contractId));
+      const [nextContract, dispute] = await Promise.all([
+        contractsApi.get(contractId),
+        disputesApi.getActiveForContract(contractId).catch(() => null),
+      ]);
+      setContract(nextContract);
+      setActiveDispute(dispute);
     } catch {
       toast.error("Failed to load contract");
       setContract(null);
+      setActiveDispute(null);
     } finally {
       setIsLoading(false);
     }
@@ -215,6 +224,19 @@ export function ContractDetail({ contractId, role, listPath }: ContractDetailPro
             Open dispute
           </Button>
         ) : null}
+        {contract.status === "disputed" && activeDispute ? (
+          <Link
+            to={
+              role === "hirer"
+                ? "/dashboard/hirer/disputes/$disputeId"
+                : "/dashboard/freelancer/disputes/$disputeId"
+            }
+            params={{ disputeId: activeDispute.id }}
+            className={cn(buttonVariants({ variant: "outline" }))}
+          >
+            View dispute
+          </Link>
+        ) : null}
         {role === "hirer" &&
         (contract.status === "active" ||
           contract.status === "draft" ||
@@ -318,31 +340,55 @@ export function ContractDetail({ contractId, role, listPath }: ContractDetailPro
           <DialogHeader>
             <DialogTitle>Open a dispute</DialogTitle>
             <DialogDescription>
-              Explain the issue. Work will be paused while the contract is under dispute.
+              Milestone work and approvals pause while the contract is disputed. An admin can
+              mediate later; for now the other party is notified.
             </DialogDescription>
           </DialogHeader>
-          <div className="space-y-2">
-            <Label htmlFor="dispute-reason">Reason</Label>
-            <Textarea
-              id="dispute-reason"
-              value={disputeReason}
-              onChange={(event) => setDisputeReason(event.target.value)}
-              placeholder="Describe what went wrong and what resolution you need."
-            />
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="dispute-reason">Short reason</Label>
+              <Textarea
+                id="dispute-reason"
+                value={disputeReason}
+                onChange={(event) => setDisputeReason(event.target.value)}
+                placeholder="e.g. Deliverables do not match the agreed scope"
+                rows={2}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="dispute-description">Details</Label>
+              <Textarea
+                id="dispute-description"
+                value={disputeDescription}
+                onChange={(event) => setDisputeDescription(event.target.value)}
+                placeholder="Describe what happened, what you expected, and what resolution you need."
+                rows={5}
+              />
+            </div>
           </div>
           <DialogFooter>
             <Button
               type="button"
               variant="destructive"
-              disabled={isPending || !disputeReason.trim()}
+              disabled={
+                isPending ||
+                disputeReason.trim().length < 5 ||
+                disputeDescription.trim().length < 20
+              }
               onClick={() =>
                 runAction(
-                  () => contractsApi.dispute(contract.id, { reason: disputeReason }),
+                  () =>
+                    contractsApi.dispute(contract.id, {
+                      reason: disputeReason,
+                      description: disputeDescription,
+                    }),
                   "Dispute opened",
                   "Failed to open dispute",
                   () => {
                     setShowDisputeDialog(false);
                     setDisputeReason("");
+                    setDisputeDescription("");
+                    void load();
                   },
                 )
               }

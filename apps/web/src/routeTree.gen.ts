@@ -37,15 +37,19 @@ import { Route as DashboardFreelancerMessagesRouteImport } from './routes/dashbo
 import { Route as DashboardOnboardingRoleIndexRouteImport } from './routes/dashboard/onboarding/role/index'
 import { Route as DashboardHirerPaymentsIndexRouteImport } from './routes/dashboard/hirer/payments/index'
 import { Route as DashboardHirerInvoicesIndexRouteImport } from './routes/dashboard/hirer/invoices/index'
+import { Route as DashboardHirerDisputesIndexRouteImport } from './routes/dashboard/hirer/disputes/index'
 import { Route as DashboardHirerContractsIndexRouteImport } from './routes/dashboard/hirer/contracts/index'
 import { Route as DashboardFreelancerPaymentsIndexRouteImport } from './routes/dashboard/freelancer/payments/index'
 import { Route as DashboardFreelancerInvoicesIndexRouteImport } from './routes/dashboard/freelancer/invoices/index'
+import { Route as DashboardFreelancerDisputesIndexRouteImport } from './routes/dashboard/freelancer/disputes/index'
 import { Route as DashboardFreelancerContractsIndexRouteImport } from './routes/dashboard/freelancer/contracts/index'
 import { Route as DashboardAdminVerificationsIndexRouteImport } from './routes/dashboard/admin/verifications/index'
 import { Route as DashboardHirerJobsNewRouteImport } from './routes/dashboard/hirer/jobs/new'
 import { Route as DashboardHirerJobsJobIdRouteImport } from './routes/dashboard/hirer/jobs/$jobId'
+import { Route as DashboardHirerDisputesDisputeIdRouteImport } from './routes/dashboard/hirer/disputes/$disputeId'
 import { Route as DashboardHirerContractsContractIdRouteImport } from './routes/dashboard/hirer/contracts/$contractId'
 import { Route as DashboardFreelancerJobsSlugRouteImport } from './routes/dashboard/freelancer/jobs/$slug'
+import { Route as DashboardFreelancerDisputesDisputeIdRouteImport } from './routes/dashboard/freelancer/disputes/$disputeId'
 import { Route as DashboardFreelancerContractsContractIdRouteImport } from './routes/dashboard/freelancer/contracts/$contractId'
 import { Route as DashboardHirerJobsJobIdProposalsRouteImport } from './routes/dashboard/hirer/jobs/$jobId.proposals'
 
@@ -197,6 +201,12 @@ const DashboardHirerInvoicesIndexRoute =
     path: '/invoices/',
     getParentRoute: () => DashboardHirerRouteRoute,
   } as any)
+const DashboardHirerDisputesIndexRoute =
+  DashboardHirerDisputesIndexRouteImport.update({
+    id: '/disputes/',
+    path: '/disputes/',
+    getParentRoute: () => DashboardHirerRouteRoute,
+  } as any)
 const DashboardHirerContractsIndexRoute =
   DashboardHirerContractsIndexRouteImport.update({
     id: '/contracts/',
@@ -213,6 +223,12 @@ const DashboardFreelancerInvoicesIndexRoute =
   DashboardFreelancerInvoicesIndexRouteImport.update({
     id: '/invoices/',
     path: '/invoices/',
+    getParentRoute: () => DashboardFreelancerRouteRoute,
+  } as any)
+const DashboardFreelancerDisputesIndexRoute =
+  DashboardFreelancerDisputesIndexRouteImport.update({
+    id: '/disputes/',
+    path: '/disputes/',
     getParentRoute: () => DashboardFreelancerRouteRoute,
   } as any)
 const DashboardFreelancerContractsIndexRoute =
@@ -237,6 +253,12 @@ const DashboardHirerJobsJobIdRoute = DashboardHirerJobsJobIdRouteImport.update({
   path: '/jobs/$jobId',
   getParentRoute: () => DashboardHirerRouteRoute,
 } as any)
+const DashboardHirerDisputesDisputeIdRoute =
+  DashboardHirerDisputesDisputeIdRouteImport.update({
+    id: '/disputes/$disputeId',
+    path: '/disputes/$disputeId',
+    getParentRoute: () => DashboardHirerRouteRoute,
+  } as any)
 const DashboardHirerContractsContractIdRoute =
   DashboardHirerContractsContractIdRouteImport.update({
     id: '/contracts/$contractId',
@@ -247,6 +269,12 @@ const DashboardFreelancerJobsSlugRoute =
   DashboardFreelancerJobsSlugRouteImport.update({
     id: '/jobs/$slug',
     path: '/jobs/$slug',
+    getParentRoute: () => DashboardFreelancerRouteRoute,
+  } as any)
+const DashboardFreelancerDisputesDisputeIdRoute =
+  DashboardFreelancerDisputesDisputeIdRouteImport.update({
+    id: '/disputes/$disputeId',
+    path: '/disputes/$disputeId',
     getParentRoute: () => DashboardFreelancerRouteRoute,
   } as any)
 const DashboardFreelancerContractsContractIdRoute =
@@ -289,15 +317,19 @@ export interface FileRoutesByFullPath {
   '/dashboard/freelancer/': typeof DashboardFreelancerIndexRoute
   '/dashboard/hirer/': typeof DashboardHirerIndexRoute
   '/dashboard/freelancer/contracts/$contractId': typeof DashboardFreelancerContractsContractIdRoute
+  '/dashboard/freelancer/disputes/$disputeId': typeof DashboardFreelancerDisputesDisputeIdRoute
   '/dashboard/freelancer/jobs/$slug': typeof DashboardFreelancerJobsSlugRoute
   '/dashboard/hirer/contracts/$contractId': typeof DashboardHirerContractsContractIdRoute
+  '/dashboard/hirer/disputes/$disputeId': typeof DashboardHirerDisputesDisputeIdRoute
   '/dashboard/hirer/jobs/$jobId': typeof DashboardHirerJobsJobIdRouteWithChildren
   '/dashboard/hirer/jobs/new': typeof DashboardHirerJobsNewRoute
   '/dashboard/admin/verifications/': typeof DashboardAdminVerificationsIndexRoute
   '/dashboard/freelancer/contracts/': typeof DashboardFreelancerContractsIndexRoute
+  '/dashboard/freelancer/disputes/': typeof DashboardFreelancerDisputesIndexRoute
   '/dashboard/freelancer/invoices/': typeof DashboardFreelancerInvoicesIndexRoute
   '/dashboard/freelancer/payments/': typeof DashboardFreelancerPaymentsIndexRoute
   '/dashboard/hirer/contracts/': typeof DashboardHirerContractsIndexRoute
+  '/dashboard/hirer/disputes/': typeof DashboardHirerDisputesIndexRoute
   '/dashboard/hirer/invoices/': typeof DashboardHirerInvoicesIndexRoute
   '/dashboard/hirer/payments/': typeof DashboardHirerPaymentsIndexRoute
   '/dashboard/onboarding/role/': typeof DashboardOnboardingRoleIndexRoute
@@ -322,15 +354,19 @@ export interface FileRoutesByTo {
   '/dashboard/freelancer': typeof DashboardFreelancerIndexRoute
   '/dashboard/hirer': typeof DashboardHirerIndexRoute
   '/dashboard/freelancer/contracts/$contractId': typeof DashboardFreelancerContractsContractIdRoute
+  '/dashboard/freelancer/disputes/$disputeId': typeof DashboardFreelancerDisputesDisputeIdRoute
   '/dashboard/freelancer/jobs/$slug': typeof DashboardFreelancerJobsSlugRoute
   '/dashboard/hirer/contracts/$contractId': typeof DashboardHirerContractsContractIdRoute
+  '/dashboard/hirer/disputes/$disputeId': typeof DashboardHirerDisputesDisputeIdRoute
   '/dashboard/hirer/jobs/$jobId': typeof DashboardHirerJobsJobIdRouteWithChildren
   '/dashboard/hirer/jobs/new': typeof DashboardHirerJobsNewRoute
   '/dashboard/admin/verifications': typeof DashboardAdminVerificationsIndexRoute
   '/dashboard/freelancer/contracts': typeof DashboardFreelancerContractsIndexRoute
+  '/dashboard/freelancer/disputes': typeof DashboardFreelancerDisputesIndexRoute
   '/dashboard/freelancer/invoices': typeof DashboardFreelancerInvoicesIndexRoute
   '/dashboard/freelancer/payments': typeof DashboardFreelancerPaymentsIndexRoute
   '/dashboard/hirer/contracts': typeof DashboardHirerContractsIndexRoute
+  '/dashboard/hirer/disputes': typeof DashboardHirerDisputesIndexRoute
   '/dashboard/hirer/invoices': typeof DashboardHirerInvoicesIndexRoute
   '/dashboard/hirer/payments': typeof DashboardHirerPaymentsIndexRoute
   '/dashboard/onboarding/role': typeof DashboardOnboardingRoleIndexRoute
@@ -364,15 +400,19 @@ export interface FileRoutesById {
   '/dashboard/freelancer/': typeof DashboardFreelancerIndexRoute
   '/dashboard/hirer/': typeof DashboardHirerIndexRoute
   '/dashboard/freelancer/contracts/$contractId': typeof DashboardFreelancerContractsContractIdRoute
+  '/dashboard/freelancer/disputes/$disputeId': typeof DashboardFreelancerDisputesDisputeIdRoute
   '/dashboard/freelancer/jobs/$slug': typeof DashboardFreelancerJobsSlugRoute
   '/dashboard/hirer/contracts/$contractId': typeof DashboardHirerContractsContractIdRoute
+  '/dashboard/hirer/disputes/$disputeId': typeof DashboardHirerDisputesDisputeIdRoute
   '/dashboard/hirer/jobs/$jobId': typeof DashboardHirerJobsJobIdRouteWithChildren
   '/dashboard/hirer/jobs/new': typeof DashboardHirerJobsNewRoute
   '/dashboard/admin/verifications/': typeof DashboardAdminVerificationsIndexRoute
   '/dashboard/freelancer/contracts/': typeof DashboardFreelancerContractsIndexRoute
+  '/dashboard/freelancer/disputes/': typeof DashboardFreelancerDisputesIndexRoute
   '/dashboard/freelancer/invoices/': typeof DashboardFreelancerInvoicesIndexRoute
   '/dashboard/freelancer/payments/': typeof DashboardFreelancerPaymentsIndexRoute
   '/dashboard/hirer/contracts/': typeof DashboardHirerContractsIndexRoute
+  '/dashboard/hirer/disputes/': typeof DashboardHirerDisputesIndexRoute
   '/dashboard/hirer/invoices/': typeof DashboardHirerInvoicesIndexRoute
   '/dashboard/hirer/payments/': typeof DashboardHirerPaymentsIndexRoute
   '/dashboard/onboarding/role/': typeof DashboardOnboardingRoleIndexRoute
@@ -407,15 +447,19 @@ export interface FileRouteTypes {
     | '/dashboard/freelancer/'
     | '/dashboard/hirer/'
     | '/dashboard/freelancer/contracts/$contractId'
+    | '/dashboard/freelancer/disputes/$disputeId'
     | '/dashboard/freelancer/jobs/$slug'
     | '/dashboard/hirer/contracts/$contractId'
+    | '/dashboard/hirer/disputes/$disputeId'
     | '/dashboard/hirer/jobs/$jobId'
     | '/dashboard/hirer/jobs/new'
     | '/dashboard/admin/verifications/'
     | '/dashboard/freelancer/contracts/'
+    | '/dashboard/freelancer/disputes/'
     | '/dashboard/freelancer/invoices/'
     | '/dashboard/freelancer/payments/'
     | '/dashboard/hirer/contracts/'
+    | '/dashboard/hirer/disputes/'
     | '/dashboard/hirer/invoices/'
     | '/dashboard/hirer/payments/'
     | '/dashboard/onboarding/role/'
@@ -440,15 +484,19 @@ export interface FileRouteTypes {
     | '/dashboard/freelancer'
     | '/dashboard/hirer'
     | '/dashboard/freelancer/contracts/$contractId'
+    | '/dashboard/freelancer/disputes/$disputeId'
     | '/dashboard/freelancer/jobs/$slug'
     | '/dashboard/hirer/contracts/$contractId'
+    | '/dashboard/hirer/disputes/$disputeId'
     | '/dashboard/hirer/jobs/$jobId'
     | '/dashboard/hirer/jobs/new'
     | '/dashboard/admin/verifications'
     | '/dashboard/freelancer/contracts'
+    | '/dashboard/freelancer/disputes'
     | '/dashboard/freelancer/invoices'
     | '/dashboard/freelancer/payments'
     | '/dashboard/hirer/contracts'
+    | '/dashboard/hirer/disputes'
     | '/dashboard/hirer/invoices'
     | '/dashboard/hirer/payments'
     | '/dashboard/onboarding/role'
@@ -481,15 +529,19 @@ export interface FileRouteTypes {
     | '/dashboard/freelancer/'
     | '/dashboard/hirer/'
     | '/dashboard/freelancer/contracts/$contractId'
+    | '/dashboard/freelancer/disputes/$disputeId'
     | '/dashboard/freelancer/jobs/$slug'
     | '/dashboard/hirer/contracts/$contractId'
+    | '/dashboard/hirer/disputes/$disputeId'
     | '/dashboard/hirer/jobs/$jobId'
     | '/dashboard/hirer/jobs/new'
     | '/dashboard/admin/verifications/'
     | '/dashboard/freelancer/contracts/'
+    | '/dashboard/freelancer/disputes/'
     | '/dashboard/freelancer/invoices/'
     | '/dashboard/freelancer/payments/'
     | '/dashboard/hirer/contracts/'
+    | '/dashboard/hirer/disputes/'
     | '/dashboard/hirer/invoices/'
     | '/dashboard/hirer/payments/'
     | '/dashboard/onboarding/role/'
@@ -705,6 +757,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardHirerInvoicesIndexRouteImport
       parentRoute: typeof DashboardHirerRouteRoute
     }
+    '/dashboard/hirer/disputes/': {
+      id: '/dashboard/hirer/disputes/'
+      path: '/disputes'
+      fullPath: '/dashboard/hirer/disputes/'
+      preLoaderRoute: typeof DashboardHirerDisputesIndexRouteImport
+      parentRoute: typeof DashboardHirerRouteRoute
+    }
     '/dashboard/hirer/contracts/': {
       id: '/dashboard/hirer/contracts/'
       path: '/contracts'
@@ -724,6 +783,13 @@ declare module '@tanstack/react-router' {
       path: '/invoices'
       fullPath: '/dashboard/freelancer/invoices/'
       preLoaderRoute: typeof DashboardFreelancerInvoicesIndexRouteImport
+      parentRoute: typeof DashboardFreelancerRouteRoute
+    }
+    '/dashboard/freelancer/disputes/': {
+      id: '/dashboard/freelancer/disputes/'
+      path: '/disputes'
+      fullPath: '/dashboard/freelancer/disputes/'
+      preLoaderRoute: typeof DashboardFreelancerDisputesIndexRouteImport
       parentRoute: typeof DashboardFreelancerRouteRoute
     }
     '/dashboard/freelancer/contracts/': {
@@ -754,6 +820,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardHirerJobsJobIdRouteImport
       parentRoute: typeof DashboardHirerRouteRoute
     }
+    '/dashboard/hirer/disputes/$disputeId': {
+      id: '/dashboard/hirer/disputes/$disputeId'
+      path: '/disputes/$disputeId'
+      fullPath: '/dashboard/hirer/disputes/$disputeId'
+      preLoaderRoute: typeof DashboardHirerDisputesDisputeIdRouteImport
+      parentRoute: typeof DashboardHirerRouteRoute
+    }
     '/dashboard/hirer/contracts/$contractId': {
       id: '/dashboard/hirer/contracts/$contractId'
       path: '/contracts/$contractId'
@@ -766,6 +839,13 @@ declare module '@tanstack/react-router' {
       path: '/jobs/$slug'
       fullPath: '/dashboard/freelancer/jobs/$slug'
       preLoaderRoute: typeof DashboardFreelancerJobsSlugRouteImport
+      parentRoute: typeof DashboardFreelancerRouteRoute
+    }
+    '/dashboard/freelancer/disputes/$disputeId': {
+      id: '/dashboard/freelancer/disputes/$disputeId'
+      path: '/disputes/$disputeId'
+      fullPath: '/dashboard/freelancer/disputes/$disputeId'
+      preLoaderRoute: typeof DashboardFreelancerDisputesDisputeIdRouteImport
       parentRoute: typeof DashboardFreelancerRouteRoute
     }
     '/dashboard/freelancer/contracts/$contractId': {
@@ -803,8 +883,10 @@ interface DashboardFreelancerRouteRouteChildren {
   DashboardFreelancerProposalsRoute: typeof DashboardFreelancerProposalsRoute
   DashboardFreelancerIndexRoute: typeof DashboardFreelancerIndexRoute
   DashboardFreelancerContractsContractIdRoute: typeof DashboardFreelancerContractsContractIdRoute
+  DashboardFreelancerDisputesDisputeIdRoute: typeof DashboardFreelancerDisputesDisputeIdRoute
   DashboardFreelancerJobsSlugRoute: typeof DashboardFreelancerJobsSlugRoute
   DashboardFreelancerContractsIndexRoute: typeof DashboardFreelancerContractsIndexRoute
+  DashboardFreelancerDisputesIndexRoute: typeof DashboardFreelancerDisputesIndexRoute
   DashboardFreelancerInvoicesIndexRoute: typeof DashboardFreelancerInvoicesIndexRoute
   DashboardFreelancerPaymentsIndexRoute: typeof DashboardFreelancerPaymentsIndexRoute
 }
@@ -817,9 +899,13 @@ const DashboardFreelancerRouteRouteChildren: DashboardFreelancerRouteRouteChildr
     DashboardFreelancerIndexRoute: DashboardFreelancerIndexRoute,
     DashboardFreelancerContractsContractIdRoute:
       DashboardFreelancerContractsContractIdRoute,
+    DashboardFreelancerDisputesDisputeIdRoute:
+      DashboardFreelancerDisputesDisputeIdRoute,
     DashboardFreelancerJobsSlugRoute: DashboardFreelancerJobsSlugRoute,
     DashboardFreelancerContractsIndexRoute:
       DashboardFreelancerContractsIndexRoute,
+    DashboardFreelancerDisputesIndexRoute:
+      DashboardFreelancerDisputesIndexRoute,
     DashboardFreelancerInvoicesIndexRoute:
       DashboardFreelancerInvoicesIndexRoute,
     DashboardFreelancerPaymentsIndexRoute:
@@ -851,9 +937,11 @@ interface DashboardHirerRouteRouteChildren {
   DashboardHirerProfileRoute: typeof DashboardHirerProfileRoute
   DashboardHirerIndexRoute: typeof DashboardHirerIndexRoute
   DashboardHirerContractsContractIdRoute: typeof DashboardHirerContractsContractIdRoute
+  DashboardHirerDisputesDisputeIdRoute: typeof DashboardHirerDisputesDisputeIdRoute
   DashboardHirerJobsJobIdRoute: typeof DashboardHirerJobsJobIdRouteWithChildren
   DashboardHirerJobsNewRoute: typeof DashboardHirerJobsNewRoute
   DashboardHirerContractsIndexRoute: typeof DashboardHirerContractsIndexRoute
+  DashboardHirerDisputesIndexRoute: typeof DashboardHirerDisputesIndexRoute
   DashboardHirerInvoicesIndexRoute: typeof DashboardHirerInvoicesIndexRoute
   DashboardHirerPaymentsIndexRoute: typeof DashboardHirerPaymentsIndexRoute
 }
@@ -864,9 +952,11 @@ const DashboardHirerRouteRouteChildren: DashboardHirerRouteRouteChildren = {
   DashboardHirerIndexRoute: DashboardHirerIndexRoute,
   DashboardHirerContractsContractIdRoute:
     DashboardHirerContractsContractIdRoute,
+  DashboardHirerDisputesDisputeIdRoute: DashboardHirerDisputesDisputeIdRoute,
   DashboardHirerJobsJobIdRoute: DashboardHirerJobsJobIdRouteWithChildren,
   DashboardHirerJobsNewRoute: DashboardHirerJobsNewRoute,
   DashboardHirerContractsIndexRoute: DashboardHirerContractsIndexRoute,
+  DashboardHirerDisputesIndexRoute: DashboardHirerDisputesIndexRoute,
   DashboardHirerInvoicesIndexRoute: DashboardHirerInvoicesIndexRoute,
   DashboardHirerPaymentsIndexRoute: DashboardHirerPaymentsIndexRoute,
 }

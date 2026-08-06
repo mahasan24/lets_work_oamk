@@ -49,6 +49,13 @@ export default function HirerDashboardLayout({ children }: { children: React.Rea
                 Contracts
               </Link>
               <Link
+                to="/dashboard/hirer/disputes"
+                className={linkClass}
+                activeProps={{ className: linkActiveClass }}
+              >
+                Disputes
+              </Link>
+              <Link
                 to="/dashboard/hirer/payments"
                 className={linkClass}
                 activeProps={{ className: linkActiveClass }}
@@ -103,6 +110,13 @@ export default function HirerDashboardLayout({ children }: { children: React.Rea
             activeProps={{ className: cn(mobileLinkClass, mobileLinkActiveClass) }}
           >
             Contracts
+          </Link>
+          <Link
+            to="/dashboard/hirer/disputes"
+            className={mobileLinkClass}
+            activeProps={{ className: cn(mobileLinkClass, mobileLinkActiveClass) }}
+          >
+            Disputes
           </Link>
           <Link
             to="/dashboard/hirer/payments"

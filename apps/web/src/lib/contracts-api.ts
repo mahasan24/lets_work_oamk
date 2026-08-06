@@ -34,13 +34,7 @@ async function apiFetch<T>(path: string, init?: RequestInit): Promise<T> {
   return response.json() as Promise<T>;
 }
 
-export type ContractStatus =
-  | "draft"
-  | "active"
-  | "paused"
-  | "completed"
-  | "cancelled"
-  | "disputed";
+export type ContractStatus = "draft" | "active" | "paused" | "completed" | "cancelled" | "disputed";
 export type ContractType = "hourly" | "one_time";
 
 export type ContractParty = {
@@ -194,7 +188,10 @@ export const contractsApi = {
   resume: (contractId: string) =>
     apiFetch<Contract>(`/api/contracts/${contractId}/resume`, { method: "POST" }),
 
-  dispute: (contractId: string, body: { reason: string }) =>
+  dispute: (
+    contractId: string,
+    body: { reason: string; description: string; milestoneId?: string | null },
+  ) =>
     apiFetch<Contract>(`/api/contracts/${contractId}/dispute`, {
       method: "POST",
       body: JSON.stringify(body),

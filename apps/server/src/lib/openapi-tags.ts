@@ -44,6 +44,10 @@ export const OPENAPI_TAGS = [
     description: "Contract reviews and public reputation",
   },
   {
+    name: "Disputes",
+    description: "Contract disputes raised by hirers or freelancers",
+  },
+  {
     name: "Notifications",
     description: "In-app notifications and unread state",
   },

@@ -352,36 +352,9 @@ export async function resumeUserContract(contractId: string, userId: string) {
 export async function disputeUserContract(
   contractId: string,
   userId: string,
-  input: { reason: string },
+  input: { reason: string; description: string; milestoneId?: string | null },
 ) {
-  const existing = await getAccessibleContract(contractId, userId);
-
-  if (existing.status !== "active" && existing.status !== "paused") {
-    throw new ContractStatusError("Only active or paused contracts can be disputed");
-  }
-
-  const reason = input.reason.trim();
-  if (!reason) {
-    throw new ContractStatusError("A dispute reason is required");
-  }
-
-  const [updated] = await db
-    .update(contract)
-    .set({ status: "disputed" })
-    .where(and(eq(contract.id, contractId), inArray(contract.status, ["active", "paused"])))
-    .returning();
-
-  if (!updated) {
-    throw new ContractStatusError("Only active or paused contracts can be disputed");
-  }
-
-  await recordContractEvent({
-    contractId,
-    actorUserId: userId,
-    eventType: "disputed",
-    title: "Contract disputed",
-    description: reason,
-  });
-
+  const { openContractDispute } = await import("./disputes");
+  await openContractDispute(contractId, userId, input);
   return getAccessibleContract(contractId, userId);
 }

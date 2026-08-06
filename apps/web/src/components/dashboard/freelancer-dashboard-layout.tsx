@@ -56,6 +56,13 @@ export default function FreelancerDashboardLayout({ children }: { children: Reac
                 Contracts
               </Link>
               <Link
+                to="/dashboard/freelancer/disputes"
+                className={linkClass}
+                activeProps={{ className: linkActiveClass }}
+              >
+                Disputes
+              </Link>
+              <Link
                 to="/dashboard/freelancer/payments"
                 className={linkClass}
                 activeProps={{ className: linkActiveClass }}
@@ -111,6 +118,13 @@ export default function FreelancerDashboardLayout({ children }: { children: Reac
             activeProps={{ className: cn(mobileLinkClass, mobileLinkActiveClass) }}
           >
             Contracts
+          </Link>
+          <Link
+            to="/dashboard/freelancer/disputes"
+            className={mobileLinkClass}
+            activeProps={{ className: cn(mobileLinkClass, mobileLinkActiveClass) }}
+          >
+            Disputes
           </Link>
           <Link
             to="/dashboard/freelancer/payments"
