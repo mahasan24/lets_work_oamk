@@ -3,6 +3,7 @@ import { user } from "@lets_work/db/schema/auth";
 import { certification } from "@lets_work/db/schema/certifications";
 import { marketplaceUserProfile } from "@lets_work/db/schema/marketplace";
 import { portfolioItem, workHistory } from "@lets_work/db/schema/portfolio";
+import { platformUser } from "@lets_work/db/schema/platform";
 import { userVerification } from "@lets_work/db/schema/verification";
 import { and, eq } from "drizzle-orm";
 
@@ -16,6 +17,7 @@ type ProfileBundle = {
   experience: (typeof workHistory.$inferSelect)[];
   verifications: (typeof userVerification.$inferSelect)[];
   profileCompletion: number;
+  isAdmin: boolean;
 };
 
 export async function ensureProfile(userId: string) {
@@ -89,7 +91,9 @@ export function calculateHirerProfileCompletion(data: {
       : Boolean(data.profile.bio?.trim() && data.profile.bio.length >= 40),
     isCompany ? Boolean(data.profile.companyWebsite?.trim()) : true,
     isCompany
-      ? Boolean(data.profile.companyDescription?.trim() && data.profile.companyDescription.length >= 40)
+      ? Boolean(
+          data.profile.companyDescription?.trim() && data.profile.companyDescription.length >= 40,
+        )
       : true,
     data.hasIdentityVerification,
   ];
@@ -154,16 +158,16 @@ export async function getProfileBundle(userId: string): Promise<ProfileBundle> {
 
   const profile = await ensureProfile(userId);
 
-  const [portfolio, certifications, experience, verifications] = await Promise.all([
+  const [portfolio, certifications, experience, verifications, [platform]] = await Promise.all([
     db.select().from(portfolioItem).where(eq(portfolioItem.userId, userId)),
     db.select().from(certification).where(eq(certification.userId, userId)),
     db.select().from(workHistory).where(eq(workHistory.userId, userId)),
     db.select().from(userVerification).where(eq(userVerification.userId, userId)),
+    db.select().from(platformUser).where(eq(platformUser.userId, userId)).limit(1),
   ]);
 
   const hasIdentityVerification = verifications.some(
-    (item) =>
-      item.type === "identity" && (item.status === "pending" || item.status === "verified"),
+    (item) => item.type === "identity" && (item.status === "pending" || item.status === "verified"),
   );
 
   const profileCompletion = calculateProfileCompletion({
@@ -198,12 +202,19 @@ export async function getProfileBundle(userId: string): Promise<ProfileBundle> {
       email: dbUser.email,
       image: dbUser.image,
     },
-    profile: { ...profile, profileCompletion, onboardingStep },
+    profile: {
+      ...profile,
+      profileCompletion,
+      onboardingStep,
+      suspendedAt: profile.suspendedAt,
+      suspendReason: profile.suspendReason,
+    },
     portfolio,
     certifications,
     experience,
     verifications,
     profileCompletion,
+    isAdmin: platform?.role === "admin",
   };
 }
 
@@ -212,10 +223,7 @@ export async function refreshProfileCompletion(userId: string) {
   return bundle.profileCompletion;
 }
 
-export async function initializeProfileRole(
-  userId: string,
-  accountType: "hirer" | "freelancer",
-) {
+export async function initializeProfileRole(userId: string, accountType: "hirer" | "freelancer") {
   const profile = await ensureProfile(userId);
 
   if (profile.onboardingStep !== "role_selection") {

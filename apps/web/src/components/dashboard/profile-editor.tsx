@@ -1,10 +1,12 @@
 import { Button } from "@lets_work/ui/components/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@lets_work/ui/components/card";
 import {
-  Field,
-  FieldGroup,
-  FieldLabel,
-} from "@lets_work/ui/components/field";
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@lets_work/ui/components/card";
+import { Field, FieldGroup, FieldLabel } from "@lets_work/ui/components/field";
 import { Input } from "@lets_work/ui/components/input";
 import {
   Select,
@@ -20,6 +22,7 @@ import { useRouter } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 
+import { DeleteAccountSection } from "@/components/account/delete-account-section";
 import { uploadToCloudinary } from "@/lib/cloudinary-upload";
 import {
   AVAILABILITY_OPTIONS,
@@ -399,13 +402,7 @@ export default function ProfileEditor() {
             onUpload={uploadVideo}
           />
           {data.profile.videoIntroUrl ? (
-            <Button
-              type="button"
-              variant="ghost"
-              size="sm"
-              className="mt-2"
-              onClick={removeVideo}
-            >
+            <Button type="button" variant="ghost" size="sm" className="mt-2" onClick={removeVideo}>
               Remove video
             </Button>
           ) : null}
@@ -555,7 +552,9 @@ export default function ProfileEditor() {
       <Card>
         <CardHeader>
           <CardTitle>Work experience</CardTitle>
-          <CardDescription>Share your professional background with prospective clients.</CardDescription>
+          <CardDescription>
+            Share your professional background with prospective clients.
+          </CardDescription>
         </CardHeader>
         <CardContent className="flex flex-col gap-6">
           <ProfileItemsCarousel
@@ -643,6 +642,8 @@ export default function ProfileEditor() {
           </FieldGroup>
         </CardContent>
       </Card>
+
+      <DeleteAccountSection />
     </div>
   );
 }

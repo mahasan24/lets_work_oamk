@@ -8,6 +8,7 @@ type NavLinkProps = {
   children: string;
   className?: string;
   isRouter?: boolean;
+  search?: Record<string, string>;
 };
 
 const item = {
@@ -15,7 +16,7 @@ const item = {
   show: { opacity: 1, y: 0 },
 };
 
-export function AnimatedNavLink({ href, children, className, isRouter }: NavLinkProps) {
+export function AnimatedNavLink({ href, children, className, isRouter, search }: NavLinkProps) {
   const classes = cn(
     "relative text-sm text-muted-foreground transition-colors hover:text-foreground",
     className,
@@ -33,7 +34,7 @@ export function AnimatedNavLink({ href, children, className, isRouter }: NavLink
   if (isRouter) {
     return (
       <motion.div variants={item}>
-        <Link to={href} className={cn(classes, "inline-block")}>
+        <Link to={href} search={search} className={cn(classes, "inline-block")}>
           {children}
           {underline}
         </Link>

@@ -5,11 +5,20 @@ import { userVerification } from "@lets_work/db/schema/verification";
 import { and, desc, eq } from "drizzle-orm";
 
 import { ConflictError, NotFoundError } from "./errors";
+import { createNotification } from "./notifications";
 import { refreshProfileCompletion } from "./profile";
 
 export class VerificationNotFoundError extends NotFoundError {
   constructor() {
     super("Verification not found", "VERIFICATION_NOT_FOUND");
+  }
+}
+
+async function notifyQuietly(input: Parameters<typeof createNotification>[0]) {
+  try {
+    await createNotification(input);
+  } catch (error) {
+    console.error("Failed to create notification", error);
   }
 }
 
@@ -27,6 +36,11 @@ export async function listPendingVerifications() {
       accountType: marketplaceUserProfile.accountType,
       activeRole: marketplaceUserProfile.activeRole,
       profileCompletion: marketplaceUserProfile.profileCompletion,
+      headline: marketplaceUserProfile.headline,
+      companyName: marketplaceUserProfile.companyName,
+      hirerType: marketplaceUserProfile.hirerType,
+      country: marketplaceUserProfile.country,
+      city: marketplaceUserProfile.city,
     })
     .from(userVerification)
     .innerJoin(user, eq(user.id, userVerification.userId))
@@ -47,6 +61,11 @@ export async function listPendingVerifications() {
       accountType: row.accountType,
       activeRole: row.activeRole,
       profileCompletion: row.profileCompletion,
+      headline: row.headline,
+      companyName: row.companyName,
+      hirerType: row.hirerType,
+      country: row.country,
+      city: row.city,
     },
   }));
 }
@@ -92,6 +111,14 @@ export async function approveVerification(verificationId: string) {
 
   await refreshProfileCompletion(existing.userId);
 
+  await notifyQuietly({
+    userId: existing.userId,
+    type: "system",
+    title: "Identity verified",
+    body: "An admin approved your identity verification. Your profile badge is now verified.",
+    actionUrl: "/dashboard/hirer/profile",
+  });
+
   return {
     id: updated.id,
     userId: updated.userId,
@@ -124,6 +151,17 @@ export async function rejectVerification(verificationId: string, reason?: string
     .update(marketplaceUserProfile)
     .set({ onboardingStep: "verification" })
     .where(eq(marketplaceUserProfile.userId, existing.userId));
+
+  const reasonText = reason?.trim();
+  await notifyQuietly({
+    userId: existing.userId,
+    type: "system",
+    title: "Identity verification rejected",
+    body: reasonText
+      ? `Your verification was rejected: ${reasonText}`
+      : "Your identity verification was rejected. Update your profile and resubmit.",
+    actionUrl: "/dashboard/hirer/profile",
+  });
 
   return {
     id: updated.id,

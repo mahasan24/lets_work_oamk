@@ -43,10 +43,88 @@ export type PendingVerification = {
     accountType: string | null;
     activeRole: string | null;
     profileCompletion: number | null;
+    headline: string | null;
+    companyName: string | null;
+    hirerType: string | null;
+    country: string | null;
+    city: string | null;
   };
 };
 
+export type AdminOverview = {
+  users: {
+    total: number;
+    last7Days: number;
+    last30Days: number;
+    freelancers: number;
+    hirers: number;
+    suspended: number;
+  };
+  jobs: { total: number; open: number };
+  proposals: { total: number };
+  contracts: { total: number; active: number; disputed: number };
+  disputes: { open: number };
+  verifications: { pending: number };
+  payments: {
+    heldCount: number;
+    succeededCount: number;
+    volumeUsd: number;
+    escrowHeldUsd: number;
+  };
+  generatedAt: string;
+};
+
+export type AdminDispute = {
+  id: string;
+  contractId: string;
+  milestoneId: string | null;
+  openedByUserId: string;
+  respondentUserId: string;
+  reason: string;
+  description: string;
+  status: string;
+  resolution: string | null;
+  resolvedByUserId: string | null;
+  resolvedAt: string | null;
+  createdAt: string;
+  updatedAt: string;
+  contractTitle: string;
+  contractStatus: string;
+  hirerUserId: string;
+  freelancerUserId: string;
+  milestoneTitle: string | null;
+  openedByName: string;
+  openedByEmail: string;
+  respondentName: string;
+  respondentEmail: string;
+};
+
+export type AdminUserSearchResult = {
+  id: string;
+  name: string;
+  email: string;
+  createdAt: string;
+  accountType: string | null;
+  activeRole: string | null;
+  onboardingStep: string | null;
+  profileCompletion: number | null;
+  suspendedAt: string | null;
+  suspendReason: string | null;
+  platformRole: string | null;
+  identityStatus: string | null;
+};
+
 export const adminApi = {
+  getMe: () =>
+    apiFetch<{
+      isAdmin: boolean;
+      platformRole: string | null;
+      suspendedAt: string | null;
+      suspendReason: string | null;
+    }>("/api/admin/me"),
+
+  getOverview: () => apiFetch<AdminOverview>("/api/admin/overview"),
+
   listPendingVerifications: () =>
     apiFetch<{ items: PendingVerification[] }>("/api/admin/verifications"),
 
@@ -64,4 +142,44 @@ export const adminApi = {
         body: JSON.stringify({ reason }),
       },
     ),
+
+  listDisputes: (params?: { page?: number; limit?: number; status?: string }) => {
+    const search = new URLSearchParams();
+    if (params?.page) search.set("page", String(params.page));
+    if (params?.limit) search.set("limit", String(params.limit));
+    if (params?.status) search.set("status", params.status);
+    const qs = search.toString();
+    return apiFetch<{ items: AdminDispute[]; pagination: { page: number; total: number } }>(
+      `/api/admin/disputes${qs ? `?${qs}` : ""}`,
+    );
+  },
+
+  markDisputeUnderReview: (id: string) =>
+    apiFetch(`/api/admin/disputes/${id}/under-review`, { method: "POST" }),
+
+  resolveDispute: (
+    id: string,
+    body: {
+      resolutionStatus: "resolved_client" | "resolved_freelancer" | "closed";
+      resolution: string;
+      restoreContractStatus?: "active" | "paused" | "cancelled" | "completed";
+    },
+  ) =>
+    apiFetch(`/api/admin/disputes/${id}/resolve`, {
+      method: "POST",
+      body: JSON.stringify(body),
+    }),
+
+  searchUsers: (q: string) =>
+    apiFetch<{ items: AdminUserSearchResult[] }>(
+      `/api/admin/users/search?q=${encodeURIComponent(q)}`,
+    ),
+
+  suspendUser: (id: string, reason?: string) =>
+    apiFetch(`/api/admin/users/${id}/suspend`, {
+      method: "POST",
+      body: JSON.stringify({ reason }),
+    }),
+
+  unsuspendUser: (id: string) => apiFetch(`/api/admin/users/${id}/unsuspend`, { method: "POST" }),
 };

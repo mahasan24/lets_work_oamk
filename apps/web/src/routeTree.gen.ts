@@ -16,6 +16,7 @@ import { Route as FreelancersRouteRouteImport } from './routes/freelancers/route
 import { Route as ForgotPasswordRouteRouteImport } from './routes/forgot-password/route'
 import { Route as DashboardRouteRouteImport } from './routes/dashboard/route'
 import { Route as ClientsRouteRouteImport } from './routes/clients/route'
+import { Route as AdminRouteRouteImport } from './routes/admin/route'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as SuccessIndexRouteImport } from './routes/success/index'
 import { Route as ResetPasswordIndexRouteImport } from './routes/reset-password/index'
@@ -23,12 +24,21 @@ import { Route as LoginIndexRouteImport } from './routes/login/index'
 import { Route as FreelancersIndexRouteImport } from './routes/freelancers/index'
 import { Route as ForgotPasswordIndexRouteImport } from './routes/forgot-password/index'
 import { Route as DashboardIndexRouteImport } from './routes/dashboard/index'
+import { Route as AdminIndexRouteImport } from './routes/admin/index'
 import { Route as FreelancersUserIdRouteImport } from './routes/freelancers/$userId'
+import { Route as DashboardSuspendedRouteImport } from './routes/dashboard/suspended'
 import { Route as ClientsUserIdRouteImport } from './routes/clients/$userId'
+import { Route as AdminLoginRouteImport } from './routes/admin/login'
 import { Route as DashboardHirerRouteRouteImport } from './routes/dashboard/hirer/route'
 import { Route as DashboardFreelancerRouteRouteImport } from './routes/dashboard/freelancer/route'
+import { Route as DashboardAdminRouteRouteImport } from './routes/dashboard/admin/route'
 import { Route as DashboardHirerIndexRouteImport } from './routes/dashboard/hirer/index'
 import { Route as DashboardFreelancerIndexRouteImport } from './routes/dashboard/freelancer/index'
+import { Route as DashboardAdminIndexRouteImport } from './routes/dashboard/admin/index'
+import { Route as AdminVerificationsIndexRouteImport } from './routes/admin/verifications/index'
+import { Route as AdminUsersIndexRouteImport } from './routes/admin/users/index'
+import { Route as AdminDisputesIndexRouteImport } from './routes/admin/disputes/index'
+import { Route as AdminAccountIndexRouteImport } from './routes/admin/account/index'
 import { Route as DashboardHirerProfileRouteImport } from './routes/dashboard/hirer/profile'
 import { Route as DashboardHirerMessagesRouteImport } from './routes/dashboard/hirer/messages'
 import { Route as DashboardFreelancerProposalsRouteImport } from './routes/dashboard/freelancer/proposals'
@@ -44,6 +54,8 @@ import { Route as DashboardFreelancerInvoicesIndexRouteImport } from './routes/d
 import { Route as DashboardFreelancerDisputesIndexRouteImport } from './routes/dashboard/freelancer/disputes/index'
 import { Route as DashboardFreelancerContractsIndexRouteImport } from './routes/dashboard/freelancer/contracts/index'
 import { Route as DashboardAdminVerificationsIndexRouteImport } from './routes/dashboard/admin/verifications/index'
+import { Route as DashboardAdminUsersIndexRouteImport } from './routes/dashboard/admin/users/index'
+import { Route as DashboardAdminDisputesIndexRouteImport } from './routes/dashboard/admin/disputes/index'
 import { Route as DashboardHirerJobsNewRouteImport } from './routes/dashboard/hirer/jobs/new'
 import { Route as DashboardHirerJobsJobIdRouteImport } from './routes/dashboard/hirer/jobs/$jobId'
 import { Route as DashboardHirerDisputesDisputeIdRouteImport } from './routes/dashboard/hirer/disputes/$disputeId'
@@ -88,6 +100,11 @@ const ClientsRouteRoute = ClientsRouteRouteImport.update({
   path: '/clients',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminRouteRoute = AdminRouteRouteImport.update({
+  id: '/admin',
+  path: '/admin',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
@@ -123,15 +140,30 @@ const DashboardIndexRoute = DashboardIndexRouteImport.update({
   path: '/',
   getParentRoute: () => DashboardRouteRoute,
 } as any)
+const AdminIndexRoute = AdminIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AdminRouteRoute,
+} as any)
 const FreelancersUserIdRoute = FreelancersUserIdRouteImport.update({
   id: '/$userId',
   path: '/$userId',
   getParentRoute: () => FreelancersRouteRoute,
 } as any)
+const DashboardSuspendedRoute = DashboardSuspendedRouteImport.update({
+  id: '/suspended',
+  path: '/suspended',
+  getParentRoute: () => DashboardRouteRoute,
+} as any)
 const ClientsUserIdRoute = ClientsUserIdRouteImport.update({
   id: '/$userId',
   path: '/$userId',
   getParentRoute: () => ClientsRouteRoute,
+} as any)
+const AdminLoginRoute = AdminLoginRouteImport.update({
+  id: '/login',
+  path: '/login',
+  getParentRoute: () => AdminRouteRoute,
 } as any)
 const DashboardHirerRouteRoute = DashboardHirerRouteRouteImport.update({
   id: '/hirer',
@@ -144,6 +176,11 @@ const DashboardFreelancerRouteRoute =
     path: '/freelancer',
     getParentRoute: () => DashboardRouteRoute,
   } as any)
+const DashboardAdminRouteRoute = DashboardAdminRouteRouteImport.update({
+  id: '/admin',
+  path: '/admin',
+  getParentRoute: () => DashboardRouteRoute,
+} as any)
 const DashboardHirerIndexRoute = DashboardHirerIndexRouteImport.update({
   id: '/',
   path: '/',
@@ -155,6 +192,31 @@ const DashboardFreelancerIndexRoute =
     path: '/',
     getParentRoute: () => DashboardFreelancerRouteRoute,
   } as any)
+const DashboardAdminIndexRoute = DashboardAdminIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => DashboardAdminRouteRoute,
+} as any)
+const AdminVerificationsIndexRoute = AdminVerificationsIndexRouteImport.update({
+  id: '/verifications/',
+  path: '/verifications/',
+  getParentRoute: () => AdminRouteRoute,
+} as any)
+const AdminUsersIndexRoute = AdminUsersIndexRouteImport.update({
+  id: '/users/',
+  path: '/users/',
+  getParentRoute: () => AdminRouteRoute,
+} as any)
+const AdminDisputesIndexRoute = AdminDisputesIndexRouteImport.update({
+  id: '/disputes/',
+  path: '/disputes/',
+  getParentRoute: () => AdminRouteRoute,
+} as any)
+const AdminAccountIndexRoute = AdminAccountIndexRouteImport.update({
+  id: '/account/',
+  path: '/account/',
+  getParentRoute: () => AdminRouteRoute,
+} as any)
 const DashboardHirerProfileRoute = DashboardHirerProfileRouteImport.update({
   id: '/profile',
   path: '/profile',
@@ -239,9 +301,21 @@ const DashboardFreelancerContractsIndexRoute =
   } as any)
 const DashboardAdminVerificationsIndexRoute =
   DashboardAdminVerificationsIndexRouteImport.update({
-    id: '/admin/verifications/',
-    path: '/admin/verifications/',
-    getParentRoute: () => DashboardRouteRoute,
+    id: '/verifications/',
+    path: '/verifications/',
+    getParentRoute: () => DashboardAdminRouteRoute,
+  } as any)
+const DashboardAdminUsersIndexRoute =
+  DashboardAdminUsersIndexRouteImport.update({
+    id: '/users/',
+    path: '/users/',
+    getParentRoute: () => DashboardAdminRouteRoute,
+  } as any)
+const DashboardAdminDisputesIndexRoute =
+  DashboardAdminDisputesIndexRouteImport.update({
+    id: '/disputes/',
+    path: '/disputes/',
+    getParentRoute: () => DashboardAdminRouteRoute,
   } as any)
 const DashboardHirerJobsNewRoute = DashboardHirerJobsNewRouteImport.update({
   id: '/jobs/new',
@@ -292,6 +366,7 @@ const DashboardHirerJobsJobIdProposalsRoute =
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/admin': typeof AdminRouteRouteWithChildren
   '/clients': typeof ClientsRouteRouteWithChildren
   '/dashboard': typeof DashboardRouteRouteWithChildren
   '/forgot-password': typeof ForgotPasswordRouteRouteWithChildren
@@ -299,10 +374,14 @@ export interface FileRoutesByFullPath {
   '/login': typeof LoginRouteRouteWithChildren
   '/reset-password': typeof ResetPasswordRouteRouteWithChildren
   '/success': typeof SuccessRouteRouteWithChildren
+  '/dashboard/admin': typeof DashboardAdminRouteRouteWithChildren
   '/dashboard/freelancer': typeof DashboardFreelancerRouteRouteWithChildren
   '/dashboard/hirer': typeof DashboardHirerRouteRouteWithChildren
+  '/admin/login': typeof AdminLoginRoute
   '/clients/$userId': typeof ClientsUserIdRoute
+  '/dashboard/suspended': typeof DashboardSuspendedRoute
   '/freelancers/$userId': typeof FreelancersUserIdRoute
+  '/admin/': typeof AdminIndexRoute
   '/dashboard/': typeof DashboardIndexRoute
   '/forgot-password/': typeof ForgotPasswordIndexRoute
   '/freelancers/': typeof FreelancersIndexRoute
@@ -314,6 +393,11 @@ export interface FileRoutesByFullPath {
   '/dashboard/freelancer/proposals': typeof DashboardFreelancerProposalsRoute
   '/dashboard/hirer/messages': typeof DashboardHirerMessagesRoute
   '/dashboard/hirer/profile': typeof DashboardHirerProfileRoute
+  '/admin/account/': typeof AdminAccountIndexRoute
+  '/admin/disputes/': typeof AdminDisputesIndexRoute
+  '/admin/users/': typeof AdminUsersIndexRoute
+  '/admin/verifications/': typeof AdminVerificationsIndexRoute
+  '/dashboard/admin/': typeof DashboardAdminIndexRoute
   '/dashboard/freelancer/': typeof DashboardFreelancerIndexRoute
   '/dashboard/hirer/': typeof DashboardHirerIndexRoute
   '/dashboard/freelancer/contracts/$contractId': typeof DashboardFreelancerContractsContractIdRoute
@@ -323,6 +407,8 @@ export interface FileRoutesByFullPath {
   '/dashboard/hirer/disputes/$disputeId': typeof DashboardHirerDisputesDisputeIdRoute
   '/dashboard/hirer/jobs/$jobId': typeof DashboardHirerJobsJobIdRouteWithChildren
   '/dashboard/hirer/jobs/new': typeof DashboardHirerJobsNewRoute
+  '/dashboard/admin/disputes/': typeof DashboardAdminDisputesIndexRoute
+  '/dashboard/admin/users/': typeof DashboardAdminUsersIndexRoute
   '/dashboard/admin/verifications/': typeof DashboardAdminVerificationsIndexRoute
   '/dashboard/freelancer/contracts/': typeof DashboardFreelancerContractsIndexRoute
   '/dashboard/freelancer/disputes/': typeof DashboardFreelancerDisputesIndexRoute
@@ -338,8 +424,11 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/clients': typeof ClientsRouteRouteWithChildren
+  '/admin/login': typeof AdminLoginRoute
   '/clients/$userId': typeof ClientsUserIdRoute
+  '/dashboard/suspended': typeof DashboardSuspendedRoute
   '/freelancers/$userId': typeof FreelancersUserIdRoute
+  '/admin': typeof AdminIndexRoute
   '/dashboard': typeof DashboardIndexRoute
   '/forgot-password': typeof ForgotPasswordIndexRoute
   '/freelancers': typeof FreelancersIndexRoute
@@ -351,6 +440,11 @@ export interface FileRoutesByTo {
   '/dashboard/freelancer/proposals': typeof DashboardFreelancerProposalsRoute
   '/dashboard/hirer/messages': typeof DashboardHirerMessagesRoute
   '/dashboard/hirer/profile': typeof DashboardHirerProfileRoute
+  '/admin/account': typeof AdminAccountIndexRoute
+  '/admin/disputes': typeof AdminDisputesIndexRoute
+  '/admin/users': typeof AdminUsersIndexRoute
+  '/admin/verifications': typeof AdminVerificationsIndexRoute
+  '/dashboard/admin': typeof DashboardAdminIndexRoute
   '/dashboard/freelancer': typeof DashboardFreelancerIndexRoute
   '/dashboard/hirer': typeof DashboardHirerIndexRoute
   '/dashboard/freelancer/contracts/$contractId': typeof DashboardFreelancerContractsContractIdRoute
@@ -360,6 +454,8 @@ export interface FileRoutesByTo {
   '/dashboard/hirer/disputes/$disputeId': typeof DashboardHirerDisputesDisputeIdRoute
   '/dashboard/hirer/jobs/$jobId': typeof DashboardHirerJobsJobIdRouteWithChildren
   '/dashboard/hirer/jobs/new': typeof DashboardHirerJobsNewRoute
+  '/dashboard/admin/disputes': typeof DashboardAdminDisputesIndexRoute
+  '/dashboard/admin/users': typeof DashboardAdminUsersIndexRoute
   '/dashboard/admin/verifications': typeof DashboardAdminVerificationsIndexRoute
   '/dashboard/freelancer/contracts': typeof DashboardFreelancerContractsIndexRoute
   '/dashboard/freelancer/disputes': typeof DashboardFreelancerDisputesIndexRoute
@@ -375,6 +471,7 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/admin': typeof AdminRouteRouteWithChildren
   '/clients': typeof ClientsRouteRouteWithChildren
   '/dashboard': typeof DashboardRouteRouteWithChildren
   '/forgot-password': typeof ForgotPasswordRouteRouteWithChildren
@@ -382,10 +479,14 @@ export interface FileRoutesById {
   '/login': typeof LoginRouteRouteWithChildren
   '/reset-password': typeof ResetPasswordRouteRouteWithChildren
   '/success': typeof SuccessRouteRouteWithChildren
+  '/dashboard/admin': typeof DashboardAdminRouteRouteWithChildren
   '/dashboard/freelancer': typeof DashboardFreelancerRouteRouteWithChildren
   '/dashboard/hirer': typeof DashboardHirerRouteRouteWithChildren
+  '/admin/login': typeof AdminLoginRoute
   '/clients/$userId': typeof ClientsUserIdRoute
+  '/dashboard/suspended': typeof DashboardSuspendedRoute
   '/freelancers/$userId': typeof FreelancersUserIdRoute
+  '/admin/': typeof AdminIndexRoute
   '/dashboard/': typeof DashboardIndexRoute
   '/forgot-password/': typeof ForgotPasswordIndexRoute
   '/freelancers/': typeof FreelancersIndexRoute
@@ -397,6 +498,11 @@ export interface FileRoutesById {
   '/dashboard/freelancer/proposals': typeof DashboardFreelancerProposalsRoute
   '/dashboard/hirer/messages': typeof DashboardHirerMessagesRoute
   '/dashboard/hirer/profile': typeof DashboardHirerProfileRoute
+  '/admin/account/': typeof AdminAccountIndexRoute
+  '/admin/disputes/': typeof AdminDisputesIndexRoute
+  '/admin/users/': typeof AdminUsersIndexRoute
+  '/admin/verifications/': typeof AdminVerificationsIndexRoute
+  '/dashboard/admin/': typeof DashboardAdminIndexRoute
   '/dashboard/freelancer/': typeof DashboardFreelancerIndexRoute
   '/dashboard/hirer/': typeof DashboardHirerIndexRoute
   '/dashboard/freelancer/contracts/$contractId': typeof DashboardFreelancerContractsContractIdRoute
@@ -406,6 +512,8 @@ export interface FileRoutesById {
   '/dashboard/hirer/disputes/$disputeId': typeof DashboardHirerDisputesDisputeIdRoute
   '/dashboard/hirer/jobs/$jobId': typeof DashboardHirerJobsJobIdRouteWithChildren
   '/dashboard/hirer/jobs/new': typeof DashboardHirerJobsNewRoute
+  '/dashboard/admin/disputes/': typeof DashboardAdminDisputesIndexRoute
+  '/dashboard/admin/users/': typeof DashboardAdminUsersIndexRoute
   '/dashboard/admin/verifications/': typeof DashboardAdminVerificationsIndexRoute
   '/dashboard/freelancer/contracts/': typeof DashboardFreelancerContractsIndexRoute
   '/dashboard/freelancer/disputes/': typeof DashboardFreelancerDisputesIndexRoute
@@ -422,6 +530,7 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/admin'
     | '/clients'
     | '/dashboard'
     | '/forgot-password'
@@ -429,10 +538,14 @@ export interface FileRouteTypes {
     | '/login'
     | '/reset-password'
     | '/success'
+    | '/dashboard/admin'
     | '/dashboard/freelancer'
     | '/dashboard/hirer'
+    | '/admin/login'
     | '/clients/$userId'
+    | '/dashboard/suspended'
     | '/freelancers/$userId'
+    | '/admin/'
     | '/dashboard/'
     | '/forgot-password/'
     | '/freelancers/'
@@ -444,6 +557,11 @@ export interface FileRouteTypes {
     | '/dashboard/freelancer/proposals'
     | '/dashboard/hirer/messages'
     | '/dashboard/hirer/profile'
+    | '/admin/account/'
+    | '/admin/disputes/'
+    | '/admin/users/'
+    | '/admin/verifications/'
+    | '/dashboard/admin/'
     | '/dashboard/freelancer/'
     | '/dashboard/hirer/'
     | '/dashboard/freelancer/contracts/$contractId'
@@ -453,6 +571,8 @@ export interface FileRouteTypes {
     | '/dashboard/hirer/disputes/$disputeId'
     | '/dashboard/hirer/jobs/$jobId'
     | '/dashboard/hirer/jobs/new'
+    | '/dashboard/admin/disputes/'
+    | '/dashboard/admin/users/'
     | '/dashboard/admin/verifications/'
     | '/dashboard/freelancer/contracts/'
     | '/dashboard/freelancer/disputes/'
@@ -468,8 +588,11 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/clients'
+    | '/admin/login'
     | '/clients/$userId'
+    | '/dashboard/suspended'
     | '/freelancers/$userId'
+    | '/admin'
     | '/dashboard'
     | '/forgot-password'
     | '/freelancers'
@@ -481,6 +604,11 @@ export interface FileRouteTypes {
     | '/dashboard/freelancer/proposals'
     | '/dashboard/hirer/messages'
     | '/dashboard/hirer/profile'
+    | '/admin/account'
+    | '/admin/disputes'
+    | '/admin/users'
+    | '/admin/verifications'
+    | '/dashboard/admin'
     | '/dashboard/freelancer'
     | '/dashboard/hirer'
     | '/dashboard/freelancer/contracts/$contractId'
@@ -490,6 +618,8 @@ export interface FileRouteTypes {
     | '/dashboard/hirer/disputes/$disputeId'
     | '/dashboard/hirer/jobs/$jobId'
     | '/dashboard/hirer/jobs/new'
+    | '/dashboard/admin/disputes'
+    | '/dashboard/admin/users'
     | '/dashboard/admin/verifications'
     | '/dashboard/freelancer/contracts'
     | '/dashboard/freelancer/disputes'
@@ -504,6 +634,7 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
+    | '/admin'
     | '/clients'
     | '/dashboard'
     | '/forgot-password'
@@ -511,10 +642,14 @@ export interface FileRouteTypes {
     | '/login'
     | '/reset-password'
     | '/success'
+    | '/dashboard/admin'
     | '/dashboard/freelancer'
     | '/dashboard/hirer'
+    | '/admin/login'
     | '/clients/$userId'
+    | '/dashboard/suspended'
     | '/freelancers/$userId'
+    | '/admin/'
     | '/dashboard/'
     | '/forgot-password/'
     | '/freelancers/'
@@ -526,6 +661,11 @@ export interface FileRouteTypes {
     | '/dashboard/freelancer/proposals'
     | '/dashboard/hirer/messages'
     | '/dashboard/hirer/profile'
+    | '/admin/account/'
+    | '/admin/disputes/'
+    | '/admin/users/'
+    | '/admin/verifications/'
+    | '/dashboard/admin/'
     | '/dashboard/freelancer/'
     | '/dashboard/hirer/'
     | '/dashboard/freelancer/contracts/$contractId'
@@ -535,6 +675,8 @@ export interface FileRouteTypes {
     | '/dashboard/hirer/disputes/$disputeId'
     | '/dashboard/hirer/jobs/$jobId'
     | '/dashboard/hirer/jobs/new'
+    | '/dashboard/admin/disputes/'
+    | '/dashboard/admin/users/'
     | '/dashboard/admin/verifications/'
     | '/dashboard/freelancer/contracts/'
     | '/dashboard/freelancer/disputes/'
@@ -550,6 +692,7 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AdminRouteRoute: typeof AdminRouteRouteWithChildren
   ClientsRouteRoute: typeof ClientsRouteRouteWithChildren
   DashboardRouteRoute: typeof DashboardRouteRouteWithChildren
   ForgotPasswordRouteRoute: typeof ForgotPasswordRouteRouteWithChildren
@@ -610,6 +753,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ClientsRouteRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin': {
+      id: '/admin'
+      path: '/admin'
+      fullPath: '/admin'
+      preLoaderRoute: typeof AdminRouteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -659,6 +809,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardIndexRouteImport
       parentRoute: typeof DashboardRouteRoute
     }
+    '/admin/': {
+      id: '/admin/'
+      path: '/'
+      fullPath: '/admin/'
+      preLoaderRoute: typeof AdminIndexRouteImport
+      parentRoute: typeof AdminRouteRoute
+    }
     '/freelancers/$userId': {
       id: '/freelancers/$userId'
       path: '/$userId'
@@ -666,12 +823,26 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof FreelancersUserIdRouteImport
       parentRoute: typeof FreelancersRouteRoute
     }
+    '/dashboard/suspended': {
+      id: '/dashboard/suspended'
+      path: '/suspended'
+      fullPath: '/dashboard/suspended'
+      preLoaderRoute: typeof DashboardSuspendedRouteImport
+      parentRoute: typeof DashboardRouteRoute
+    }
     '/clients/$userId': {
       id: '/clients/$userId'
       path: '/$userId'
       fullPath: '/clients/$userId'
       preLoaderRoute: typeof ClientsUserIdRouteImport
       parentRoute: typeof ClientsRouteRoute
+    }
+    '/admin/login': {
+      id: '/admin/login'
+      path: '/login'
+      fullPath: '/admin/login'
+      preLoaderRoute: typeof AdminLoginRouteImport
+      parentRoute: typeof AdminRouteRoute
     }
     '/dashboard/hirer': {
       id: '/dashboard/hirer'
@@ -687,6 +858,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardFreelancerRouteRouteImport
       parentRoute: typeof DashboardRouteRoute
     }
+    '/dashboard/admin': {
+      id: '/dashboard/admin'
+      path: '/admin'
+      fullPath: '/dashboard/admin'
+      preLoaderRoute: typeof DashboardAdminRouteRouteImport
+      parentRoute: typeof DashboardRouteRoute
+    }
     '/dashboard/hirer/': {
       id: '/dashboard/hirer/'
       path: '/'
@@ -700,6 +878,41 @@ declare module '@tanstack/react-router' {
       fullPath: '/dashboard/freelancer/'
       preLoaderRoute: typeof DashboardFreelancerIndexRouteImport
       parentRoute: typeof DashboardFreelancerRouteRoute
+    }
+    '/dashboard/admin/': {
+      id: '/dashboard/admin/'
+      path: '/'
+      fullPath: '/dashboard/admin/'
+      preLoaderRoute: typeof DashboardAdminIndexRouteImport
+      parentRoute: typeof DashboardAdminRouteRoute
+    }
+    '/admin/verifications/': {
+      id: '/admin/verifications/'
+      path: '/verifications'
+      fullPath: '/admin/verifications/'
+      preLoaderRoute: typeof AdminVerificationsIndexRouteImport
+      parentRoute: typeof AdminRouteRoute
+    }
+    '/admin/users/': {
+      id: '/admin/users/'
+      path: '/users'
+      fullPath: '/admin/users/'
+      preLoaderRoute: typeof AdminUsersIndexRouteImport
+      parentRoute: typeof AdminRouteRoute
+    }
+    '/admin/disputes/': {
+      id: '/admin/disputes/'
+      path: '/disputes'
+      fullPath: '/admin/disputes/'
+      preLoaderRoute: typeof AdminDisputesIndexRouteImport
+      parentRoute: typeof AdminRouteRoute
+    }
+    '/admin/account/': {
+      id: '/admin/account/'
+      path: '/account'
+      fullPath: '/admin/account/'
+      preLoaderRoute: typeof AdminAccountIndexRouteImport
+      parentRoute: typeof AdminRouteRoute
     }
     '/dashboard/hirer/profile': {
       id: '/dashboard/hirer/profile'
@@ -801,10 +1014,24 @@ declare module '@tanstack/react-router' {
     }
     '/dashboard/admin/verifications/': {
       id: '/dashboard/admin/verifications/'
-      path: '/admin/verifications'
+      path: '/verifications'
       fullPath: '/dashboard/admin/verifications/'
       preLoaderRoute: typeof DashboardAdminVerificationsIndexRouteImport
-      parentRoute: typeof DashboardRouteRoute
+      parentRoute: typeof DashboardAdminRouteRoute
+    }
+    '/dashboard/admin/users/': {
+      id: '/dashboard/admin/users/'
+      path: '/users'
+      fullPath: '/dashboard/admin/users/'
+      preLoaderRoute: typeof DashboardAdminUsersIndexRouteImport
+      parentRoute: typeof DashboardAdminRouteRoute
+    }
+    '/dashboard/admin/disputes/': {
+      id: '/dashboard/admin/disputes/'
+      path: '/disputes'
+      fullPath: '/dashboard/admin/disputes/'
+      preLoaderRoute: typeof DashboardAdminDisputesIndexRouteImport
+      parentRoute: typeof DashboardAdminRouteRoute
     }
     '/dashboard/hirer/jobs/new': {
       id: '/dashboard/hirer/jobs/new'
@@ -865,6 +1092,28 @@ declare module '@tanstack/react-router' {
   }
 }
 
+interface AdminRouteRouteChildren {
+  AdminLoginRoute: typeof AdminLoginRoute
+  AdminIndexRoute: typeof AdminIndexRoute
+  AdminAccountIndexRoute: typeof AdminAccountIndexRoute
+  AdminDisputesIndexRoute: typeof AdminDisputesIndexRoute
+  AdminUsersIndexRoute: typeof AdminUsersIndexRoute
+  AdminVerificationsIndexRoute: typeof AdminVerificationsIndexRoute
+}
+
+const AdminRouteRouteChildren: AdminRouteRouteChildren = {
+  AdminLoginRoute: AdminLoginRoute,
+  AdminIndexRoute: AdminIndexRoute,
+  AdminAccountIndexRoute: AdminAccountIndexRoute,
+  AdminDisputesIndexRoute: AdminDisputesIndexRoute,
+  AdminUsersIndexRoute: AdminUsersIndexRoute,
+  AdminVerificationsIndexRoute: AdminVerificationsIndexRoute,
+}
+
+const AdminRouteRouteWithChildren = AdminRouteRoute._addFileChildren(
+  AdminRouteRouteChildren,
+)
+
 interface ClientsRouteRouteChildren {
   ClientsUserIdRoute: typeof ClientsUserIdRoute
 }
@@ -876,6 +1125,23 @@ const ClientsRouteRouteChildren: ClientsRouteRouteChildren = {
 const ClientsRouteRouteWithChildren = ClientsRouteRoute._addFileChildren(
   ClientsRouteRouteChildren,
 )
+
+interface DashboardAdminRouteRouteChildren {
+  DashboardAdminIndexRoute: typeof DashboardAdminIndexRoute
+  DashboardAdminDisputesIndexRoute: typeof DashboardAdminDisputesIndexRoute
+  DashboardAdminUsersIndexRoute: typeof DashboardAdminUsersIndexRoute
+  DashboardAdminVerificationsIndexRoute: typeof DashboardAdminVerificationsIndexRoute
+}
+
+const DashboardAdminRouteRouteChildren: DashboardAdminRouteRouteChildren = {
+  DashboardAdminIndexRoute: DashboardAdminIndexRoute,
+  DashboardAdminDisputesIndexRoute: DashboardAdminDisputesIndexRoute,
+  DashboardAdminUsersIndexRoute: DashboardAdminUsersIndexRoute,
+  DashboardAdminVerificationsIndexRoute: DashboardAdminVerificationsIndexRoute,
+}
+
+const DashboardAdminRouteRouteWithChildren =
+  DashboardAdminRouteRoute._addFileChildren(DashboardAdminRouteRouteChildren)
 
 interface DashboardFreelancerRouteRouteChildren {
   DashboardFreelancerMessagesRoute: typeof DashboardFreelancerMessagesRoute
@@ -965,18 +1231,20 @@ const DashboardHirerRouteRouteWithChildren =
   DashboardHirerRouteRoute._addFileChildren(DashboardHirerRouteRouteChildren)
 
 interface DashboardRouteRouteChildren {
+  DashboardAdminRouteRoute: typeof DashboardAdminRouteRouteWithChildren
   DashboardFreelancerRouteRoute: typeof DashboardFreelancerRouteRouteWithChildren
   DashboardHirerRouteRoute: typeof DashboardHirerRouteRouteWithChildren
+  DashboardSuspendedRoute: typeof DashboardSuspendedRoute
   DashboardIndexRoute: typeof DashboardIndexRoute
-  DashboardAdminVerificationsIndexRoute: typeof DashboardAdminVerificationsIndexRoute
   DashboardOnboardingRoleIndexRoute: typeof DashboardOnboardingRoleIndexRoute
 }
 
 const DashboardRouteRouteChildren: DashboardRouteRouteChildren = {
+  DashboardAdminRouteRoute: DashboardAdminRouteRouteWithChildren,
   DashboardFreelancerRouteRoute: DashboardFreelancerRouteRouteWithChildren,
   DashboardHirerRouteRoute: DashboardHirerRouteRouteWithChildren,
+  DashboardSuspendedRoute: DashboardSuspendedRoute,
   DashboardIndexRoute: DashboardIndexRoute,
-  DashboardAdminVerificationsIndexRoute: DashboardAdminVerificationsIndexRoute,
   DashboardOnboardingRoleIndexRoute: DashboardOnboardingRoleIndexRoute,
 }
 
@@ -1045,6 +1313,7 @@ const SuccessRouteRouteWithChildren = SuccessRouteRoute._addFileChildren(
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AdminRouteRoute: AdminRouteRouteWithChildren,
   ClientsRouteRoute: ClientsRouteRouteWithChildren,
   DashboardRouteRoute: DashboardRouteRouteWithChildren,
   ForgotPasswordRouteRoute: ForgotPasswordRouteRouteWithChildren,

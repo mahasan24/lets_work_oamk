@@ -50,6 +50,7 @@ export default function MarketingHeader() {
           {
             label: "Find work",
             href: session ? "/dashboard/freelancer" : "/login",
+            search: session ? undefined : { mode: "sign-up" },
             isRouter: true as const,
           },
         ]
@@ -74,8 +75,8 @@ export default function MarketingHeader() {
             initial="hidden"
             animate="show"
           >
-            {navLinks.map(({ label, href, isRouter }) => (
-              <AnimatedNavLink key={label} href={href} isRouter={isRouter}>
+            {navLinks.map(({ label, href, isRouter, search }) => (
+              <AnimatedNavLink key={label} href={href} isRouter={isRouter} search={search}>
                 {label}
               </AnimatedNavLink>
             ))}
@@ -87,6 +88,7 @@ export default function MarketingHeader() {
             signUpButton={
               <Link
                 to="/login"
+                search={{ mode: "sign-up" }}
                 className={cn(buttonVariants({ variant: "ghost", size: "sm" }), "text-foreground")}
               >
                 Sign up

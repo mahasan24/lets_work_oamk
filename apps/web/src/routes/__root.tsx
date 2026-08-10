@@ -54,6 +54,7 @@ export const Route = createRootRouteWithContext<RouterAppContext>()({
 function RootComponent() {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const isDashboardRoute = pathname === "/dashboard" || pathname.startsWith("/dashboard/");
+  const isAdminRoute = pathname === "/admin" || pathname.startsWith("/admin/");
   const isAppRoute = APP_ROUTES.some(
     (route) => pathname === route || pathname.startsWith(`${route}/`),
   );
@@ -72,7 +73,7 @@ function RootComponent() {
         disableTransitionOnChange
         storageKey="vite-ui-theme"
       >
-        {isDashboardRoute ? (
+        {isDashboardRoute || isAdminRoute ? (
           <div className="grid h-svh grid-rows-[1fr]">
             <Outlet />
           </div>

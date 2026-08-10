@@ -95,3 +95,37 @@ export function sendEmailVerificationEmail({
 
   return sendEmail({ to, subject, text, html });
 }
+
+export function sendDeleteAccountVerificationEmail({
+  to,
+  name,
+  url,
+}: {
+  to: string;
+  name: string;
+  url: string;
+}) {
+  const subject = "Confirm deleting your Lets Work account";
+  const text = [
+    `Hi ${name},`,
+    "",
+    "We received a request to permanently delete your Lets Work account.",
+    "This removes your profile, jobs, proposals, contracts, and payment records.",
+    `Confirm deletion: ${url}`,
+    "",
+    "If you did not request this, you can ignore this email and your account will stay active.",
+    "",
+    "— Lets Work",
+  ].join("\n");
+
+  const html = `
+    <p>Hi ${name},</p>
+    <p>We received a request to permanently delete your Lets Work account.</p>
+    <p>This removes your profile, jobs, proposals, contracts, and payment records.</p>
+    <p><a href="${url}">Confirm deletion</a></p>
+    <p>If you did not request this, you can ignore this email and your account will stay active.</p>
+    <p>— Lets Work</p>
+  `;
+
+  return sendEmail({ to, subject, text, html });
+}

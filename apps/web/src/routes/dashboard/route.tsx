@@ -19,6 +19,19 @@ export const Route = createFileRoute("/dashboard")({
       redirect({ to: onboardingRedirect, throw: true });
     }
 
+    const isSuspendedPath =
+      location.pathname === "/dashboard/suspended" || location.pathname === "/dashboard/suspended/";
+
+    if (profile?.profile.suspendedAt && !isSuspendedPath) {
+      if (!profile.isAdmin) {
+        redirect({ to: "/dashboard/suspended", throw: true });
+      }
+    }
+
+    if (!profile?.profile.suspendedAt && isSuspendedPath) {
+      redirect({ to: "/dashboard", throw: true });
+    }
+
     const isDashboardRoot =
       location.pathname === "/dashboard" || location.pathname === "/dashboard/";
 

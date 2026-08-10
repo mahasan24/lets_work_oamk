@@ -123,6 +123,7 @@
       "name": "@lets_work/db",
       "dependencies": {
         "@lets_work/env": "workspace:*",
+        "better-auth": "catalog:",
         "dotenv": "catalog:",
         "drizzle-orm": "^0.45.1",
         "pg": "^8.17.1",
