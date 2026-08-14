@@ -79,10 +79,29 @@ export function buildFreelancerAiContext(bundle: Awaited<ReturnType<typeof getPr
   };
 }
 
+function extractGeminiText(response: {
+  text: () => string;
+  candidates?: Array<{ content?: { parts?: Array<{ text?: string }> } }>;
+}) {
+  try {
+    return cleanAiText(response.text() ?? "");
+  } catch {
+    // Blocked / empty candidates — fall back to raw parts if present.
+    const parts = response.candidates?.[0]?.content?.parts ?? [];
+    const joined = parts
+      .map((part) => (typeof part.text === "string" ? part.text : ""))
+      .join("")
+      .trim();
+    return cleanAiText(joined);
+  }
+}
+
 export async function generateGeminiText(input: {
   prompt: string;
   temperature?: number;
   maxOutputTokens?: number;
+  /** Prefer application/json when the caller will parse structured output. */
+  responseMimeType?: "text/plain" | "application/json";
 }) {
   const apiKey = requireGeminiApiKey();
   const modelName = env.GEMINI_MODEL;
@@ -92,12 +111,19 @@ export async function generateGeminiText(input: {
     generationConfig: {
       temperature: input.temperature ?? 0.6,
       maxOutputTokens: input.maxOutputTokens ?? 1024,
+      ...(input.responseMimeType ? { responseMimeType: input.responseMimeType } : {}),
     },
   });
 
   try {
     const result = await model.generateContent(input.prompt);
-    const text = cleanAiText(result.response.text() ?? "");
+    const text = extractGeminiText(result.response);
+    if (!text) {
+      throw new ServiceUnavailableError(
+        "AI returned an empty response. Please try again.",
+        "AI_EMPTY_RESPONSE",
+      );
+    }
     const usage = result.response.usageMetadata;
     return {
       text,
@@ -105,11 +131,17 @@ export async function generateGeminiText(input: {
       promptTokens: usage?.promptTokenCount,
       completionTokens: usage?.candidatesTokenCount,
       totalTokens: usage?.totalTokenCount,
+      finishReason: result.response.candidates?.[0]?.finishReason ?? null,
     };
   } catch (error) {
-    console.error("[ai] gemini generateContent failed", error);
+    if (error instanceof ServiceUnavailableError) throw error;
+    console.error("[ai] gemini generateContent failed", { model: modelName, error });
+    const detail = error instanceof Error ? error.message : String(error);
+    const modelGone = /404|not found|no longer available|deprecated/i.test(detail);
     throw new ServiceUnavailableError(
-      "AI assistant is temporarily unavailable. Try again in a moment.",
+      modelGone
+        ? `AI model "${modelName}" is unavailable. Set GEMINI_MODEL to a current model (e.g. gemini-3.5-flash).`
+        : "AI assistant is temporarily unavailable. Try again in a moment.",
       "AI_PROVIDER_ERROR",
     );
   }

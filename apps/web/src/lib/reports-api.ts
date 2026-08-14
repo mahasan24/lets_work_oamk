@@ -66,6 +66,41 @@ export const REPORT_TYPE_OPTIONS: { value: ReportType; label: string }[] = [
   { value: "other", label: "Other" },
 ];
 
+export const REPORT_STATUS_OPTIONS: { value: ReportStatus; label: string }[] = [
+  { value: "open", label: "Open" },
+  { value: "under_review", label: "Under review" },
+  { value: "resolved", label: "Resolved" },
+  { value: "dismissed", label: "Dismissed" },
+];
+
+export const REPORT_QUEUE_FILTER_OPTIONS = [
+  { value: "queue" as const, label: "Open queue" },
+  { value: "all" as const, label: "All" },
+  { value: "resolved" as const, label: "Resolved" },
+  { value: "dismissed" as const, label: "Dismissed" },
+];
+
+export const REPORT_OUTCOME_OPTIONS = [
+  { value: "resolved" as const, label: "Resolve (action taken)" },
+  { value: "dismissed" as const, label: "Dismiss (no action)" },
+];
+
+export function getReportTypeLabel(type: string) {
+  return REPORT_TYPE_OPTIONS.find((option) => option.value === type)?.label ?? type;
+}
+
+export function getReportStatusLabel(status: string) {
+  return REPORT_STATUS_OPTIONS.find((option) => option.value === status)?.label ?? status;
+}
+
+export function getReportQueueFilterLabel(filter: string) {
+  return REPORT_QUEUE_FILTER_OPTIONS.find((option) => option.value === filter)?.label ?? filter;
+}
+
+export function getReportOutcomeLabel(outcome: string) {
+  return REPORT_OUTCOME_OPTIONS.find((option) => option.value === outcome)?.label ?? outcome;
+}
+
 export const reportsApi = {
   create: (body: CreateReportInput) =>
     apiFetch<Report>("/api/reports", {

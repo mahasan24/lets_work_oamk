@@ -1,10 +1,10 @@
-import { GoogleGenerativeAI } from "@google/generative-ai";
 import { db } from "@lets_work/db";
 import { aiUsageLog } from "@lets_work/db/schema/ai";
 import { job } from "@lets_work/db/schema/jobs";
 import { env } from "@lets_work/env/server";
 import { eq } from "drizzle-orm";
 
+import { generateGeminiText } from "./ai-gemini";
 import { BadRequestError, NotFoundError, ServiceUnavailableError } from "./errors";
 import { getProfileBundle } from "./profile";
 
@@ -213,28 +213,13 @@ export async function generateProposalCoverLetter(input: {
     coverLetter: input.coverLetter,
   });
 
-  const modelName = env.GEMINI_MODEL;
-  const client = new GoogleGenerativeAI(env.GEMINI_API_KEY);
-  const model = client.getGenerativeModel({
-    model: modelName,
-    generationConfig: {
-      temperature: input.mode === "enhance" ? 0.55 : 0.7,
-      maxOutputTokens: 1024,
-    },
+  const generated = await generateGeminiText({
+    prompt,
+    temperature: input.mode === "enhance" ? 0.55 : 0.7,
+    maxOutputTokens: 1024,
   });
 
-  let result;
-  try {
-    result = await model.generateContent(prompt);
-  } catch (error) {
-    console.error("[ai] gemini generateContent failed", error);
-    throw new ServiceUnavailableError(
-      "AI assistant is temporarily unavailable. Try again in a moment.",
-      "AI_PROVIDER_ERROR",
-    );
-  }
-
-  const coverLetter = cleanCoverLetter(result.response.text() ?? "");
+  const coverLetter = cleanCoverLetter(generated.text);
   if (coverLetter.length < COVER_LETTER_MIN) {
     throw new ServiceUnavailableError(
       "AI returned an incomplete cover letter. Please try again.",
@@ -242,20 +227,19 @@ export async function generateProposalCoverLetter(input: {
     );
   }
 
-  const usage = result.response.usageMetadata;
   await logUsage({
     userId: input.userId,
     jobId: input.jobId,
     mode: input.mode,
-    model: modelName,
-    promptTokens: usage?.promptTokenCount,
-    completionTokens: usage?.candidatesTokenCount,
-    totalTokens: usage?.totalTokenCount,
+    model: generated.model,
+    promptTokens: generated.promptTokens,
+    completionTokens: generated.completionTokens,
+    totalTokens: generated.totalTokens,
   });
 
   return {
     coverLetter,
     mode: input.mode,
-    model: modelName,
+    model: generated.model,
   };
 }

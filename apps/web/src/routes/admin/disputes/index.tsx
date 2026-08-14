@@ -15,13 +15,19 @@ import {
   SelectGroup,
   SelectItem,
   SelectTrigger,
-  SelectValue,
 } from "@lets_work/ui/components/select";
 import { createFileRoute } from "@tanstack/react-router";
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
 
 import { adminApi, type AdminDispute } from "@/lib/admin-api";
+import { getContractStatusLabel, type ContractStatus } from "@/lib/contracts-api";
+import {
+  DISPUTE_RESOLUTION_OPTIONS,
+  getDisputeResolutionLabel,
+  getDisputeStatusLabel,
+  type DisputeStatus,
+} from "@/lib/disputes-api";
 
 export const Route = createFileRoute("/admin/disputes/")({
   component: AdminDisputesPage,
@@ -131,12 +137,12 @@ function AdminDisputesPage() {
                   <div className="flex flex-wrap items-center gap-2">
                     <CardTitle>{item.contractTitle}</CardTitle>
                     <Badge variant={item.status === "under_review" ? "default" : "secondary"}>
-                      {item.status}
+                      {getDisputeStatusLabel(item.status as DisputeStatus)}
                     </Badge>
                   </div>
                   <CardDescription>
                     Opened {new Date(item.createdAt).toLocaleString()} · Contract{" "}
-                    {item.contractStatus}
+                    {getContractStatusLabel(item.contractStatus as ContractStatus)}
                     {item.milestoneTitle ? ` · Milestone: ${item.milestoneTitle}` : ""}
                   </CardDescription>
                 </CardHeader>
@@ -154,6 +160,12 @@ function AdminDisputesPage() {
                       <span className="text-muted-foreground">Reason:</span> {item.reason}
                     </p>
                     <p className="whitespace-pre-wrap text-muted-foreground">{item.description}</p>
+                    {item.resolution ? (
+                      <p>
+                        <span className="text-muted-foreground">Existing resolution:</span>{" "}
+                        {item.resolution}
+                      </p>
+                    ) : null}
                   </div>
 
                   <FieldGroup>
@@ -166,15 +178,17 @@ function AdminDisputesPage() {
                         }}
                       >
                         <SelectTrigger className="w-full max-w-sm">
-                          <SelectValue />
+                          <span className="truncate">
+                            {getDisputeResolutionLabel(draft.resolutionStatus)}
+                          </span>
                         </SelectTrigger>
                         <SelectContent>
                           <SelectGroup>
-                            <SelectItem value="resolved_client">Resolve for client</SelectItem>
-                            <SelectItem value="resolved_freelancer">
-                              Resolve for freelancer
-                            </SelectItem>
-                            <SelectItem value="closed">Close without winner</SelectItem>
+                            {DISPUTE_RESOLUTION_OPTIONS.map((option) => (
+                              <SelectItem key={option.value} value={option.value}>
+                                {option.label}
+                              </SelectItem>
+                            ))}
                           </SelectGroup>
                         </SelectContent>
                       </Select>

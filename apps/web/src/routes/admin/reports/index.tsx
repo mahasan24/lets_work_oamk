@@ -16,13 +16,20 @@ import {
   SelectGroup,
   SelectItem,
   SelectTrigger,
-  SelectValue,
 } from "@lets_work/ui/components/select";
 import { createFileRoute } from "@tanstack/react-router";
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
 
 import { adminApi, type AdminReport } from "@/lib/admin-api";
+import {
+  getReportOutcomeLabel,
+  getReportQueueFilterLabel,
+  getReportStatusLabel,
+  getReportTypeLabel,
+  REPORT_OUTCOME_OPTIONS,
+  REPORT_QUEUE_FILTER_OPTIONS,
+} from "@/lib/reports-api";
 
 export const Route = createFileRoute("/admin/reports/")({
   component: AdminReportsPage,
@@ -129,14 +136,15 @@ function AdminReportsPage() {
           }}
         >
           <SelectTrigger className="w-44">
-            <SelectValue />
+            <span className="truncate">{getReportQueueFilterLabel(statusFilter)}</span>
           </SelectTrigger>
           <SelectContent>
             <SelectGroup>
-              <SelectItem value="queue">Open queue</SelectItem>
-              <SelectItem value="all">All</SelectItem>
-              <SelectItem value="resolved">Resolved</SelectItem>
-              <SelectItem value="dismissed">Dismissed</SelectItem>
+              {REPORT_QUEUE_FILTER_OPTIONS.map((option) => (
+                <SelectItem key={option.value} value={option.value}>
+                  {option.label}
+                </SelectItem>
+              ))}
             </SelectGroup>
           </SelectContent>
         </Select>
@@ -166,14 +174,16 @@ function AdminReportsPage() {
                 <CardHeader className="flex flex-row flex-wrap items-start justify-between gap-3 space-y-0">
                   <div className="flex flex-col gap-1">
                     <CardTitle className="text-base">
-                      {item.reportType} · {targetLabel(item)}
+                      {getReportTypeLabel(item.reportType)} · {targetLabel(item)}
                     </CardTitle>
                     <CardDescription>
                       From {item.reporterName} ({item.reporterEmail}) ·{" "}
                       {new Date(item.createdAt).toLocaleString()}
                     </CardDescription>
                   </div>
-                  <Badge variant={isOpen ? "destructive" : "secondary"}>{item.status}</Badge>
+                  <Badge variant={isOpen ? "destructive" : "secondary"}>
+                    {getReportStatusLabel(item.status)}
+                  </Badge>
                 </CardHeader>
                 <CardContent className="flex flex-col gap-4">
                   <p className="text-sm whitespace-pre-wrap">{item.description}</p>
@@ -218,12 +228,15 @@ function AdminReportsPage() {
                           }}
                         >
                           <SelectTrigger>
-                            <SelectValue />
+                            <span className="truncate">{getReportOutcomeLabel(draft.outcome)}</span>
                           </SelectTrigger>
                           <SelectContent>
                             <SelectGroup>
-                              <SelectItem value="resolved">Resolve (action taken)</SelectItem>
-                              <SelectItem value="dismissed">Dismiss (no action)</SelectItem>
+                              {REPORT_OUTCOME_OPTIONS.map((option) => (
+                                <SelectItem key={option.value} value={option.value}>
+                                  {option.label}
+                                </SelectItem>
+                              ))}
                             </SelectGroup>
                           </SelectContent>
                         </Select>

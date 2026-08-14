@@ -14,7 +14,6 @@ import {
   SelectGroup,
   SelectItem,
   SelectTrigger,
-  SelectValue,
 } from "@lets_work/ui/components/select";
 import { Textarea } from "@lets_work/ui/components/textarea";
 import { FlagIcon } from "lucide-react";
@@ -92,7 +91,7 @@ export function ReportDialog({
         onOpenChange(next);
       }}
     >
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="bg-card text-card-foreground sm:max-w-md">
         <DialogHeader>
           <DialogTitle>{title}</DialogTitle>
           <DialogDescription>{description}</DialogDescription>
@@ -107,7 +106,10 @@ export function ReportDialog({
               }}
             >
               <SelectTrigger id="report-type" className="w-full">
-                <SelectValue />
+                <span className="truncate">
+                  {REPORT_TYPE_OPTIONS.find((option) => option.value === reportType)?.label ??
+                    "Select a reason"}
+                </span>
               </SelectTrigger>
               <SelectContent>
                 <SelectGroup>
