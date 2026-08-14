@@ -23,6 +23,7 @@ import { freelancerJobFeedRoutes } from "./routes/freelancer-jobs";
 import { freelancerProposalRoutes } from "./routes/proposals";
 import { clientDirectoryRoutes, freelancerDirectoryRoutes } from "./routes/public-profiles";
 import { realtimeRoutes } from "./routes/realtime";
+import { reportRoutes } from "./routes/reports";
 import { contractReviewRoutes, publicReviewRoutes } from "./routes/reviews";
 import { stripeWebhookRoutes } from "./routes/stripe-webhooks";
 
@@ -91,6 +92,7 @@ new Elysia()
   .use(paymentRoutes)
   .use(invoiceRoutes)
   .use(disputeRoutes)
+  .use(reportRoutes)
   .use(stripeWebhookRoutes)
   .use(notificationRoutes)
   .use(chatRoutes)

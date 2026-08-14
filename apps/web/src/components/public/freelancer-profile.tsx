@@ -6,6 +6,7 @@ import { ExternalLink, Star } from "lucide-react";
 
 import { VerifiedBadge } from "@/components/public/verified-badge";
 import { PublicReviewsList } from "@/components/public/public-reviews-list";
+import { ReportButton } from "@/components/moderation/report-dialog";
 import {
   formatDateRange,
   formatHourlyRate,
@@ -69,6 +70,12 @@ export function FreelancerPublicProfile({ profile }: { profile: PublicFreelancer
                 Reputation score {profile.reputationScore}/100
               </p>
             ) : null}
+            <ReportButton
+              target={{ reportedUserId: profile.userId }}
+              title="Report this freelancer"
+              variant="outline"
+              className="mt-1 gap-1.5"
+            />
           </div>
         </CardContent>
       </Card>

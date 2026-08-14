@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import { Button, buttonVariants } from "@lets_work/ui/components/button";
 import {
@@ -17,6 +17,8 @@ import { Link, useNavigate } from "@tanstack/react-router";
 
 import { DeleteAccountDialog } from "@/components/account/delete-account-section";
 import { authClient } from "@/lib/auth-client";
+import { getDashboardHomePath } from "@/lib/dashboard-paths";
+import { profileApi, type ProfileBundle } from "@/lib/profile-api";
 
 type UserMenuProps = {
   signUpButton?: ReactNode;
@@ -26,6 +28,28 @@ export default function UserMenu({ signUpButton }: UserMenuProps = {}) {
   const navigate = useNavigate();
   const { data: session, isPending } = authClient.useSession();
   const [deleteOpen, setDeleteOpen] = useState(false);
+  const [profile, setProfile] = useState<ProfileBundle | null>(null);
+
+  useEffect(() => {
+    if (!session) {
+      setProfile(null);
+      return;
+    }
+
+    let cancelled = false;
+    profileApi
+      .getMe()
+      .then((bundle) => {
+        if (!cancelled) setProfile(bundle);
+      })
+      .catch(() => {
+        if (!cancelled) setProfile(null);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [session]);
 
   if (isPending) {
     return <Skeleton className="h-9 w-20" />;
@@ -60,6 +84,8 @@ export default function UserMenu({ signUpButton }: UserMenuProps = {}) {
     );
   }
 
+  const homePath = getDashboardHomePath(profile);
+
   return (
     <>
       <DropdownMenu>
@@ -74,7 +100,7 @@ export default function UserMenu({ signUpButton }: UserMenuProps = {}) {
         >
           {session.user.name}
         </DropdownMenuTrigger>
-        <DropdownMenuContent align="end" className="!w-56 min-w-56 bg-card">
+        <DropdownMenuContent align="end" className="w-56! min-w-56 bg-card">
           <DropdownMenuGroup>
             <DropdownMenuLabel>Account</DropdownMenuLabel>
             <DropdownMenuSeparator />
@@ -83,10 +109,10 @@ export default function UserMenu({ signUpButton }: UserMenuProps = {}) {
             </DropdownMenuLabel>
             <DropdownMenuItem
               onClick={() => {
-                navigate({ to: "/dashboard" });
+                void navigate({ to: homePath });
               }}
             >
-              Dashboard
+              {profile?.isAdmin ? "Admin" : "Dashboard"}
             </DropdownMenuItem>
             <DropdownMenuItem
               variant="destructive"
@@ -99,10 +125,11 @@ export default function UserMenu({ signUpButton }: UserMenuProps = {}) {
             <DropdownMenuItem
               variant="destructive"
               onClick={() => {
-                authClient.signOut({
+                void authClient.signOut({
                   fetchOptions: {
                     onSuccess: () => {
-                      navigate({ to: "/" });
+                      // Full navigation unloads dashboard fetches so they don't toast 401s.
+                      window.location.assign("/");
                     },
                   },
                 });

@@ -29,9 +29,19 @@ export async function ensureProfile(userId: string) {
 
   if (existing) return existing;
 
+  const [platform] = await db
+    .select()
+    .from(platformUser)
+    .where(eq(platformUser.userId, userId))
+    .limit(1);
+
   const [created] = await db
     .insert(marketplaceUserProfile)
-    .values({ userId, onboardingStep: "role_selection" })
+    .values({
+      userId,
+      // Admins are not marketplace participants — skip role onboarding.
+      onboardingStep: platform?.role === "admin" ? "complete" : "role_selection",
+    })
     .returning();
 
   if (!created) {
@@ -186,7 +196,13 @@ export async function getProfileBundle(userId: string): Promise<ProfileBundle> {
       .where(eq(marketplaceUserProfile.userId, userId));
   }
 
-  const onboardingStep = resolveOnboardingStep(profile, verifications, profileCompletion);
+  const isAdmin = platform?.role === "admin";
+  let onboardingStep = resolveOnboardingStep(profile, verifications, profileCompletion);
+
+  // Heal admins who were accidentally left on marketplace role selection.
+  if (isAdmin && onboardingStep === "role_selection") {
+    onboardingStep = "complete";
+  }
 
   if (onboardingStep !== profile.onboardingStep) {
     await db
@@ -214,7 +230,7 @@ export async function getProfileBundle(userId: string): Promise<ProfileBundle> {
     experience,
     verifications,
     profileCompletion,
-    isAdmin: platform?.role === "admin",
+    isAdmin,
   };
 }
 

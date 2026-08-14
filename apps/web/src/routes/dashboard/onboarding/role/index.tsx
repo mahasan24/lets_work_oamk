@@ -1,13 +1,6 @@
 import { Button } from "@lets_work/ui/components/button";
-import {
-  Field,
-  FieldGroup,
-  FieldLabel,
-} from "@lets_work/ui/components/field";
-import {
-  ToggleGroup,
-  ToggleGroupItem,
-} from "@lets_work/ui/components/toggle-group";
+import { Field, FieldGroup, FieldLabel } from "@lets_work/ui/components/field";
+import { ToggleGroup, ToggleGroupItem } from "@lets_work/ui/components/toggle-group";
 import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -18,7 +11,7 @@ import { profileApi } from "@/lib/profile-api";
 export const Route = createFileRoute("/dashboard/onboarding/role/")({
   component: RoleOnboardingPage,
   beforeLoad: ({ context }) => {
-    if (context.profile?.profile.onboardingStep !== "role_selection") {
+    if (context.profile?.isAdmin || context.profile?.profile.onboardingStep !== "role_selection") {
       redirect({ to: getDashboardHomePath(context.profile), throw: true });
     }
   },

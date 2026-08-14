@@ -5,7 +5,7 @@ import { Skeleton } from "@lets_work/ui/components/skeleton";
 import { Tabs, TabsList, TabsTrigger } from "@lets_work/ui/components/tabs";
 import { cn } from "@lets_work/ui/lib/utils";
 import { Link } from "@tanstack/react-router";
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
 import { JobsApiError, jobsApi, type Job } from "@/lib/jobs-api";
@@ -21,6 +21,10 @@ type JobListProps = {
   showHeader?: boolean;
 };
 
+function isAuthError(error: unknown) {
+  return error instanceof JobsApiError && (error.status === 401 || error.status === 403);
+}
+
 export function JobList({ showHeader = true }: JobListProps) {
   const [jobs, setJobs] = useState<Job[]>([]);
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
@@ -33,25 +37,29 @@ export function JobList({ showHeader = true }: JobListProps) {
     return () => window.clearTimeout(timeout);
   }, [search]);
 
-  const loadJobs = useCallback(async () => {
-    setIsLoading(true);
-    try {
-      const response = await jobsApi.listMine({
-        status: statusFilter === "all" ? undefined : statusFilter,
-        search: debouncedSearch || undefined,
-        limit: 50,
-      });
-      setJobs(response.items);
-    } catch {
-      toast.error("Failed to load jobs");
-    } finally {
-      setIsLoading(false);
-    }
-  }, [statusFilter, debouncedSearch]);
-
   useEffect(() => {
-    void loadJobs();
-  }, [loadJobs]);
+    let cancelled = false;
+    void (async () => {
+      setIsLoading(true);
+      try {
+        const response = await jobsApi.listMine({
+          status: statusFilter === "all" ? undefined : statusFilter,
+          search: debouncedSearch || undefined,
+          limit: 50,
+        });
+        if (cancelled) return;
+        setJobs(response.items);
+      } catch (error) {
+        if (cancelled || isAuthError(error)) return;
+        toast.error("Failed to load jobs");
+      } finally {
+        if (!cancelled) setIsLoading(false);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [statusFilter, debouncedSearch]);
 
   const handleJobUpdated = (updated: Job) => {
     setJobs((current) => current.map((item) => (item.id === updated.id ? updated : item)));
@@ -164,7 +172,9 @@ export function JobList({ showHeader = true }: JobListProps) {
                     params={{ jobId: job.id }}
                     className={cn(buttonVariants({ variant: "outline", size: "sm" }))}
                   >
-                    {job.status === "closed" || job.status === "filled" || job.status === "cancelled"
+                    {job.status === "closed" ||
+                    job.status === "filled" ||
+                    job.status === "cancelled"
                       ? "View"
                       : "Edit"}
                   </Link>

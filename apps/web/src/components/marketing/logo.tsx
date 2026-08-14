@@ -1,5 +1,3 @@
-import { Link } from "@tanstack/react-router";
-
 import { cn } from "@lets_work/ui/lib/utils";
 
 type LogoProps = {
@@ -9,8 +7,7 @@ type LogoProps = {
 
 export default function Logo({ className, variant = "default" }: LogoProps) {
   return (
-    <Link
-      to="/"
+    <span
       className={cn(
         "font-display text-[1.35rem] font-extrabold leading-none tracking-[-0.04em]",
         variant === "light" ? "text-background" : "text-foreground",
@@ -18,6 +15,6 @@ export default function Logo({ className, variant = "default" }: LogoProps) {
       )}
     >
       letswork
-    </Link>
+    </span>
   );
 }

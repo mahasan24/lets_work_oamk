@@ -143,6 +143,15 @@ function AdminOverviewPage() {
                   </Badge>
                 </Link>
                 <Link
+                  to="/admin/reports"
+                  className="flex items-center justify-between rounded-md border border-border px-3 py-2 text-sm hover:bg-muted/40"
+                >
+                  <span>Content reports</span>
+                  <Badge variant={data.reports.open > 0 ? "destructive" : "secondary"}>
+                    {data.reports.open}
+                  </Badge>
+                </Link>
+                <Link
                   to="/admin/users"
                   className="flex items-center justify-between rounded-md border border-border px-3 py-2 text-sm hover:bg-muted/40"
                 >

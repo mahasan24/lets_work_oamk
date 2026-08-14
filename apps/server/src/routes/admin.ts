@@ -5,6 +5,7 @@ import { getAdminOverviewAnalytics } from "../lib/admin-analytics";
 import { getAdminMe, searchAdminUsers, setUserSuspended } from "../lib/admin-users";
 import { listAdminDisputes, markDisputeUnderReview, resolveAdminDispute } from "../lib/disputes";
 import { runGuardedAction } from "../lib/http";
+import { listAdminReports, markReportUnderReview, resolveAdminReport } from "../lib/reports";
 import {
   approveVerification,
   listPendingVerifications,
@@ -210,5 +211,71 @@ export const adminRoutes = new Elysia({
       auth: true,
       params: t.Object({ id: t.String() }),
       detail: { summary: "Reinstate a suspended user" },
+    },
+  )
+  .get(
+    "/reports",
+    async ({ user, query, status }) => {
+      const result = await runAdminAction(user.id, () =>
+        listAdminReports({
+          page: query.page,
+          limit: query.limit,
+          status: query.status,
+        }),
+      );
+      if (!result.ok) return status(result.status, result.body);
+      return result.data;
+    },
+    {
+      auth: true,
+      query: t.Object({
+        page: t.Optional(t.Numeric()),
+        limit: t.Optional(t.Numeric()),
+        status: t.Optional(
+          t.Union([
+            t.Literal("queue"),
+            t.Literal("open"),
+            t.Literal("under_review"),
+            t.Literal("resolved"),
+            t.Literal("dismissed"),
+            t.Literal("all"),
+          ]),
+        ),
+      }),
+      detail: { summary: "List content reports for moderation" },
+    },
+  )
+  .post(
+    "/reports/:id/under-review",
+    async ({ user, params, status }) => {
+      const result = await runAdminAction(user.id, () => markReportUnderReview(params.id));
+      if (!result.ok) return status(result.status, result.body);
+      return result.data;
+    },
+    {
+      auth: true,
+      params: t.Object({ id: t.String() }),
+      detail: { summary: "Mark a report under review" },
+    },
+  )
+  .post(
+    "/reports/:id/resolve",
+    async ({ user, params, body, status }) => {
+      const result = await runAdminAction(user.id, () =>
+        resolveAdminReport(params.id, user.id, body),
+      );
+      if (!result.ok) return status(result.status, result.body);
+      return result.data;
+    },
+    {
+      auth: true,
+      params: t.Object({ id: t.String() }),
+      body: t.Object({
+        status: t.Union([t.Literal("resolved"), t.Literal("dismissed")]),
+        note: t.Optional(t.Union([t.String(), t.Null()])),
+        suspendReportedUser: t.Optional(t.Boolean()),
+        suspendReason: t.Optional(t.Union([t.String(), t.Null()])),
+      }),
+      detail: { summary: "Resolve or dismiss a content report" },
     },
   );

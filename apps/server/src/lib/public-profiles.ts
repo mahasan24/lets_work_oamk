@@ -6,9 +6,23 @@ import {
   type availabilityStatusEnum,
   marketplaceUserProfile,
 } from "@lets_work/db/schema/marketplace";
+import { platformUser } from "@lets_work/db/schema/platform";
 import { portfolioItem, workHistory } from "@lets_work/db/schema/portfolio";
 import { userVerification } from "@lets_work/db/schema/verification";
-import { and, asc, desc, eq, gte, ilike, inArray, lte, or, sql, type SQL } from "drizzle-orm";
+import {
+  and,
+  asc,
+  desc,
+  eq,
+  gte,
+  ilike,
+  inArray,
+  isNull,
+  lte,
+  or,
+  sql,
+  type SQL,
+} from "drizzle-orm";
 
 import { NotFoundError } from "./errors";
 import { buildPaginationMeta, resolvePagination } from "./http";
@@ -42,17 +56,6 @@ export type FreelancerSearchQuery = {
 const FREELANCER_ACCOUNT_TYPES = ["freelancer", "both"] as const;
 const HIRER_ACCOUNT_TYPES = ["hirer", "both"] as const;
 const PUBLIC_JOB_STATUSES = ["open", "in_review"] as const;
-
-/**
- * Profiles with nothing filled in are noise in a public directory, so a profile
- * only becomes discoverable once the freelancer has written a headline or bio,
- * or listed at least one skill.
- */
-const HAS_PUBLIC_CONTENT = or(
-  sql`nullif(btrim(${marketplaceUserProfile.headline}), '') is not null`,
-  sql`nullif(btrim(${marketplaceUserProfile.bio}), '') is not null`,
-  sql`jsonb_array_length(coalesce(${marketplaceUserProfile.skills}, '[]'::jsonb)) > 0`,
-)!;
 
 function toStringArray(value: unknown): string[] {
   if (!Array.isArray(value)) return [];
@@ -126,12 +129,19 @@ function serializeFreelancerCard(profile: ProfileRow, owner: Pick<UserRow, "name
   };
 }
 
+/**
+ * Freelancers become discoverable once they have chosen a marketplace role
+ * (left role_selection). Suspended accounts are hidden.
+ */
 export async function searchFreelancers(query: FreelancerSearchQuery) {
   const { page, limit, offset } = resolvePagination(query, { maxLimit: 100 });
 
   const conditions: SQL[] = [
     inArray(marketplaceUserProfile.accountType, [...FREELANCER_ACCOUNT_TYPES]),
-    HAS_PUBLIC_CONTENT,
+    sql`${marketplaceUserProfile.onboardingStep} <> 'role_selection'`,
+    isNull(marketplaceUserProfile.suspendedAt),
+    // Hide platform admins from the talent marketplace.
+    isNull(platformUser.userId),
   ];
 
   if (query.search?.trim()) {
@@ -141,6 +151,7 @@ export async function searchFreelancers(query: FreelancerSearchQuery) {
         ilike(user.name, term),
         ilike(marketplaceUserProfile.headline, term),
         ilike(marketplaceUserProfile.bio, term),
+        skillMatchCondition(query.search.trim()),
       )!,
     );
   }
@@ -180,6 +191,7 @@ export async function searchFreelancers(query: FreelancerSearchQuery) {
       .select({ profile: marketplaceUserProfile, name: user.name, image: user.image })
       .from(marketplaceUserProfile)
       .innerJoin(user, eq(user.id, marketplaceUserProfile.userId))
+      .leftJoin(platformUser, eq(platformUser.userId, marketplaceUserProfile.userId))
       .where(whereClause)
       .orderBy(...freelancerOrderBy(query.sort))
       .limit(limit)
@@ -188,6 +200,7 @@ export async function searchFreelancers(query: FreelancerSearchQuery) {
       .select({ count: sql<number>`count(*)::int` })
       .from(marketplaceUserProfile)
       .innerJoin(user, eq(user.id, marketplaceUserProfile.userId))
+      .leftJoin(platformUser, eq(platformUser.userId, marketplaceUserProfile.userId))
       .where(whereClause),
   ]);
 

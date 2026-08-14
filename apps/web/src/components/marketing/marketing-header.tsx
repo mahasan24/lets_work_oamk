@@ -38,10 +38,12 @@ export default function MarketingHeader() {
   }, [session]);
 
   // Logged-out visitors see both paths. Signed-in users only see their role's path.
-  const showFindTalent = !session || shouldShowHireActions(profile);
-  const showFindWork = !session || shouldShowFindWorkActions(profile);
+  // Platform admins manage the marketplace from /admin, not hire/find-work chrome.
+  const showFindTalent = !session || (!profile?.isAdmin && shouldShowHireActions(profile));
+  const showFindWork = !session || (!profile?.isAdmin && shouldShowFindWorkActions(profile));
 
   const navLinks = [
+    ...(profile?.isAdmin ? [{ label: "Admin", href: "/admin", isRouter: true as const }] : []),
     ...(showFindTalent
       ? [{ label: "Find talent", href: "/freelancers", isRouter: true as const }]
       : []),

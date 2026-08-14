@@ -21,7 +21,12 @@ import { toast } from "sonner";
 
 import { SearchableCombobox } from "@/components/dashboard/searchable-combobox";
 import { SkillsTagsInput } from "@/components/dashboard/skills-tags-input";
-import { freelancerJobsApi, type JobFeedItem, type JobFeedTab } from "@/lib/freelancer-jobs-api";
+import {
+  FreelancerJobsApiError,
+  freelancerJobsApi,
+  type JobFeedItem,
+  type JobFeedTab,
+} from "@/lib/freelancer-jobs-api";
 import {
   BUDGET_TYPE_OPTIONS,
   EXPERIENCE_LEVEL_OPTIONS,
@@ -78,37 +83,52 @@ export function JobFeed({
     return () => window.clearTimeout(timeout);
   }, [searchInput, filters.search, onFiltersChange]);
 
-  const loadFeed = useCallback(async () => {
-    setIsLoading(true);
-    setShowingAi(false);
-    try {
-      const response = await freelancerJobsApi.feed({
-        tab: filters.tab,
-        search: filters.search || undefined,
-        category: filters.category || undefined,
-        skills: filters.skills.length > 0 ? filters.skills : undefined,
-        experienceLevel: filters.experienceLevel || undefined,
-        budgetType: filters.budgetType || undefined,
-        minBudget: filters.minBudget || undefined,
-        maxBudget: filters.maxBudget || undefined,
-        postedWithin: filters.postedWithin || undefined,
-        remoteOnly: filters.remoteOnly || undefined,
-        page: filters.page,
-        limit: PAGE_SIZE,
-      });
-      setItems(response.items);
-      setProfileSkills(response.profileSkills);
-      setTotal(response.pagination.total);
-      setTotalPages(response.pagination.totalPages);
-    } catch {
-      toast.error("Failed to load jobs");
-    } finally {
-      setIsLoading(false);
-    }
-  }, [filters]);
+  const loadFeed = useCallback(
+    async (options?: { signal?: { cancelled: boolean } }) => {
+      setIsLoading(true);
+      setShowingAi(false);
+      try {
+        const response = await freelancerJobsApi.feed({
+          tab: filters.tab,
+          search: filters.search || undefined,
+          category: filters.category || undefined,
+          skills: filters.skills.length > 0 ? filters.skills : undefined,
+          experienceLevel: filters.experienceLevel || undefined,
+          budgetType: filters.budgetType || undefined,
+          minBudget: filters.minBudget || undefined,
+          maxBudget: filters.maxBudget || undefined,
+          postedWithin: filters.postedWithin || undefined,
+          remoteOnly: filters.remoteOnly || undefined,
+          page: filters.page,
+          limit: PAGE_SIZE,
+        });
+        if (options?.signal?.cancelled) return;
+        setItems(response.items);
+        setProfileSkills(response.profileSkills);
+        setTotal(response.pagination.total);
+        setTotalPages(response.pagination.totalPages);
+      } catch (error) {
+        if (options?.signal?.cancelled) return;
+        if (
+          error instanceof FreelancerJobsApiError &&
+          (error.status === 401 || error.status === 403)
+        ) {
+          return;
+        }
+        toast.error("Failed to load jobs");
+      } finally {
+        if (!options?.signal?.cancelled) setIsLoading(false);
+      }
+    },
+    [filters],
+  );
 
   useEffect(() => {
-    void loadFeed();
+    const signal = { cancelled: false };
+    void loadFeed({ signal });
+    return () => {
+      signal.cancelled = true;
+    };
   }, [loadFeed]);
 
   const toggleSaved = useCallback(async (item: JobFeedItem) => {

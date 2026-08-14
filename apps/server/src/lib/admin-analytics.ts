@@ -4,6 +4,7 @@ import { contract } from "@lets_work/db/schema/contracts";
 import { dispute } from "@lets_work/db/schema/disputes";
 import { job, proposal } from "@lets_work/db/schema/jobs";
 import { marketplaceUserProfile } from "@lets_work/db/schema/marketplace";
+import { report } from "@lets_work/db/schema/moderation";
 import { payment } from "@lets_work/db/schema/payments";
 import { userVerification } from "@lets_work/db/schema/verification";
 import { and, count, eq, gte, inArray, sql } from "drizzle-orm";
@@ -34,6 +35,7 @@ export async function getAdminOverviewAnalytics() {
     [contractsDisputed],
     [disputesOpen],
     [verificationsPending],
+    [reportsOpen],
     [paymentsHeld],
     [paymentsSucceeded],
     gmvRows,
@@ -68,6 +70,10 @@ export async function getAdminOverviewAnalytics() {
       .select({ total: count() })
       .from(userVerification)
       .where(and(eq(userVerification.type, "identity"), eq(userVerification.status, "pending"))),
+    db
+      .select({ total: count() })
+      .from(report)
+      .where(inArray(report.status, ["open", "under_review"])),
     db.select({ total: count() }).from(payment).where(eq(payment.status, "held")),
     db.select({ total: count() }).from(payment).where(eq(payment.status, "succeeded")),
     db
@@ -110,6 +116,9 @@ export async function getAdminOverviewAnalytics() {
     },
     verifications: {
       pending: verificationsPending?.total ?? 0,
+    },
+    reports: {
+      open: reportsOpen?.total ?? 0,
     },
     payments: {
       heldCount: paymentsHeld?.total ?? 0,

@@ -1,5 +1,6 @@
 import { createFileRoute, Outlet, redirect } from "@tanstack/react-router";
 
+import PublicMarketingShell from "@/components/public/public-marketing-shell";
 import { authClient } from "@/lib/auth-client";
 import { getDashboardHomePath, shouldShowHireActions } from "@/lib/dashboard-paths";
 import { profileApi } from "@/lib/profile-api";
@@ -11,14 +12,14 @@ export const Route = createFileRoute("/freelancers")({
 
     const profile = await profileApi.getMe().catch(() => null);
     // Freelancer-only (and dual accounts acting as freelancers) should not use
-    // the talent directory as a hiring surface.
-    if (profile && !shouldShowHireActions(profile)) {
+    // the talent directory as a hiring surface. Admins may browse freely.
+    if (profile && !profile.isAdmin && !shouldShowHireActions(profile)) {
       redirect({ to: getDashboardHomePath(profile), throw: true });
     }
   },
   component: () => (
-    <div className="mx-auto w-full max-w-5xl px-4 py-10">
+    <PublicMarketingShell>
       <Outlet />
-    </div>
+    </PublicMarketingShell>
   ),
 });

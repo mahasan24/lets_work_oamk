@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@lets_work/ui/componen
 import { ExternalLink } from "lucide-react";
 
 import { VerifiedBadge } from "@/components/public/verified-badge";
+import { ReportButton } from "@/components/moderation/report-dialog";
 import { formatLocation, formatMonthYear } from "@/lib/public-profile-utils";
 import type { PublicClientProfile } from "@/lib/public-profiles-api";
 
@@ -52,11 +53,17 @@ export function ClientPublicProfile({ profile }: { profile: PublicClientProfile 
             ) : null}
           </div>
 
-          <div className="shrink-0 sm:text-right">
+          <div className="flex shrink-0 flex-col gap-2 sm:items-end sm:text-right">
             <p className="text-xl font-semibold">{profile.openJobsCount}</p>
             <p className="text-sm text-muted-foreground">
               open job{profile.openJobsCount === 1 ? "" : "s"}
             </p>
+            <ReportButton
+              target={{ reportedUserId: profile.userId }}
+              title="Report this client"
+              variant="outline"
+              className="mt-1 gap-1.5"
+            />
           </div>
         </CardContent>
       </Card>

@@ -57,7 +57,7 @@ export default function AdminAccountMenu() {
               void authClient.signOut({
                 fetchOptions: {
                   onSuccess: () => {
-                    void navigate({ to: "/admin/login" });
+                    window.location.assign("/admin/login");
                   },
                 },
               });

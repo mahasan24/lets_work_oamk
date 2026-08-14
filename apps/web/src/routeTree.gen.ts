@@ -37,6 +37,7 @@ import { Route as DashboardFreelancerIndexRouteImport } from './routes/dashboard
 import { Route as DashboardAdminIndexRouteImport } from './routes/dashboard/admin/index'
 import { Route as AdminVerificationsIndexRouteImport } from './routes/admin/verifications/index'
 import { Route as AdminUsersIndexRouteImport } from './routes/admin/users/index'
+import { Route as AdminReportsIndexRouteImport } from './routes/admin/reports/index'
 import { Route as AdminDisputesIndexRouteImport } from './routes/admin/disputes/index'
 import { Route as AdminAccountIndexRouteImport } from './routes/admin/account/index'
 import { Route as DashboardHirerProfileRouteImport } from './routes/dashboard/hirer/profile'
@@ -55,6 +56,7 @@ import { Route as DashboardFreelancerDisputesIndexRouteImport } from './routes/d
 import { Route as DashboardFreelancerContractsIndexRouteImport } from './routes/dashboard/freelancer/contracts/index'
 import { Route as DashboardAdminVerificationsIndexRouteImport } from './routes/dashboard/admin/verifications/index'
 import { Route as DashboardAdminUsersIndexRouteImport } from './routes/dashboard/admin/users/index'
+import { Route as DashboardAdminReportsIndexRouteImport } from './routes/dashboard/admin/reports/index'
 import { Route as DashboardAdminDisputesIndexRouteImport } from './routes/dashboard/admin/disputes/index'
 import { Route as DashboardHirerJobsNewRouteImport } from './routes/dashboard/hirer/jobs/new'
 import { Route as DashboardHirerJobsJobIdRouteImport } from './routes/dashboard/hirer/jobs/$jobId'
@@ -207,6 +209,11 @@ const AdminUsersIndexRoute = AdminUsersIndexRouteImport.update({
   path: '/users/',
   getParentRoute: () => AdminRouteRoute,
 } as any)
+const AdminReportsIndexRoute = AdminReportsIndexRouteImport.update({
+  id: '/reports/',
+  path: '/reports/',
+  getParentRoute: () => AdminRouteRoute,
+} as any)
 const AdminDisputesIndexRoute = AdminDisputesIndexRouteImport.update({
   id: '/disputes/',
   path: '/disputes/',
@@ -311,6 +318,12 @@ const DashboardAdminUsersIndexRoute =
     path: '/users/',
     getParentRoute: () => DashboardAdminRouteRoute,
   } as any)
+const DashboardAdminReportsIndexRoute =
+  DashboardAdminReportsIndexRouteImport.update({
+    id: '/reports/',
+    path: '/reports/',
+    getParentRoute: () => DashboardAdminRouteRoute,
+  } as any)
 const DashboardAdminDisputesIndexRoute =
   DashboardAdminDisputesIndexRouteImport.update({
     id: '/disputes/',
@@ -395,6 +408,7 @@ export interface FileRoutesByFullPath {
   '/dashboard/hirer/profile': typeof DashboardHirerProfileRoute
   '/admin/account/': typeof AdminAccountIndexRoute
   '/admin/disputes/': typeof AdminDisputesIndexRoute
+  '/admin/reports/': typeof AdminReportsIndexRoute
   '/admin/users/': typeof AdminUsersIndexRoute
   '/admin/verifications/': typeof AdminVerificationsIndexRoute
   '/dashboard/admin/': typeof DashboardAdminIndexRoute
@@ -408,6 +422,7 @@ export interface FileRoutesByFullPath {
   '/dashboard/hirer/jobs/$jobId': typeof DashboardHirerJobsJobIdRouteWithChildren
   '/dashboard/hirer/jobs/new': typeof DashboardHirerJobsNewRoute
   '/dashboard/admin/disputes/': typeof DashboardAdminDisputesIndexRoute
+  '/dashboard/admin/reports/': typeof DashboardAdminReportsIndexRoute
   '/dashboard/admin/users/': typeof DashboardAdminUsersIndexRoute
   '/dashboard/admin/verifications/': typeof DashboardAdminVerificationsIndexRoute
   '/dashboard/freelancer/contracts/': typeof DashboardFreelancerContractsIndexRoute
@@ -442,6 +457,7 @@ export interface FileRoutesByTo {
   '/dashboard/hirer/profile': typeof DashboardHirerProfileRoute
   '/admin/account': typeof AdminAccountIndexRoute
   '/admin/disputes': typeof AdminDisputesIndexRoute
+  '/admin/reports': typeof AdminReportsIndexRoute
   '/admin/users': typeof AdminUsersIndexRoute
   '/admin/verifications': typeof AdminVerificationsIndexRoute
   '/dashboard/admin': typeof DashboardAdminIndexRoute
@@ -455,6 +471,7 @@ export interface FileRoutesByTo {
   '/dashboard/hirer/jobs/$jobId': typeof DashboardHirerJobsJobIdRouteWithChildren
   '/dashboard/hirer/jobs/new': typeof DashboardHirerJobsNewRoute
   '/dashboard/admin/disputes': typeof DashboardAdminDisputesIndexRoute
+  '/dashboard/admin/reports': typeof DashboardAdminReportsIndexRoute
   '/dashboard/admin/users': typeof DashboardAdminUsersIndexRoute
   '/dashboard/admin/verifications': typeof DashboardAdminVerificationsIndexRoute
   '/dashboard/freelancer/contracts': typeof DashboardFreelancerContractsIndexRoute
@@ -500,6 +517,7 @@ export interface FileRoutesById {
   '/dashboard/hirer/profile': typeof DashboardHirerProfileRoute
   '/admin/account/': typeof AdminAccountIndexRoute
   '/admin/disputes/': typeof AdminDisputesIndexRoute
+  '/admin/reports/': typeof AdminReportsIndexRoute
   '/admin/users/': typeof AdminUsersIndexRoute
   '/admin/verifications/': typeof AdminVerificationsIndexRoute
   '/dashboard/admin/': typeof DashboardAdminIndexRoute
@@ -513,6 +531,7 @@ export interface FileRoutesById {
   '/dashboard/hirer/jobs/$jobId': typeof DashboardHirerJobsJobIdRouteWithChildren
   '/dashboard/hirer/jobs/new': typeof DashboardHirerJobsNewRoute
   '/dashboard/admin/disputes/': typeof DashboardAdminDisputesIndexRoute
+  '/dashboard/admin/reports/': typeof DashboardAdminReportsIndexRoute
   '/dashboard/admin/users/': typeof DashboardAdminUsersIndexRoute
   '/dashboard/admin/verifications/': typeof DashboardAdminVerificationsIndexRoute
   '/dashboard/freelancer/contracts/': typeof DashboardFreelancerContractsIndexRoute
@@ -559,6 +578,7 @@ export interface FileRouteTypes {
     | '/dashboard/hirer/profile'
     | '/admin/account/'
     | '/admin/disputes/'
+    | '/admin/reports/'
     | '/admin/users/'
     | '/admin/verifications/'
     | '/dashboard/admin/'
@@ -572,6 +592,7 @@ export interface FileRouteTypes {
     | '/dashboard/hirer/jobs/$jobId'
     | '/dashboard/hirer/jobs/new'
     | '/dashboard/admin/disputes/'
+    | '/dashboard/admin/reports/'
     | '/dashboard/admin/users/'
     | '/dashboard/admin/verifications/'
     | '/dashboard/freelancer/contracts/'
@@ -606,6 +627,7 @@ export interface FileRouteTypes {
     | '/dashboard/hirer/profile'
     | '/admin/account'
     | '/admin/disputes'
+    | '/admin/reports'
     | '/admin/users'
     | '/admin/verifications'
     | '/dashboard/admin'
@@ -619,6 +641,7 @@ export interface FileRouteTypes {
     | '/dashboard/hirer/jobs/$jobId'
     | '/dashboard/hirer/jobs/new'
     | '/dashboard/admin/disputes'
+    | '/dashboard/admin/reports'
     | '/dashboard/admin/users'
     | '/dashboard/admin/verifications'
     | '/dashboard/freelancer/contracts'
@@ -663,6 +686,7 @@ export interface FileRouteTypes {
     | '/dashboard/hirer/profile'
     | '/admin/account/'
     | '/admin/disputes/'
+    | '/admin/reports/'
     | '/admin/users/'
     | '/admin/verifications/'
     | '/dashboard/admin/'
@@ -676,6 +700,7 @@ export interface FileRouteTypes {
     | '/dashboard/hirer/jobs/$jobId'
     | '/dashboard/hirer/jobs/new'
     | '/dashboard/admin/disputes/'
+    | '/dashboard/admin/reports/'
     | '/dashboard/admin/users/'
     | '/dashboard/admin/verifications/'
     | '/dashboard/freelancer/contracts/'
@@ -900,6 +925,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminUsersIndexRouteImport
       parentRoute: typeof AdminRouteRoute
     }
+    '/admin/reports/': {
+      id: '/admin/reports/'
+      path: '/reports'
+      fullPath: '/admin/reports/'
+      preLoaderRoute: typeof AdminReportsIndexRouteImport
+      parentRoute: typeof AdminRouteRoute
+    }
     '/admin/disputes/': {
       id: '/admin/disputes/'
       path: '/disputes'
@@ -1026,6 +1058,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardAdminUsersIndexRouteImport
       parentRoute: typeof DashboardAdminRouteRoute
     }
+    '/dashboard/admin/reports/': {
+      id: '/dashboard/admin/reports/'
+      path: '/reports'
+      fullPath: '/dashboard/admin/reports/'
+      preLoaderRoute: typeof DashboardAdminReportsIndexRouteImport
+      parentRoute: typeof DashboardAdminRouteRoute
+    }
     '/dashboard/admin/disputes/': {
       id: '/dashboard/admin/disputes/'
       path: '/disputes'
@@ -1097,6 +1136,7 @@ interface AdminRouteRouteChildren {
   AdminIndexRoute: typeof AdminIndexRoute
   AdminAccountIndexRoute: typeof AdminAccountIndexRoute
   AdminDisputesIndexRoute: typeof AdminDisputesIndexRoute
+  AdminReportsIndexRoute: typeof AdminReportsIndexRoute
   AdminUsersIndexRoute: typeof AdminUsersIndexRoute
   AdminVerificationsIndexRoute: typeof AdminVerificationsIndexRoute
 }
@@ -1106,6 +1146,7 @@ const AdminRouteRouteChildren: AdminRouteRouteChildren = {
   AdminIndexRoute: AdminIndexRoute,
   AdminAccountIndexRoute: AdminAccountIndexRoute,
   AdminDisputesIndexRoute: AdminDisputesIndexRoute,
+  AdminReportsIndexRoute: AdminReportsIndexRoute,
   AdminUsersIndexRoute: AdminUsersIndexRoute,
   AdminVerificationsIndexRoute: AdminVerificationsIndexRoute,
 }
@@ -1129,6 +1170,7 @@ const ClientsRouteRouteWithChildren = ClientsRouteRoute._addFileChildren(
 interface DashboardAdminRouteRouteChildren {
   DashboardAdminIndexRoute: typeof DashboardAdminIndexRoute
   DashboardAdminDisputesIndexRoute: typeof DashboardAdminDisputesIndexRoute
+  DashboardAdminReportsIndexRoute: typeof DashboardAdminReportsIndexRoute
   DashboardAdminUsersIndexRoute: typeof DashboardAdminUsersIndexRoute
   DashboardAdminVerificationsIndexRoute: typeof DashboardAdminVerificationsIndexRoute
 }
@@ -1136,6 +1178,7 @@ interface DashboardAdminRouteRouteChildren {
 const DashboardAdminRouteRouteChildren: DashboardAdminRouteRouteChildren = {
   DashboardAdminIndexRoute: DashboardAdminIndexRoute,
   DashboardAdminDisputesIndexRoute: DashboardAdminDisputesIndexRoute,
+  DashboardAdminReportsIndexRoute: DashboardAdminReportsIndexRoute,
   DashboardAdminUsersIndexRoute: DashboardAdminUsersIndexRoute,
   DashboardAdminVerificationsIndexRoute: DashboardAdminVerificationsIndexRoute,
 }

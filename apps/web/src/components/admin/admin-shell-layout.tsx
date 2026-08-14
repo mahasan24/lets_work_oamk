@@ -14,6 +14,7 @@ const navItems = [
   { to: "/admin", label: "Overview", exact: true as const },
   { to: "/admin/verifications", label: "Verifications" },
   { to: "/admin/disputes", label: "Disputes" },
+  { to: "/admin/reports", label: "Reports" },
   { to: "/admin/users", label: "Users" },
   { to: "/admin/account", label: "Account" },
 ] as const;

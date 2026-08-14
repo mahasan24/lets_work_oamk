@@ -1,0 +1,13 @@
+import { jsx as _jsx } from "react/jsx-runtime";
+import { cn } from "@lets_work/ui/lib/utils";
+function Label({ className, ...props }) {
+  return _jsx("label", {
+    "data-slot": "label",
+    className: cn(
+      "flex items-center gap-2 text-xs leading-none select-none group-data-[disabled=true]:pointer-events-none group-data-[disabled=true]:opacity-50 peer-disabled:cursor-not-allowed peer-disabled:opacity-50",
+      className,
+    ),
+    ...props,
+  });
+}
+export { Label };

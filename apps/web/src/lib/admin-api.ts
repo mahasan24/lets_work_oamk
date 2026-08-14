@@ -65,6 +65,7 @@ export type AdminOverview = {
   contracts: { total: number; active: number; disputed: number };
   disputes: { open: number };
   verifications: { pending: number };
+  reports: { open: number };
   payments: {
     heldCount: number;
     succeededCount: number;
@@ -112,6 +113,28 @@ export type AdminUserSearchResult = {
   suspendReason: string | null;
   platformRole: string | null;
   identityStatus: string | null;
+};
+
+export type AdminReport = {
+  id: string;
+  reporterId: string;
+  reportedUserId: string | null;
+  reportedJobId: string | null;
+  reportedProposalId: string | null;
+  reportedMessageId: string | null;
+  reportType: string;
+  description: string;
+  status: string;
+  resolvedAt: string | null;
+  createdAt: string;
+  updatedAt: string;
+  reporterName: string;
+  reporterEmail: string;
+  reportedName: string | null;
+  reportedEmail: string | null;
+  jobTitle: string | null;
+  messagePreview: string | null;
+  proposalFreelancerId: string | null;
 };
 
 export const adminApi = {
@@ -182,4 +205,37 @@ export const adminApi = {
     }),
 
   unsuspendUser: (id: string) => apiFetch(`/api/admin/users/${id}/unsuspend`, { method: "POST" }),
+
+  listReports: (params?: {
+    page?: number;
+    limit?: number;
+    status?: "queue" | "open" | "under_review" | "resolved" | "dismissed" | "all";
+  }) => {
+    const search = new URLSearchParams();
+    if (params?.page) search.set("page", String(params.page));
+    if (params?.limit) search.set("limit", String(params.limit));
+    if (params?.status) search.set("status", params.status);
+    const qs = search.toString();
+    return apiFetch<{
+      items: AdminReport[];
+      pagination: { page: number; limit: number; total: number; totalPages: number };
+    }>(`/api/admin/reports${qs ? `?${qs}` : ""}`);
+  },
+
+  markReportUnderReview: (id: string) =>
+    apiFetch(`/api/admin/reports/${id}/under-review`, { method: "POST" }),
+
+  resolveReport: (
+    id: string,
+    body: {
+      status: "resolved" | "dismissed";
+      note?: string | null;
+      suspendReportedUser?: boolean;
+      suspendReason?: string | null;
+    },
+  ) =>
+    apiFetch(`/api/admin/reports/${id}/resolve`, {
+      method: "POST",
+      body: JSON.stringify(body),
+    }),
 };
