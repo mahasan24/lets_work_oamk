@@ -19,6 +19,9 @@ fi
 echo "==> Running database migrations"
 bun /app/packages/db/src/migrate.ts
 
+echo "==> Verifying schema"
+bun /app/packages/db/src/scripts/verify-schema.ts
+
 if should_reset; then
   echo "==> Seeding platform admin"
   bun /app/packages/db/src/scripts/scaffold-admin.ts
