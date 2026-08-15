@@ -1,10 +1,12 @@
 import { Button } from "@lets_work/ui/components/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@lets_work/ui/components/card";
 import {
-  Field,
-  FieldGroup,
-  FieldLabel,
-} from "@lets_work/ui/components/field";
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@lets_work/ui/components/card";
+import { Field, FieldGroup, FieldLabel } from "@lets_work/ui/components/field";
 import { Input } from "@lets_work/ui/components/input";
 import {
   Select,
@@ -20,6 +22,7 @@ import { useRouter } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 
+import { DeleteAccountSection } from "@/components/account/delete-account-section";
 import { MediaUploadField } from "@/components/dashboard/media-upload-field";
 import { SearchableCombobox } from "@/components/dashboard/searchable-combobox";
 import { SkillsTagsInput } from "@/components/dashboard/skills-tags-input";
@@ -29,11 +32,7 @@ import {
   HIRER_TYPE_OPTIONS,
   JOB_CATEGORY_SUGGESTIONS,
 } from "@/lib/hirer-options";
-import {
-  COUNTRIES,
-  getTimezoneOptions,
-  resolveCountryValue,
-} from "@/lib/profile-options";
+import { COUNTRIES, getTimezoneOptions, resolveCountryValue } from "@/lib/profile-options";
 import { profileApi, type HirerType, type ProfileBundle } from "@/lib/profile-api";
 
 const inputClassName = "h-10";
@@ -181,7 +180,9 @@ export default function HirerProfileEditor() {
       <Card>
         <CardHeader>
           <CardTitle>Account type</CardTitle>
-          <CardDescription>Are you hiring as an individual or on behalf of a company?</CardDescription>
+          <CardDescription>
+            Are you hiring as an individual or on behalf of a company?
+          </CardDescription>
         </CardHeader>
         <CardContent>
           <Select
@@ -411,6 +412,8 @@ export default function HirerProfileEditor() {
           </Button>
         </CardContent>
       </Card>
+
+      <DeleteAccountSection />
 
       <div className="flex justify-end">
         <Button size="lg" className="h-10" disabled={isSaving} onClick={saveProfile}>

@@ -129,7 +129,7 @@ export function NotificationBell() {
           </Badge>
         ) : null}
       </PopoverTrigger>
-      <PopoverContent align="end" className="w-80 p-0 sm:w-96">
+      <PopoverContent align="end" className="w-80 bg-card p-0 text-card-foreground sm:w-96">
         <PopoverHeader className="flex flex-row items-center justify-between gap-2 border-b border-border px-3 py-2">
           <PopoverTitle>Notifications</PopoverTitle>
           {unreadCount > 0 ? (

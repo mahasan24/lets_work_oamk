@@ -40,7 +40,12 @@ async function apiFetch<T>(path: string, init?: RequestInit): Promise<T> {
     return undefined as T;
   }
 
-  const data = await response.json();
+  const raw = await response.text();
+  if (!raw.trim()) {
+    return null as T;
+  }
+
+  const data = JSON.parse(raw) as unknown;
   if (data === null) {
     return data as T;
   }
@@ -80,7 +85,16 @@ export type ProposalWriteInput = {
 };
 
 export const proposalsApi = {
-  getForJob: (jobId: string) => apiFetch<Proposal | null>(`/api/freelancer/jobs/${jobId}/proposal`),
+  getForJob: async (jobId: string) => {
+    const data = await apiFetch<{ proposal: Proposal | null } | Proposal | null>(
+      `/api/freelancer/jobs/${jobId}/proposal`,
+    );
+    if (data == null) return null;
+    if (typeof data === "object" && "proposal" in data) {
+      return data.proposal;
+    }
+    return data;
+  },
 
   saveDraft: (jobId: string, body: ProposalWriteInput) =>
     apiFetch<Proposal>(`/api/freelancer/jobs/${jobId}/proposal`, {

@@ -5,7 +5,11 @@ import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { openAPI } from "better-auth/plugins";
 
-import { sendEmailVerificationEmail, sendPasswordResetEmail } from "./lib/mail";
+import {
+  sendDeleteAccountVerificationEmail,
+  sendEmailVerificationEmail,
+  sendPasswordResetEmail,
+} from "./lib/mail";
 import { createRedisSecondaryStorage } from "./lib/redis";
 
 const isProduction = env.NODE_ENV === "production";
@@ -62,6 +66,24 @@ export function createAuth() {
         });
       },
     },
+    user: {
+      changeEmail: {
+        enabled: true,
+        updateEmailWithoutVerification: true,
+      },
+      deleteUser: {
+        enabled: true,
+        sendDeleteAccountVerification: async ({ user, url }) => {
+          void sendDeleteAccountVerificationEmail({
+            to: user.email,
+            name: user.name,
+            url,
+          }).catch((error) => {
+            console.error("Failed to send delete account email:", error);
+          });
+        },
+      },
+    },
     rateLimit: {
       enabled: true,
       window: 60,
@@ -88,6 +110,10 @@ export function createAuth() {
           window: 60,
           max: 5,
         },
+        "/delete-user": {
+          window: 60,
+          max: 5,
+        },
       },
     },
     session: {
@@ -108,5 +134,10 @@ export function createAuth() {
 
 export { stripeClient } from "./lib/stripe";
 export { getRedis } from "./lib/redis";
-export { sendEmail, sendEmailVerificationEmail, sendPasswordResetEmail } from "./lib/mail";
+export {
+  sendDeleteAccountVerificationEmail,
+  sendEmail,
+  sendEmailVerificationEmail,
+  sendPasswordResetEmail,
+} from "./lib/mail";
 export const auth = createAuth();

@@ -65,7 +65,8 @@ export const freelancerProposalRoutes = new Elysia({
         getFreelancerProposalForJob(params.jobId, user.id),
       );
       if (!result.ok) return status(result.status, result.body);
-      return result.data;
+      // Elysia serializes a bare `null` as an empty body, which breaks client JSON parsing.
+      return { proposal: result.data };
     },
     {
       auth: true,

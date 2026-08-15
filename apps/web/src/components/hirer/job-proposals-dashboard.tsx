@@ -28,6 +28,7 @@ import { toast } from "sonner";
 
 import { getDurationLabel } from "@/lib/job-options";
 import { formatRelativeJobDate } from "@/lib/job-utils";
+import { ReportButton } from "@/components/moderation/report-dialog";
 import {
   getProposalStatusLabel,
   hirerProposalsApi,
@@ -543,8 +544,29 @@ function ProposalDetailCard({
                 Archive
               </Button>
             ) : null}
+            <ReportButton
+              target={{
+                reportedProposalId: proposal.id,
+                reportedUserId: proposal.freelancerUserId,
+              }}
+              title="Report this proposal"
+              variant="outline"
+              className="gap-1.5"
+            />
           </div>
-        ) : null}
+        ) : (
+          <div className="flex flex-wrap gap-2">
+            <ReportButton
+              target={{
+                reportedProposalId: proposal.id,
+                reportedUserId: proposal.freelancerUserId,
+              }}
+              title="Report this proposal"
+              variant="outline"
+              className="gap-1.5"
+            />
+          </div>
+        )}
 
         <div className="grid gap-4 text-sm sm:grid-cols-3">
           <DetailItem label="Bid" value={formatProposedRate(proposal)} />

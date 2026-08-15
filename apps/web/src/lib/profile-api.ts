@@ -55,6 +55,8 @@ export type ProfileBundle = {
     availabilityStatus: AvailabilityStatus;
     hoursPerWeek: number | null;
     profileCompletion: number;
+    suspendedAt?: string | null;
+    suspendReason?: string | null;
   };
   portfolio: Array<{
     id: string;
@@ -89,6 +91,7 @@ export type ProfileBundle = {
     label: string | null;
   }>;
   profileCompletion: number;
+  isAdmin?: boolean;
 };
 
 export type UploadSignature = {

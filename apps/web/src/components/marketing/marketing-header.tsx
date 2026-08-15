@@ -38,10 +38,12 @@ export default function MarketingHeader() {
   }, [session]);
 
   // Logged-out visitors see both paths. Signed-in users only see their role's path.
-  const showFindTalent = !session || shouldShowHireActions(profile);
-  const showFindWork = !session || shouldShowFindWorkActions(profile);
+  // Platform admins manage the marketplace from /admin, not hire/find-work chrome.
+  const showFindTalent = !session || (!profile?.isAdmin && shouldShowHireActions(profile));
+  const showFindWork = !session || (!profile?.isAdmin && shouldShowFindWorkActions(profile));
 
   const navLinks = [
+    ...(profile?.isAdmin ? [{ label: "Admin", href: "/admin", isRouter: true as const }] : []),
     ...(showFindTalent
       ? [{ label: "Find talent", href: "/freelancers", isRouter: true as const }]
       : []),
@@ -50,6 +52,7 @@ export default function MarketingHeader() {
           {
             label: "Find work",
             href: session ? "/dashboard/freelancer" : "/login",
+            search: session ? undefined : { mode: "sign-up" },
             isRouter: true as const,
           },
         ]
@@ -74,8 +77,8 @@ export default function MarketingHeader() {
             initial="hidden"
             animate="show"
           >
-            {navLinks.map(({ label, href, isRouter }) => (
-              <AnimatedNavLink key={label} href={href} isRouter={isRouter}>
+            {navLinks.map(({ label, href, isRouter, search }) => (
+              <AnimatedNavLink key={label} href={href} isRouter={isRouter} search={search}>
                 {label}
               </AnimatedNavLink>
             ))}
@@ -87,6 +90,7 @@ export default function MarketingHeader() {
             signUpButton={
               <Link
                 to="/login"
+                search={{ mode: "sign-up" }}
                 className={cn(buttonVariants({ variant: "ghost", size: "sm" }), "text-foreground")}
               >
                 Sign up

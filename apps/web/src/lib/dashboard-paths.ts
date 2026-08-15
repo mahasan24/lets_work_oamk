@@ -10,6 +10,7 @@ export function getActiveRole(profile: ProfileBundle | null | undefined): Market
 }
 
 export function getDashboardHomePath(profile: ProfileBundle | null | undefined) {
+  if (profile?.isAdmin) return "/admin";
   return getActiveRole(profile) === "hirer" ? "/dashboard/hirer" : "/dashboard/freelancer";
 }
 
@@ -68,6 +69,9 @@ export function getOnboardingRedirectPath(
   pathname: string,
 ): string | null {
   if (!profile) return null;
+
+  // Platform admins use /admin — they are not marketplace onboarding subjects.
+  if (profile.isAdmin) return null;
 
   // Role selection is the only hard prerequisite: without a role we can't know
   // which dashboard to render. Everything else (profile completion, identity

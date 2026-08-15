@@ -92,7 +92,7 @@ export const disputesApi = {
     apiFetch<Dispute | null>(`/api/disputes/by-contract/${contractId}`),
 };
 
-export function getDisputeStatusLabel(status: DisputeStatus) {
+export function getDisputeStatusLabel(status: DisputeStatus | string) {
   switch (status) {
     case "open":
       return "Open";
@@ -107,4 +107,17 @@ export function getDisputeStatusLabel(status: DisputeStatus) {
     default:
       return status;
   }
+}
+
+export const DISPUTE_RESOLUTION_OPTIONS = [
+  { value: "resolved_client" as const, label: "Resolve for client" },
+  { value: "resolved_freelancer" as const, label: "Resolve for freelancer" },
+  { value: "closed" as const, label: "Close without winner" },
+];
+
+export function getDisputeResolutionLabel(status: string) {
+  return (
+    DISPUTE_RESOLUTION_OPTIONS.find((option) => option.value === status)?.label ??
+    getDisputeStatusLabel(status)
+  );
 }

@@ -8,6 +8,7 @@ import { cn } from "@lets_work/ui/lib/utils";
 import { Link, useNavigate } from "@tanstack/react-router";
 import {
   FileIcon,
+  FlagIcon,
   ImageIcon,
   Loader2Icon,
   MessageSquareIcon,
@@ -20,6 +21,7 @@ import {
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 
+import { ReportDialog } from "@/components/moderation/report-dialog";
 import { authClient } from "@/lib/auth-client";
 import {
   type ChatAttachment,
@@ -124,6 +126,10 @@ export function MessagingWorkspace({ basePath, conversationId, role }: Messaging
   const [activeConversation, setActiveConversation] = useState<ChatConversation | null>(null);
   const [typingByUserId, setTypingByUserId] = useState<Record<string, string>>({});
   const [pendingAttachments, setPendingAttachments] = useState<PendingAttachment[]>([]);
+  const [reportTarget, setReportTarget] = useState<{
+    messageId: string;
+    senderId: string;
+  } | null>(null);
 
   const proposalsPath = role === "hirer" ? "/dashboard/hirer" : "/dashboard/freelancer/proposals";
   const contractsPath =
@@ -690,6 +696,22 @@ export function MessagingWorkspace({ basePath, conversationId, role }: Messaging
                                     <TrashIcon className="size-3.5" />
                                   </Button>
                                 </div>
+                              ) : !entry.deletedAt ? (
+                                <Button
+                                  type="button"
+                                  size="icon-sm"
+                                  variant="ghost"
+                                  className="text-muted-foreground hover:text-foreground"
+                                  onClick={() =>
+                                    setReportTarget({
+                                      messageId: entry.id,
+                                      senderId: entry.senderId,
+                                    })
+                                  }
+                                  aria-label="Report message"
+                                >
+                                  <FlagIcon className="size-3.5" />
+                                </Button>
                               ) : null}
                             </div>
                             <p
@@ -826,6 +848,23 @@ export function MessagingWorkspace({ basePath, conversationId, role }: Messaging
           </CardContent>
         )}
       </Card>
+
+      <ReportDialog
+        open={reportTarget !== null}
+        onOpenChange={(open) => {
+          if (!open) setReportTarget(null);
+        }}
+        target={
+          reportTarget
+            ? {
+                reportedMessageId: reportTarget.messageId,
+                reportedUserId: reportTarget.senderId,
+              }
+            : {}
+        }
+        title="Report this message"
+        description="Flag harassment, spam, or other policy violations in this chat."
+      />
     </div>
   );
 }

@@ -293,3 +293,198 @@ export async function getActiveDisputeForContract(contractId: string, userId: st
 
   return row ? serializeDispute(row) : null;
 }
+
+export type AdminDisputeResolution = "resolved_client" | "resolved_freelancer" | "closed";
+
+export async function listAdminDisputes(input?: {
+  page?: number;
+  limit?: number;
+  status?: "open" | "under_review" | "all";
+}) {
+  const { page, limit, offset } = resolvePagination(input);
+  const openedBy = alias(user, "dispute_opened_by");
+  const respondent = alias(user, "dispute_respondent");
+
+  const statusFilter =
+    !input?.status || input.status === "all"
+      ? inArray(dispute.status, ["open", "under_review"])
+      : eq(dispute.status, input.status);
+
+  const [[totalRow], rows] = await Promise.all([
+    db.select({ total: count() }).from(dispute).where(statusFilter),
+    db
+      .select({
+        dispute,
+        contractTitle: contract.title,
+        contractStatus: contract.status,
+        hirerUserId: contract.hirerUserId,
+        freelancerUserId: contract.freelancerUserId,
+        milestoneTitle: milestone.title,
+        openedByName: openedBy.name,
+        openedByEmail: openedBy.email,
+        respondentName: respondent.name,
+        respondentEmail: respondent.email,
+      })
+      .from(dispute)
+      .innerJoin(contract, eq(contract.id, dispute.contractId))
+      .leftJoin(milestone, eq(milestone.id, dispute.milestoneId))
+      .innerJoin(openedBy, eq(openedBy.id, dispute.openedByUserId))
+      .innerJoin(respondent, eq(respondent.id, dispute.respondentUserId))
+      .where(statusFilter)
+      .orderBy(desc(dispute.createdAt))
+      .limit(limit)
+      .offset(offset),
+  ]);
+
+  return {
+    items: rows.map((row) => ({
+      ...serializeDispute(row.dispute),
+      createdAt: row.dispute.createdAt.toISOString(),
+      updatedAt: row.dispute.updatedAt.toISOString(),
+      resolvedAt: row.dispute.resolvedAt?.toISOString() ?? null,
+      contractTitle: row.contractTitle,
+      contractStatus: row.contractStatus,
+      hirerUserId: row.hirerUserId,
+      freelancerUserId: row.freelancerUserId,
+      milestoneTitle: row.milestoneTitle,
+      openedByName: row.openedByName,
+      openedByEmail: row.openedByEmail,
+      respondentName: row.respondentName,
+      respondentEmail: row.respondentEmail,
+    })),
+    pagination: buildPaginationMeta(page, limit, totalRow?.total ?? 0),
+  };
+}
+
+export async function resolveAdminDispute(
+  disputeId: string,
+  adminUserId: string,
+  input: {
+    resolutionStatus: AdminDisputeResolution;
+    resolution: string;
+    restoreContractStatus?: "active" | "paused" | "cancelled" | "completed";
+  },
+) {
+  const resolution = input.resolution.trim();
+  if (resolution.length < 10) {
+    throw new BadRequestError(
+      "Resolution note must be at least 10 characters",
+      "DISPUTE_RESOLUTION",
+    );
+  }
+
+  const [existing] = await db.select().from(dispute).where(eq(dispute.id, disputeId)).limit(1);
+  if (!existing) {
+    throw new DisputeNotFoundError();
+  }
+
+  if (
+    !ACTIVE_DISPUTE_STATUSES.includes(existing.status as (typeof ACTIVE_DISPUTE_STATUSES)[number])
+  ) {
+    throw new DisputeConflictError("Only open or under-review disputes can be resolved");
+  }
+
+  const [contractRow] = await db
+    .select()
+    .from(contract)
+    .where(eq(contract.id, existing.contractId))
+    .limit(1);
+
+  if (!contractRow) {
+    throw new DisputeNotFoundError("Contract not found", "CONTRACT_NOT_FOUND");
+  }
+
+  const restoreStatus =
+    input.restoreContractStatus ?? (input.resolutionStatus === "closed" ? "cancelled" : "active");
+
+  const [updated] = await db
+    .update(dispute)
+    .set({
+      status: input.resolutionStatus,
+      resolution,
+      resolvedByUserId: adminUserId,
+      resolvedAt: new Date(),
+    })
+    .where(eq(dispute.id, disputeId))
+    .returning();
+
+  if (!updated) {
+    throw new ConflictError("Failed to resolve dispute");
+  }
+
+  if (contractRow.status === "disputed") {
+    await db
+      .update(contract)
+      .set({ status: restoreStatus })
+      .where(eq(contract.id, existing.contractId));
+  }
+
+  if (existing.milestoneId) {
+    await db
+      .update(milestone)
+      .set({ status: "in_progress" })
+      .where(and(eq(milestone.id, existing.milestoneId), eq(milestone.status, "disputed")));
+  }
+
+  await recordContractEvent({
+    contractId: existing.contractId,
+    actorUserId: adminUserId,
+    eventType: "disputed",
+    title: "Dispute resolved by admin",
+    description: `${input.resolutionStatus}: ${resolution}`,
+  });
+
+  const statusLabel =
+    input.resolutionStatus === "resolved_client"
+      ? "resolved in the client's favor"
+      : input.resolutionStatus === "resolved_freelancer"
+        ? "resolved in the freelancer's favor"
+        : "closed";
+
+  await Promise.all([
+    notifyQuietly({
+      userId: contractRow.hirerUserId,
+      type: "contract",
+      title: "Dispute resolved",
+      body: `Your dispute was ${statusLabel}. ${resolution}`,
+      actionUrl: `/dashboard/hirer/disputes/${disputeId}`,
+    }),
+    notifyQuietly({
+      userId: contractRow.freelancerUserId,
+      type: "contract",
+      title: "Dispute resolved",
+      body: `Your dispute was ${statusLabel}. ${resolution}`,
+      actionUrl: `/dashboard/freelancer/disputes/${disputeId}`,
+    }),
+  ]);
+
+  return {
+    ...serializeDispute(updated),
+    createdAt: updated.createdAt.toISOString(),
+    updatedAt: updated.updatedAt.toISOString(),
+    resolvedAt: updated.resolvedAt?.toISOString() ?? null,
+    contractStatus: restoreStatus,
+  };
+}
+
+export async function markDisputeUnderReview(disputeId: string) {
+  const [existing] = await db.select().from(dispute).where(eq(dispute.id, disputeId)).limit(1);
+  if (!existing) {
+    throw new DisputeNotFoundError();
+  }
+  if (existing.status !== "open") {
+    throw new DisputeConflictError("Only open disputes can move to under review");
+  }
+
+  const [updated] = await db
+    .update(dispute)
+    .set({ status: "under_review" })
+    .where(eq(dispute.id, disputeId))
+    .returning();
+
+  if (!updated) {
+    throw new ConflictError("Failed to update dispute");
+  }
+
+  return serializeDispute(updated);
+}

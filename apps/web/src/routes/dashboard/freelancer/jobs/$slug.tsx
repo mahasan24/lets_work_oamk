@@ -8,11 +8,8 @@ import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
 
 import { ProposalForm } from "@/components/freelancer/proposal-form";
-import {
-  getDurationLabel,
-  getExperienceLevelLabel,
-  getBudgetTypeLabel,
-} from "@/lib/job-options";
+import { ReportButton } from "@/components/moderation/report-dialog";
+import { getDurationLabel, getExperienceLevelLabel, getBudgetTypeLabel } from "@/lib/job-options";
 import { formatBudgetRange, formatJobMetaLine, formatRelativeJobDate } from "@/lib/job-utils";
 import { jobsApi, type PublicJob } from "@/lib/jobs-api";
 import { getCountryLabel } from "@/lib/profile-options";
@@ -77,7 +74,15 @@ function FreelancerJobDetailPage() {
           </span>
         </div>
         <h1 className="text-2xl font-semibold tracking-tight">{job.title}</h1>
-        <p className="text-sm text-muted-foreground">{formatJobMetaLine(job)}</p>
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <p className="text-sm text-muted-foreground">{formatJobMetaLine(job)}</p>
+          <ReportButton
+            target={{ reportedJobId: job.id }}
+            title="Report this job"
+            variant="outline"
+            className="gap-1.5"
+          />
+        </div>
       </div>
 
       <Card>
@@ -110,19 +115,13 @@ function FreelancerJobDetailPage() {
         <CardContent className="grid gap-4 text-sm sm:grid-cols-2">
           <DetailItem label="Budget" value={formatBudgetRange(job)} />
           <DetailItem label="Type" value={getBudgetTypeLabel(job.budgetType)} />
-          <DetailItem
-            label="Experience"
-            value={getExperienceLevelLabel(job.experienceLevel)}
-          />
+          <DetailItem label="Experience" value={getExperienceLevelLabel(job.experienceLevel)} />
           <DetailItem label="Duration" value={getDurationLabel(job.estimatedDuration)} />
           <DetailItem
             label="Location"
-            value={job.remoteOnly ? "Remote" : getCountryLabel(job.country) ?? "On-site"}
+            value={job.remoteOnly ? "Remote" : (getCountryLabel(job.country) ?? "On-site")}
           />
-          <DetailItem
-            label="Proposals"
-            value={`${job.proposalsCount} submitted`}
-          />
+          <DetailItem label="Proposals" value={`${job.proposalsCount} submitted`} />
         </CardContent>
       </Card>
 

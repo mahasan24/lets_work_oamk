@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { useEffect, useState } from "react";
 
 import { Button, buttonVariants } from "@lets_work/ui/components/button";
 import {
@@ -14,7 +15,10 @@ import { Skeleton } from "@lets_work/ui/components/skeleton";
 import { cn } from "@lets_work/ui/lib/utils";
 import { Link, useNavigate } from "@tanstack/react-router";
 
+import { DeleteAccountDialog } from "@/components/account/delete-account-section";
 import { authClient } from "@/lib/auth-client";
+import { getDashboardHomePath } from "@/lib/dashboard-paths";
+import { profileApi, type ProfileBundle } from "@/lib/profile-api";
 
 type UserMenuProps = {
   signUpButton?: ReactNode;
@@ -23,6 +27,29 @@ type UserMenuProps = {
 export default function UserMenu({ signUpButton }: UserMenuProps = {}) {
   const navigate = useNavigate();
   const { data: session, isPending } = authClient.useSession();
+  const [deleteOpen, setDeleteOpen] = useState(false);
+  const [profile, setProfile] = useState<ProfileBundle | null>(null);
+
+  useEffect(() => {
+    if (!session) {
+      setProfile(null);
+      return;
+    }
+
+    let cancelled = false;
+    profileApi
+      .getMe()
+      .then((bundle) => {
+        if (!cancelled) setProfile(bundle);
+      })
+      .catch(() => {
+        if (!cancelled) setProfile(null);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [session]);
 
   if (isPending) {
     return <Skeleton className="h-9 w-20" />;
@@ -33,6 +60,7 @@ export default function UserMenu({ signUpButton }: UserMenuProps = {}) {
       <div className="flex items-center gap-1">
         <Link
           to="/login"
+          search={{ mode: "sign-in" }}
           className={cn(
             buttonVariants({ variant: "ghost", size: "sm" }),
             "text-muted-foreground hover:text-foreground",
@@ -43,6 +71,7 @@ export default function UserMenu({ signUpButton }: UserMenuProps = {}) {
         {signUpButton ?? (
           <Link
             to="/login"
+            search={{ mode: "sign-up" }}
             className={cn(
               buttonVariants({ variant: "ghost", size: "sm" }),
               "text-muted-foreground hover:text-foreground",
@@ -55,49 +84,63 @@ export default function UserMenu({ signUpButton }: UserMenuProps = {}) {
     );
   }
 
+  const homePath = getDashboardHomePath(profile);
+
   return (
-    <DropdownMenu>
-      <DropdownMenuTrigger
-        render={
-          <Button
-            variant="ghost"
-            size="sm"
-            className="text-muted-foreground hover:text-foreground"
-          />
-        }
-      >
-        {session.user.name}
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="!w-56 min-w-56 bg-card">
-        <DropdownMenuGroup>
-          <DropdownMenuLabel>Account</DropdownMenuLabel>
-          <DropdownMenuSeparator />
-          <DropdownMenuLabel className="font-normal text-muted-foreground">
-            <span className="block break-all">{session.user.email}</span>
-          </DropdownMenuLabel>
-          <DropdownMenuItem
-            onClick={() => {
-              navigate({ to: "/dashboard" });
-            }}
-          >
-            Dashboard
-          </DropdownMenuItem>
-          <DropdownMenuItem
-            variant="destructive"
-            onClick={() => {
-              authClient.signOut({
-                fetchOptions: {
-                  onSuccess: () => {
-                    navigate({ to: "/" });
+    <>
+      <DropdownMenu>
+        <DropdownMenuTrigger
+          render={
+            <Button
+              variant="ghost"
+              size="sm"
+              className="text-muted-foreground hover:text-foreground"
+            />
+          }
+        >
+          {session.user.name}
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end" className="w-56! min-w-56 bg-card">
+          <DropdownMenuGroup>
+            <DropdownMenuLabel>Account</DropdownMenuLabel>
+            <DropdownMenuSeparator />
+            <DropdownMenuLabel className="font-normal text-muted-foreground">
+              <span className="block break-all">{session.user.email}</span>
+            </DropdownMenuLabel>
+            <DropdownMenuItem
+              onClick={() => {
+                void navigate({ to: homePath });
+              }}
+            >
+              {profile?.isAdmin ? "Admin" : "Dashboard"}
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              variant="destructive"
+              onClick={() => {
+                setDeleteOpen(true);
+              }}
+            >
+              Delete account
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              variant="destructive"
+              onClick={() => {
+                void authClient.signOut({
+                  fetchOptions: {
+                    onSuccess: () => {
+                      // Full navigation unloads dashboard fetches so they don't toast 401s.
+                      window.location.assign("/");
+                    },
                   },
-                },
-              });
-            }}
-          >
-            Sign out
-          </DropdownMenuItem>
-        </DropdownMenuGroup>
-      </DropdownMenuContent>
-    </DropdownMenu>
+                });
+              }}
+            >
+              Sign out
+            </DropdownMenuItem>
+          </DropdownMenuGroup>
+        </DropdownMenuContent>
+      </DropdownMenu>
+      <DeleteAccountDialog open={deleteOpen} onOpenChange={setDeleteOpen} />
+    </>
   );
 }

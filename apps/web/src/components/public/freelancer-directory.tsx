@@ -13,12 +13,16 @@ import {
 } from "@lets_work/ui/components/select";
 import { Skeleton } from "@lets_work/ui/components/skeleton";
 import { Link } from "@tanstack/react-router";
-import { Search, SlidersHorizontal, Star } from "lucide-react";
+import { ArrowLeft, Search, SlidersHorizontal, Star } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 
 import { SearchableCombobox } from "@/components/dashboard/searchable-combobox";
 import { SkillsTagsInput } from "@/components/dashboard/skills-tags-input";
+import { authClient } from "@/lib/auth-client";
+import { getDashboardHomePath } from "@/lib/dashboard-paths";
+import { AVAILABILITY_OPTIONS, COUNTRIES, SKILL_SUGGESTIONS } from "@/lib/profile-options";
+import { profileApi, type ProfileBundle } from "@/lib/profile-api";
 import {
   formatHourlyRate,
   formatLocation,
@@ -31,7 +35,6 @@ import {
   type FreelancerSearchQuery,
   type FreelancerSort,
 } from "@/lib/public-profiles-api";
-import { AVAILABILITY_OPTIONS, COUNTRIES, SKILL_SUGGESTIONS } from "@/lib/profile-options";
 
 const SORT_OPTIONS: { value: FreelancerSort; label: string }[] = [
   { value: "recommended", label: "Recommended" },
@@ -91,6 +94,8 @@ function filtersToQuery(
 }
 
 export function FreelancerDirectory() {
+  const { data: session } = authClient.useSession();
+  const [profile, setProfile] = useState<ProfileBundle | null>(null);
   const [filters, setFilters] = useState<DirectoryFilters>(DEFAULT_FILTERS);
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [page, setPage] = useState(1);
@@ -101,10 +106,30 @@ export function FreelancerDirectory() {
   const [showFilters, setShowFilters] = useState(false);
 
   useEffect(() => {
+    if (!session) {
+      setProfile(null);
+      return;
+    }
+    let cancelled = false;
+    profileApi
+      .getMe()
+      .then((bundle) => {
+        if (!cancelled) setProfile(bundle);
+      })
+      .catch(() => {
+        if (!cancelled) setProfile(null);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [session]);
+
+  useEffect(() => {
     const timeout = window.setTimeout(() => setDebouncedSearch(filters.search.trim()), 300);
     return () => window.clearTimeout(timeout);
   }, [filters.search]);
 
+  const homePath = session ? getDashboardHomePath(profile) : "/login";
   const query = useMemo(
     () => filtersToQuery(filters, debouncedSearch, page),
     [debouncedSearch, filters, page],
@@ -150,6 +175,14 @@ export function FreelancerDirectory() {
 
   return (
     <div className="flex flex-col gap-6">
+      <Link
+        to={homePath}
+        className="inline-flex w-fit items-center gap-1.5 text-sm text-muted-foreground transition-colors hover:text-foreground"
+      >
+        <ArrowLeft className="size-3.5" aria-hidden />
+        Back to home
+      </Link>
+
       <div className="flex flex-col gap-2">
         <h1 className="text-3xl font-semibold tracking-tight">Find talent</h1>
         <p className="text-muted-foreground">

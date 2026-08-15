@@ -91,15 +91,31 @@ export function ProposalForm({ job, onSubmitted }: ProposalFormProps) {
   const ratePlaceholder = job.budgetType === "hourly" ? "e.g. 55" : "e.g. 2500";
 
   useEffect(() => {
+    let cancelled = false;
     setIsLoading(true);
     proposalsApi
       .getForJob(job.id)
       .then((existing) => {
+        if (cancelled) return;
         setProposal(existing);
         setForm(proposalToForm(existing));
       })
-      .catch(() => toast.error("Failed to load your proposal"))
-      .finally(() => setIsLoading(false));
+      .catch((error) => {
+        if (cancelled) return;
+        // No existing proposal (or empty body) is normal for a first apply.
+        if (error instanceof ProposalsApiError && (error.status === 404 || error.status === 204)) {
+          setProposal(null);
+          setForm(proposalToForm(null));
+          return;
+        }
+        toast.error("Failed to load your proposal");
+      })
+      .finally(() => {
+        if (!cancelled) setIsLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
   }, [job.id]);
 
   const updateForm = <K extends keyof FormState>(key: K, value: FormState[K]) => {

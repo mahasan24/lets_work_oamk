@@ -98,6 +98,7 @@ export default function LandingPage() {
             {showHire ? (
               <Link
                 to={session ? "/freelancers" : "/login"}
+                search={session ? undefined : { mode: "sign-up" }}
                 className={cn(buttonVariants({ size: "lg" }), "h-10 px-6")}
               >
                 <Briefcase data-icon="inline-start" />
@@ -107,6 +108,7 @@ export default function LandingPage() {
             {showFindWork ? (
               <Link
                 to={session ? "/dashboard/freelancer" : "/login"}
+                search={session ? undefined : { mode: "sign-up" }}
                 className={cn(
                   buttonVariants({ variant: showHire ? "ghost" : "default", size: "lg" }),
                   "h-10",
@@ -153,6 +155,7 @@ export default function LandingPage() {
             <div className="flex shrink-0 flex-col gap-3 sm:flex-row">
               <Link
                 to={session ? dashboardPath : "/login"}
+                search={session ? undefined : { mode: "sign-up" }}
                 className={cn(buttonVariants({ size: "lg" }), "h-11 px-6")}
               >
                 {session ? "Go to dashboard" : "Get started"}
@@ -161,6 +164,7 @@ export default function LandingPage() {
               {showHire ? (
                 <Link
                   to={session ? "/freelancers" : "/login"}
+                  search={session ? undefined : { mode: "sign-up" }}
                   className={cn(
                     buttonVariants({ variant: "outline", size: "lg" }),
                     "h-11 border-background/50 bg-background/10 px-6 text-background hover:bg-background/20 hover:text-background",

@@ -2,7 +2,7 @@ import { aiRecommendation } from "@lets_work/db/schema/ai";
 import { db } from "@lets_work/db";
 
 import { buildFreelancerAiContext, generateGeminiText, logAiUsage, truncate } from "./ai-gemini";
-import { BadRequestError, ServiceUnavailableError } from "./errors";
+import { BadRequestError } from "./errors";
 import { listFreelancerJobFeed } from "./freelancer-jobs";
 import { getProfileBundle } from "./profile";
 
@@ -12,36 +12,127 @@ type RankedItem = {
   reason: string;
 };
 
+type FeedItem = Awaited<ReturnType<typeof listFreelancerJobFeed>>["items"][number];
+
+function extractJsonArrayPayload(text: string): string | null {
+  const start = text.indexOf("[");
+  if (start < 0) return null;
+
+  let depth = 0;
+  let inString = false;
+  let escape = false;
+  for (let i = start; i < text.length; i++) {
+    const ch = text[i]!;
+    if (inString) {
+      if (escape) {
+        escape = false;
+      } else if (ch === "\\") {
+        escape = true;
+      } else if (ch === '"') {
+        inString = false;
+      }
+      continue;
+    }
+    if (ch === '"') {
+      inString = true;
+      continue;
+    }
+    if (ch === "[") depth += 1;
+    if (ch === "]") {
+      depth -= 1;
+      if (depth === 0) return text.slice(start, i + 1);
+    }
+  }
+
+  // Truncated array — close the last complete object if possible.
+  const slice = text.slice(start);
+  const lastCompleteObject = slice.lastIndexOf("}");
+  if (lastCompleteObject > 0) {
+    return `${slice.slice(0, lastCompleteObject + 1)}]`;
+  }
+  return null;
+}
+
+function asRecord(value: unknown): Record<string, unknown> | null {
+  return value && typeof value === "object" ? (value as Record<string, unknown>) : null;
+}
+
+function parseRankedItem(item: unknown): RankedItem | null {
+  const row = asRecord(item);
+  if (!row) return null;
+
+  const jobIdRaw = row.jobId ?? row.job_id ?? row.id;
+  const jobId = typeof jobIdRaw === "string" ? jobIdRaw.trim() : null;
+  const reasonRaw = row.reason ?? row.explanation ?? row.why;
+  const reason = typeof reasonRaw === "string" ? reasonRaw.trim() : "";
+  const scoreRaw = row.aiScore ?? row.score ?? row.matchScore ?? row.match_score;
+  const aiScore =
+    typeof scoreRaw === "number" ? scoreRaw : typeof scoreRaw === "string" ? Number(scoreRaw) : NaN;
+
+  if (!jobId || !Number.isFinite(aiScore)) return null;
+
+  return {
+    jobId,
+    reason: truncate(reason || "Strong profile fit for this role.", 220),
+    aiScore: Math.max(0, Math.min(100, Math.round(aiScore))),
+  };
+}
+
 function parseRankedJson(text: string): RankedItem[] {
-  const match = text.match(/\[[\s\S]*\]/);
-  if (!match) return [];
+  const payload = extractJsonArrayPayload(text);
+  if (!payload) {
+    // Some models wrap the array: { "recommendations": [...] }
+    try {
+      const parsed = JSON.parse(text) as unknown;
+      const row = asRecord(parsed);
+      const nested = row?.recommendations ?? row?.jobs ?? row?.items ?? row?.results ?? null;
+      if (Array.isArray(nested)) {
+        return nested.map(parseRankedItem).filter((item): item is RankedItem => item != null);
+      }
+    } catch {
+      // fall through
+    }
+    return [];
+  }
+
   try {
-    const parsed = JSON.parse(match[0]) as unknown;
+    const parsed = JSON.parse(payload) as unknown;
     if (!Array.isArray(parsed)) return [];
-    return parsed
-      .map((item) => {
-        if (!item || typeof item !== "object") return null;
-        const row = item as Record<string, unknown>;
-        const jobId = typeof row.jobId === "string" ? row.jobId : null;
-        const reason = typeof row.reason === "string" ? row.reason.trim() : "";
-        const scoreRaw = row.aiScore ?? row.score;
-        const aiScore =
-          typeof scoreRaw === "number"
-            ? scoreRaw
-            : typeof scoreRaw === "string"
-              ? Number(scoreRaw)
-              : NaN;
-        if (!jobId || !reason || !Number.isFinite(aiScore)) return null;
-        return {
-          jobId,
-          reason: truncate(reason, 220),
-          aiScore: Math.max(0, Math.min(100, Math.round(aiScore))),
-        };
-      })
-      .filter((item): item is RankedItem => item != null);
+    return parsed.map(parseRankedItem).filter((item): item is RankedItem => item != null);
   } catch {
     return [];
   }
+}
+
+function fallbackRankedFromFeed(items: FeedItem[], limit: number): RankedItem[] {
+  return items.slice(0, limit).map((item) => {
+    const matched = item.matchedSkills.slice(0, 3).join(", ");
+    const reason = matched
+      ? `Strong skill overlap (${matched}).`
+      : `Top match from your profile (${item.matchPercent}% skill fit).`;
+    return {
+      jobId: item.id,
+      aiScore: Math.max(1, Math.min(100, item.matchPercent)),
+      reason,
+    };
+  });
+}
+
+function attachRanking(feedItems: FeedItem[], ranked: RankedItem[], limit: number) {
+  const byId = new Map(feedItems.map((item) => [item.id, item]));
+  const seen = new Set<string>();
+  return ranked
+    .filter((row) => {
+      if (!byId.has(row.jobId) || seen.has(row.jobId)) return false;
+      seen.add(row.jobId);
+      return true;
+    })
+    .slice(0, limit)
+    .map((row) => ({
+      ...byId.get(row.jobId)!,
+      aiScore: row.aiScore,
+      aiReason: row.reason,
+    }));
 }
 
 export async function getAiJobRecommendations(userId: string, input?: { limit?: number }) {
@@ -68,14 +159,15 @@ export async function getAiJobRecommendations(userId: string, input?: { limit?: 
     return { items: [], model: null as string | null, profileSkills: feed.profileSkills };
   }
 
-  const candidates = feed.items.slice(0, 16).map((item) => ({
+  // Keep the prompt compact so the model has room to finish a full JSON array.
+  const candidates = feed.items.slice(0, Math.min(12, Math.max(limit + 2, 8))).map((item) => ({
     jobId: item.id,
     title: item.title,
     category: item.category,
-    description: truncate(item.description, 400),
-    requiredSkills: item.requiredSkills.slice(0, 12),
+    summary: truncate(item.description, 180),
+    requiredSkills: item.requiredSkills.slice(0, 8),
     matchPercent: item.matchPercent,
-    matchedSkills: item.matchedSkills,
+    matchedSkills: item.matchedSkills.slice(0, 6),
     budgetType: item.budgetType,
     experienceLevel: item.experienceLevel,
   }));
@@ -83,88 +175,94 @@ export async function getAiJobRecommendations(userId: string, input?: { limit?: 
   const freelancer = buildFreelancerAiContext(profile);
   const prompt = `
 You are a job-matching assistant for the Lets Work freelance marketplace.
-Rank the candidate jobs for THIS freelancer. Prefer skill overlap, relevant experience, and realistic budget/experience fit.
+Rank candidate jobs for THIS freelancer. Prefer skill overlap, relevant experience, and realistic budget/experience fit.
 Do not invent skills or experience.
 
-Return ONLY a JSON array (no markdown), with at most ${limit} objects:
-[{"jobId":"...","aiScore":0-100,"reason":"one short sentence why this job fits"}]
+Return a JSON array only (no markdown, no wrapper object), with at most ${limit} objects.
+Each object must use exactly these keys:
+{"jobId":"<id from candidate list>","aiScore":<0-100 integer>,"reason":"<one short sentence>"}
 
 Use only jobIds from the candidate list.
 
 FREELANCER:
-${JSON.stringify(freelancer, null, 2)}
+${JSON.stringify({
+  name: freelancer.name,
+  headline: freelancer.headline,
+  skills: freelancer.skills,
+  jobCategories: freelancer.jobCategories,
+  hourlyRate: freelancer.hourlyRate,
+  experience: freelancer.experience,
+})}
 
 CANDIDATE JOBS:
-${JSON.stringify(candidates, null, 2)}
+${JSON.stringify(candidates)}
 `.trim();
 
-  const generated = await generateGeminiText({
-    prompt,
-    temperature: 0.35,
-    maxOutputTokens: 1200,
-  });
-
-  const ranked = parseRankedJson(generated.text);
-  if (ranked.length === 0) {
-    throw new ServiceUnavailableError(
-      "AI returned an incomplete recommendation list. Please try again.",
-      "AI_EMPTY_RESPONSE",
-    );
-  }
-
-  const byId = new Map(feed.items.map((item) => [item.id, item]));
-  const seen = new Set<string>();
-  const items = ranked
-    .filter((row) => {
-      if (!byId.has(row.jobId) || seen.has(row.jobId)) return false;
-      seen.add(row.jobId);
-      return true;
-    })
-    .slice(0, limit)
-    .map((row) => ({
-      ...byId.get(row.jobId)!,
-      aiScore: row.aiScore,
-      aiReason: row.reason,
-    }));
-
-  if (items.length === 0) {
-    throw new ServiceUnavailableError(
-      "AI recommendations could not be matched to jobs. Please try again.",
-      "AI_EMPTY_RESPONSE",
-    );
-  }
-
-  await logAiUsage({
-    userId,
-    feature: "job_match",
-    model: generated.model,
-    entityType: "user",
-    entityId: userId,
-    metadata: { candidateCount: candidates.length, resultCount: items.length },
-    promptTokens: generated.promptTokens,
-    completionTokens: generated.completionTokens,
-    totalTokens: generated.totalTokens,
-  });
+  let model: string | null = null;
+  let ranked: RankedItem[] = [];
 
   try {
-    await db.insert(aiRecommendation).values(
-      items.map((item) => ({
-        id: crypto.randomUUID(),
+    const generated = await generateGeminiText({
+      prompt,
+      temperature: 0.2,
+      maxOutputTokens: 4096,
+      responseMimeType: "application/json",
+    });
+    model = generated.model;
+    ranked = parseRankedJson(generated.text);
+
+    if (ranked.length === 0) {
+      console.warn("[ai] job recommendations parse empty", {
+        finishReason: generated.finishReason,
+        preview: generated.text.slice(0, 400),
+      });
+    } else {
+      await logAiUsage({
         userId,
-        feature: "job_match" as const,
-        jobId: item.id,
-        score: (item.aiScore / 100).toFixed(4),
-        output: { reason: item.aiReason, aiScore: item.aiScore },
-        expiresAt: new Date(Date.now() + 1000 * 60 * 60 * 6),
-      })),
-    );
+        feature: "job_match",
+        model: generated.model,
+        entityType: "user",
+        entityId: userId,
+        metadata: {
+          candidateCount: candidates.length,
+          parsedCount: ranked.length,
+          finishReason: generated.finishReason,
+        },
+        promptTokens: generated.promptTokens,
+        completionTokens: generated.completionTokens,
+        totalTokens: generated.totalTokens,
+      });
+    }
   } catch (error) {
-    console.error("[ai] failed to store job recommendations", error);
+    console.error("[ai] job recommendations generation failed; using skill-match fallback", error);
+  }
+
+  let items = attachRanking(feed.items, ranked, limit);
+  if (items.length === 0) {
+    items = attachRanking(feed.items, fallbackRankedFromFeed(feed.items, limit), limit);
+  }
+
+  if (items.length > 0) {
+    try {
+      await db.insert(aiRecommendation).values(
+        items.map((item) => ({
+          id: crypto.randomUUID(),
+          userId,
+          feature: "job_match" as const,
+          jobId: item.id,
+          score: (item.aiScore / 100).toFixed(4),
+          output: { reason: item.aiReason, aiScore: item.aiScore },
+          expiresAt: new Date(Date.now() + 1000 * 60 * 60 * 6),
+        })),
+      );
+    } catch (error) {
+      console.error("[ai] failed to store job recommendations", error);
+    }
   }
 
   return {
     items,
-    model: generated.model,
+    model,
     profileSkills: feed.profileSkills,
   };
 }

@@ -27,6 +27,7 @@ const AUTH_ROUTES = [
   "/reset-password/",
 ];
 
+/** Public marketplace pages render their own MarketingHeader inside the route. */
 const PUBLIC_CONTENT_ROUTES = ["/freelancers", "/clients"];
 
 export const Route = createRootRouteWithContext<RouterAppContext>()({
@@ -54,6 +55,7 @@ export const Route = createRootRouteWithContext<RouterAppContext>()({
 function RootComponent() {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const isDashboardRoute = pathname === "/dashboard" || pathname.startsWith("/dashboard/");
+  const isAdminRoute = pathname === "/admin" || pathname.startsWith("/admin/");
   const isAppRoute = APP_ROUTES.some(
     (route) => pathname === route || pathname.startsWith(`${route}/`),
   );
@@ -72,17 +74,12 @@ function RootComponent() {
         disableTransitionOnChange
         storageKey="vite-ui-theme"
       >
-        {isDashboardRoute ? (
+        {isDashboardRoute || isAdminRoute || isPublicContentRoute ? (
           <div className="grid h-svh grid-rows-[1fr]">
             <Outlet />
           </div>
         ) : isAppRoute ? (
           <div className="grid h-svh grid-rows-[auto_1fr]">
-            <Header />
-            <Outlet />
-          </div>
-        ) : isPublicContentRoute ? (
-          <div className="min-h-svh">
             <Header />
             <Outlet />
           </div>

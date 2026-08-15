@@ -14,10 +14,13 @@
     "db:generate": "drizzle-kit generate",
     "db:studio": "drizzle-kit studio",
     "db:migrate": "bun run src/migrate.ts",
-    "db:migrate:kit": "drizzle-kit migrate"
+    "db:migrate:kit": "drizzle-kit migrate",
+    "db:scaffold-admin": "bun run src/scripts/scaffold-admin.ts",
+    "db:seed": "bun run src/scripts/seed-marketplace.ts"
   },
   "dependencies": {
     "@lets_work/env": "workspace:*",
+    "better-auth": "catalog:",
     "dotenv": "catalog:",
     "drizzle-orm": "^0.45.1",
     "pg": "^8.17.1",
