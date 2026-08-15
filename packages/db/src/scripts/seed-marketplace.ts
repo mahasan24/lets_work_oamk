@@ -534,8 +534,13 @@ function writeCredentialsDoc(rows: CredentialRow[], jobCount: number) {
   ];
 
   const outPath = path.resolve(repoRoot, "SEED_CREDENTIALS.md");
-  fs.writeFileSync(outPath, lines.join("\n"), "utf8");
-  return outPath;
+  try {
+    fs.writeFileSync(outPath, lines.join("\n"), "utf8");
+    return outPath;
+  } catch (error) {
+    console.warn("Could not write SEED_CREDENTIALS.md (ok in Docker):", error);
+    return outPath;
+  }
 }
 
 if (FORCE) {
