@@ -50,6 +50,7 @@ services:
       REDIS_URL: redis://redis:6379
       BETTER_AUTH_URL: ${BETTER_AUTH_URL:-https://letswork.dev}
       CORS_ORIGIN: ${CORS_ORIGIN:-https://letswork.dev}
+      RESET_DATABASE_ON_START: ${RESET_DATABASE_ON_START:-1}
     depends_on:
       postgres:
         condition: service_healthy

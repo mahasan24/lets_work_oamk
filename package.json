@@ -34,6 +34,7 @@
     "db:generate": "turbo -F @lets_work/db db:generate",
     "db:migrate": "turbo -F @lets_work/db db:migrate",
     "db:promote-admin": "bun run packages/db/src/scripts/promote-admin.ts",
+    "db:reset": "bun run packages/db/src/scripts/reset-database.ts",
     "db:scaffold-admin": "bun run packages/db/src/scripts/scaffold-admin.ts",
     "db:seed": "bun run packages/db/src/scripts/seed-marketplace.ts"
   },
