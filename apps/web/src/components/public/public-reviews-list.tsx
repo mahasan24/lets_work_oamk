@@ -134,7 +134,7 @@ export function WorkHistoryWithReviews({
     startDate: string | null;
     endDate: string | null;
     isCurrent: boolean;
-    dateLabel: string;
+    dateLabel: string | null;
   }>;
 }) {
   const hasExperience = experience.length > 0;
