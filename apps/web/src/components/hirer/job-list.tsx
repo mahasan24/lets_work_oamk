@@ -31,6 +31,8 @@ export function JobList({ showHeader = true }: JobListProps) {
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [isLoading, setIsLoading] = useState(true);
+  const [statusCounts, setStatusCounts] = useState<Partial<Record<JobStatus, number>>>({});
+  const [allJobsCount, setAllJobsCount] = useState(0);
 
   useEffect(() => {
     const timeout = window.setTimeout(() => setDebouncedSearch(search.trim()), 300);
@@ -49,6 +51,8 @@ export function JobList({ showHeader = true }: JobListProps) {
         });
         if (cancelled) return;
         setJobs(response.items);
+        setStatusCounts(response.statusCounts ?? {});
+        setAllJobsCount(response.allJobsCount ?? response.pagination.total);
       } catch (error) {
         if (cancelled || isAuthError(error)) return;
         toast.error("Failed to load jobs");
@@ -86,10 +90,10 @@ export function JobList({ showHeader = true }: JobListProps) {
           onValueChange={(value) => setStatusFilter(value as StatusFilter)}
         >
           <TabsList>
-            <TabsTrigger value="all">All</TabsTrigger>
+            <TabsTrigger value="all">All ({allJobsCount})</TabsTrigger>
             {JOB_STATUS_OPTIONS.map((option) => (
               <TabsTrigger key={option.value} value={option.value}>
-                {option.label}
+                {option.label} ({statusCounts[option.value] ?? 0})
               </TabsTrigger>
             ))}
           </TabsList>
@@ -140,14 +144,26 @@ export function JobList({ showHeader = true }: JobListProps) {
                           : formatRelativeJobDate(job.publishedAt ?? job.createdAt)}
                       </span>
                       <span>·</span>
-                      <span>
-                        {job.proposalsCount} proposal{job.proposalsCount === 1 ? "" : "s"}
-                      </span>
+                      {job.proposalsCount > 0 ? (
+                        <Link
+                          to="/dashboard/hirer/jobs/$jobId/proposals"
+                          params={{ jobId: job.id }}
+                          className="font-medium text-foreground hover:underline"
+                        >
+                          {job.proposalsCount} proposal{job.proposalsCount === 1 ? "" : "s"}
+                        </Link>
+                      ) : (
+                        <span>0 proposals</span>
+                      )}
                       <span>·</span>
                       <span>{formatBudgetRange(job)}</span>
                     </div>
                     <Link
-                      to="/dashboard/hirer/jobs/$jobId"
+                      to={
+                        job.proposalsCount > 0
+                          ? "/dashboard/hirer/jobs/$jobId/proposals"
+                          : "/dashboard/hirer/jobs/$jobId"
+                      }
                       params={{ jobId: job.id }}
                       className="hover:underline"
                     >
@@ -182,9 +198,9 @@ export function JobList({ showHeader = true }: JobListProps) {
                     <Link
                       to="/dashboard/hirer/jobs/$jobId/proposals"
                       params={{ jobId: job.id }}
-                      className={cn(buttonVariants({ variant: "outline", size: "sm" }))}
+                      className={cn(buttonVariants({ size: "sm" }))}
                     >
-                      Proposals ({job.proposalsCount})
+                      Review proposals ({job.proposalsCount})
                     </Link>
                   ) : null}
                   {job.status === "draft" ? (

@@ -181,8 +181,72 @@ function amountToCents(amount: string) {
   return Math.round(parsed * 100);
 }
 
+function isStripeError(
+  error: unknown,
+): error is { code?: string; message?: string; type?: string; statusCode?: number } {
+  return Boolean(error && typeof error === "object" && "type" in error);
+}
+
+type TransferSource = {
+  chargeId: string;
+  /** Settlement currency for source_transaction transfers (may differ from charge currency). */
+  currency: string;
+  /** Max transferable amount in settlement-currency cents (net of Stripe fees). */
+  amountCents: number;
+};
+
+async function resolveTransferSource(
+  row: typeof payment.$inferSelect,
+): Promise<TransferSource | null> {
+  let chargeId = row.stripeChargeId;
+
+  if (!chargeId && row.stripePaymentIntentId) {
+    const intent = await stripeClient.paymentIntents.retrieve(row.stripePaymentIntentId, {
+      expand: ["latest_charge"],
+    });
+    chargeId =
+      typeof intent.latest_charge === "string"
+        ? intent.latest_charge
+        : (intent.latest_charge?.id ?? null);
+  }
+
+  if (!chargeId) {
+    return null;
+  }
+
+  if (chargeId !== row.stripeChargeId) {
+    await db
+      .update(payment)
+      .set({ stripeChargeId: chargeId })
+      .where(and(eq(payment.id, row.id), isNull(payment.stripeChargeId)));
+  }
+
+  const charge = await stripeClient.charges.retrieve(chargeId, {
+    expand: ["balance_transaction"],
+  });
+
+  const balanceTx = charge.balance_transaction;
+  if (balanceTx && typeof balanceTx !== "string") {
+    return {
+      chargeId,
+      currency: balanceTx.currency,
+      // Net is what landed on the platform balance after Stripe fees.
+      amountCents: balanceTx.net,
+    };
+  }
+
+  return {
+    chargeId,
+    currency: charge.currency,
+    amountCents: charge.amount,
+  };
+}
+
 /**
  * Transfers platform-held escrow funds to a freelancer's Connect account.
+ * Uses `source_transaction` when possible so test-mode payouts work before
+ * Checkout funds leave the pending balance. Transfer currency must match the
+ * charge's balance-transaction currency (e.g. EUR settlement on EU accounts).
  */
 export async function transferPaymentToConnect(paymentId: string, actorUserId?: string) {
   const [row] = await db.select().from(payment).where(eq(payment.id, paymentId)).limit(1);
@@ -216,29 +280,67 @@ export async function transferPaymentToConnect(paymentId: string, actorUserId?: 
     throw new ConnectNotReadyError();
   }
 
-  const transfer = await stripeClient.transfers.create({
-    amount: amountToCents(row.amount),
-    currency: row.currency.toLowerCase(),
-    destination: connect.stripeAccountId,
-    transfer_group: row.id,
-    metadata: {
-      paymentId: row.id,
-      milestoneId: row.milestoneId ?? "",
-      contractId: row.contractId ?? "",
-      payeeUserId: row.payeeUserId,
-    },
-  });
+  const source = await resolveTransferSource(row);
+  const fallbackAmountCents = amountToCents(row.amount);
+  const fallbackCurrency = row.currency.toLowerCase();
 
-  const [updated] = await db
-    .update(payment)
-    .set({
-      status: "succeeded",
-      stripeTransferId: transfer.id,
-    })
-    .where(and(eq(payment.id, paymentId), isNull(payment.stripeTransferId)))
-    .returning();
+  try {
+    const transfer = await stripeClient.transfers.create({
+      // With source_transaction, amount/currency must match the charge's
+      // balance transaction (EU platforms often settle USD checkouts in EUR).
+      amount: source?.amountCents ?? fallbackAmountCents,
+      currency: source?.currency ?? fallbackCurrency,
+      destination: connect.stripeAccountId,
+      transfer_group: row.id,
+      ...(source ? { source_transaction: source.chargeId } : {}),
+      metadata: {
+        paymentId: row.id,
+        milestoneId: row.milestoneId ?? "",
+        contractId: row.contractId ?? "",
+        payeeUserId: row.payeeUserId,
+        appCurrency: row.currency,
+        appAmount: row.amount,
+      },
+    });
 
-  return updated ?? row;
+    const [updated] = await db
+      .update(payment)
+      .set({
+        status: "succeeded",
+        stripeTransferId: transfer.id,
+        stripeChargeId: source?.chargeId ?? row.stripeChargeId,
+      })
+      .where(and(eq(payment.id, paymentId), isNull(payment.stripeTransferId)))
+      .returning();
+
+    return updated ?? row;
+  } catch (error) {
+    if (isStripeError(error) && error.code === "balance_insufficient") {
+      throw new BadRequestError(
+        source
+          ? "Stripe could not transfer this escrow yet. Wait a moment and try again, or fund your test balance with card 4000 0000 0000 0077."
+          : "Your Stripe test platform balance is empty. In Test mode, add available funds with card 4000 0000 0000 0077 (see Stripe testing docs), then retry the payout.",
+        "STRIPE_BALANCE_INSUFFICIENT",
+      );
+    }
+
+    if (
+      isStripeError(error) &&
+      typeof error.message === "string" &&
+      error.message.toLowerCase().includes("currency")
+    ) {
+      throw new BadRequestError(
+        `Stripe payout currency mismatch: ${error.message}. Your platform settles in a different currency than the job currency — retry after the server maps the charge settlement currency.`,
+        "STRIPE_CURRENCY_MISMATCH",
+      );
+    }
+
+    if (isStripeError(error) && error.message) {
+      throw new BadRequestError(error.message, "STRIPE_TRANSFER_FAILED");
+    }
+
+    throw error;
+  }
 }
 
 /**

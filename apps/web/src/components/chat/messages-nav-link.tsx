@@ -23,6 +23,7 @@ export function MessagesNavLink({
 
   useEffect(() => {
     let cancelled = false;
+    let debounceTimer: number | null = null;
 
     const refresh = async () => {
       try {
@@ -35,17 +36,25 @@ export function MessagesNavLink({
       }
     };
 
+    const scheduleRefresh = () => {
+      if (debounceTimer !== null) {
+        window.clearTimeout(debounceTimer);
+      }
+      debounceTimer = window.setTimeout(() => {
+        void refresh();
+      }, 400);
+    };
+
     void refresh();
 
-    const unsubNew = subscribeToRealtime("chat:message:new", () => {
-      void refresh();
-    });
-    const unsubRead = subscribeToRealtime("chat:conversation:read", () => {
-      void refresh();
-    });
+    const unsubNew = subscribeToRealtime("chat:message:new", scheduleRefresh);
+    const unsubRead = subscribeToRealtime("chat:conversation:read", scheduleRefresh);
 
     return () => {
       cancelled = true;
+      if (debounceTimer !== null) {
+        window.clearTimeout(debounceTimer);
+      }
       unsubNew();
       unsubRead();
     };

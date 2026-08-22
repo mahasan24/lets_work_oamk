@@ -297,10 +297,10 @@ export async function listConversations(userId: string, query: ChatListQuery = {
       m.edited_at as "editedAt",
       m.deleted_at as "deletedAt"
     from message m
-    where m.conversation_id in ${sql.join(
+    where m.conversation_id in (${sql.join(
       conversationIds.map((id) => sql`${id}`),
       sql`, `,
-    )}
+    )})
     order by m.conversation_id, m.created_at desc
   `);
 
@@ -329,10 +329,10 @@ export async function listConversations(userId: string, query: ChatListQuery = {
       and m.sender_id <> ${userId}
       and m.deleted_at is null
       and (cp.last_read_at is null or m.created_at > cp.last_read_at)
-      and cp.conversation_id in ${sql.join(
+      and cp.conversation_id in (${sql.join(
         conversationIds.map((id) => sql`${id}`),
         sql`, `,
-      )}
+      )})
     group by cp.conversation_id
   `);
 

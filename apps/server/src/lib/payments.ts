@@ -274,7 +274,7 @@ export async function createMilestoneFundingCheckout(milestoneId: string, hirerU
  */
 export async function markPaymentHeldFromCheckout(sessionId: string) {
   const session = await stripeClient.checkout.sessions.retrieve(sessionId, {
-    expand: ["payment_intent"],
+    expand: ["payment_intent", "payment_intent.latest_charge"],
   });
 
   if (session.payment_status !== "paid") {

@@ -79,6 +79,9 @@ export type MilestoneListResponse = {
     approved: number;
     completionPercent: number;
     contractType: "hourly" | "one_time";
+    contractFixedAmount?: string | null;
+    allocatedAmount?: string;
+    remainingAmount?: string | null;
   };
 };
 

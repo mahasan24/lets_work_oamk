@@ -139,6 +139,19 @@ export function ContractMilestones({ contract, role, onChanged }: ContractMilest
           <p className="text-sm text-muted-foreground">
             Track deliverables, submissions, and approvals for this fixed-price contract.
           </p>
+          {contract.fixedAmount ? (
+            <p className="text-xs text-muted-foreground">
+              Contract total{" "}
+              {contract.job?.currency === "USD" || !contract.job?.currency
+                ? "$"
+                : `${contract.job.currency} `}
+              {contract.fixedAmount}
+              {data?.meta.remainingAmount != null
+                ? ` · ${contract.job?.currency === "USD" || !contract.job?.currency ? "$" : `${contract.job.currency} `}${data.meta.remainingAmount} unallocated`
+                : null}
+              . Adding a milestone may reduce pending (unfunded) milestones so the total still fits.
+            </p>
+          ) : null}
           {items.length > 0 ? (
             <div className="space-y-2">
               <div className="flex items-center justify-between text-xs text-muted-foreground">
@@ -343,6 +356,9 @@ export function ContractMilestones({ contract, role, onChanged }: ContractMilest
                 <DialogTitle>Add milestone</DialogTitle>
                 <DialogDescription>
                   Split the contract into a deliverable with an amount and optional due date.
+                  {data?.meta.remainingAmount != null
+                    ? ` Unallocated budget right now: ${contract.job?.currency === "USD" || !contract.job?.currency ? "$" : `${contract.job.currency} `}${data.meta.remainingAmount} (pending milestones can be reduced automatically to make room).`
+                    : ""}
                 </DialogDescription>
               </DialogHeader>
               <div className="space-y-4">

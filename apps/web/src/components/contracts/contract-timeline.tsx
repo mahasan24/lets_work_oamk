@@ -6,6 +6,7 @@ import { toast } from "sonner";
 
 import {
   contractsApi,
+  ContractsApiError,
   getContractEventLabel,
   type ContractEvent,
 } from "@/lib/contracts-api";
@@ -24,9 +25,11 @@ export function ContractTimeline({ contractId, refreshKey = 0 }: ContractTimelin
     setIsLoading(true);
     try {
       const response = await contractsApi.timeline(contractId);
-      setItems(response.items);
-    } catch {
-      toast.error("Failed to load contract timeline");
+      setItems(response.items ?? []);
+    } catch (error) {
+      toast.error(
+        error instanceof ContractsApiError ? error.message : "Failed to load contract timeline",
+      );
       setItems([]);
     } finally {
       setIsLoading(false);

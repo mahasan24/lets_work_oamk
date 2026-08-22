@@ -45,6 +45,7 @@ export type Review = {
   createdAt: string;
   updatedAt: string;
   reviewer: { id: string; name: string; image: string | null } | null;
+  contract?: { id: string; title: string } | null;
 };
 
 export type ContractReviewsResponse = {

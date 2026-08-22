@@ -164,7 +164,8 @@ export const jobRoutes = new Elysia({
       }),
       detail: {
         summary: "Get published job by slug",
-        description: "Returns a single open or in-review job for public viewing.",
+        description:
+          "Returns a single job for viewing. Open and in-review jobs are listed publicly; filled, paused, and closed jobs remain viewable by slug (e.g. from My proposals).",
       },
     },
   );

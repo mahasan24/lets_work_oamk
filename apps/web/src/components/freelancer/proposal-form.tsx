@@ -1,6 +1,6 @@
 import { Alert, AlertDescription, AlertTitle } from "@lets_work/ui/components/alert";
 import { Badge } from "@lets_work/ui/components/badge";
-import { Button } from "@lets_work/ui/components/button";
+import { Button, buttonVariants } from "@lets_work/ui/components/button";
 import {
   Card,
   CardContent,
@@ -19,6 +19,7 @@ import {
 } from "@lets_work/ui/components/select";
 import { Textarea } from "@lets_work/ui/components/textarea";
 import { cn } from "@lets_work/ui/lib/utils";
+import { Link } from "@tanstack/react-router";
 import { FileIcon, SparklesIcon, XIcon } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
@@ -223,9 +224,16 @@ export function ProposalForm({ job, onSubmitted }: ProposalFormProps) {
     return (
       <Alert>
         <AlertTitle>Proposal accepted</AlertTitle>
-        <AlertDescription>
-          Congratulations — the client accepted your proposal. Contract details will follow in a
-          future update.
+        <AlertDescription className="flex flex-col gap-3">
+          <span>
+            Congratulations — the client accepted your proposal and this job is now filled.
+          </span>
+          <Link
+            to="/dashboard/freelancer/contracts"
+            className={cn(buttonVariants({ size: "sm" }), "w-fit")}
+          >
+            View contracts
+          </Link>
         </AlertDescription>
       </Alert>
     );

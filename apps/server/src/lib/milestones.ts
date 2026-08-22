@@ -2,7 +2,7 @@ import { db } from "@lets_work/db";
 import { contract } from "@lets_work/db/schema/contracts";
 import { job } from "@lets_work/db/schema/jobs";
 import { milestone, milestoneSubmission } from "@lets_work/db/schema/milestones";
-import { and, asc, desc, eq, inArray, ne, sql } from "drizzle-orm";
+import { and, asc, desc, eq, inArray, ne } from "drizzle-orm";
 
 import { ContractForbiddenError, ContractNotFoundError, ContractStatusError } from "./contracts";
 import { ConflictError, ForbiddenError, NotFoundError, ValidationError } from "./errors";
@@ -139,14 +139,25 @@ async function getMilestoneView(milestoneId: string) {
   return serializeMilestone(row, submissions);
 }
 
-function parseAmount(value: string) {
-  const amount = Number(value);
-  if (!Number.isFinite(amount) || amount <= 0) {
-    throw new MilestoneValidationError("Amount must be greater than zero");
+function toCents(value: string | number) {
+  const normalized =
+    typeof value === "number" ? value : Number(String(value).replace(/[$,\s]/g, ""));
+  if (!Number.isFinite(normalized)) {
+    throw new MilestoneValidationError("Amount must be a valid number");
   }
-  return amount;
+  return Math.round(normalized * 100);
 }
 
+function fromCents(cents: number) {
+  return (cents / 100).toFixed(2);
+}
+
+/**
+ * Ensures the new/updated milestone amount fits the fixed contract total.
+ * Hiring creates a default milestone for 100% of the budget; when the hirer
+ * adds another milestone we automatically shrink pending (unfunded) milestones
+ * so the split can succeed.
+ */
 async function validateMilestoneBudget(
   contractRow: typeof contract.$inferSelect,
   amount: string,
@@ -156,21 +167,63 @@ async function validateMilestoneBudget(
     return;
   }
 
-  const conditions = [eq(milestone.contractId, contractRow.id), ne(milestone.status, "cancelled")];
-  if (excludeMilestoneId) {
-    conditions.push(ne(milestone.id, excludeMilestoneId));
+  const amountCents = toCents(amount);
+  if (amountCents <= 0) {
+    throw new MilestoneValidationError("Amount must be greater than zero");
+  }
+  const contractCents = toCents(contractRow.fixedAmount);
+  if (amountCents > contractCents) {
+    throw new MilestoneValidationError(
+      `Milestone amount cannot exceed the contract total of ${fromCents(contractCents)}`,
+    );
   }
 
-  const [totals] = await db
-    .select({ total: sql<string>`coalesce(sum(${milestone.amount}), 0)` })
+  const rows = await db
+    .select({
+      id: milestone.id,
+      amount: milestone.amount,
+      status: milestone.status,
+    })
     .from(milestone)
-    .where(and(...conditions));
+    .where(and(eq(milestone.contractId, contractRow.id), ne(milestone.status, "cancelled")));
 
-  const nextTotal = Number(totals?.total ?? 0) + parseAmount(amount);
-  const contractTotal = Number(contractRow.fixedAmount);
+  const others = rows.filter((row) => row.id !== excludeMilestoneId);
+  let allocatedCents = others.reduce((sum, row) => sum + toCents(row.amount), 0);
+  let remainingCents = contractCents - allocatedCents;
 
-  if (nextTotal > contractTotal) {
-    throw new MilestoneValidationError("Milestone amounts cannot exceed the contract total");
+  if (amountCents <= remainingCents) {
+    return;
+  }
+
+  let needCents = amountCents - remainingCents;
+  const shrinkable = others
+    .filter((row) => row.status === "pending")
+    .sort((a, b) => toCents(b.amount) - toCents(a.amount));
+
+  for (const row of shrinkable) {
+    if (needCents <= 0) break;
+    const currentCents = toCents(row.amount);
+    if (currentCents <= needCents) {
+      await db.delete(milestone).where(eq(milestone.id, row.id));
+      allocatedCents -= currentCents;
+      needCents -= currentCents;
+      continue;
+    }
+
+    const nextCents = currentCents - needCents;
+    await db
+      .update(milestone)
+      .set({ amount: fromCents(nextCents) })
+      .where(eq(milestone.id, row.id));
+    allocatedCents -= needCents;
+    needCents = 0;
+  }
+
+  remainingCents = contractCents - allocatedCents;
+  if (amountCents > remainingCents) {
+    throw new MilestoneValidationError(
+      `Only ${fromCents(Math.max(0, remainingCents))} remains unallocated. Reduce or delete pending milestones before adding more.`,
+    );
   }
 }
 
@@ -232,6 +285,14 @@ export async function listContractMilestones(contractId: string, userId: string)
     (item) => item.status === "approved" || item.status === "released",
   ).length;
 
+  const allocatedCents = items
+    .filter((item) => item.status !== "cancelled")
+    .reduce((sum, item) => sum + toCents(item.amount), 0);
+  const contractCents =
+    contractRow.contractType === "one_time" && contractRow.fixedAmount
+      ? toCents(contractRow.fixedAmount)
+      : null;
+
   return {
     items,
     meta: {
@@ -239,6 +300,10 @@ export async function listContractMilestones(contractId: string, userId: string)
       approved,
       completionPercent: items.length === 0 ? 0 : Math.round((approved / items.length) * 100),
       contractType: contractRow.contractType,
+      contractFixedAmount: contractRow.fixedAmount,
+      allocatedAmount: fromCents(allocatedCents),
+      remainingAmount:
+        contractCents === null ? null : fromCents(Math.max(0, contractCents - allocatedCents)),
     },
   };
 }
@@ -281,6 +346,8 @@ export async function createContractMilestone(
     currency = jobRow?.currency ?? "USD";
   }
 
+  const normalizedAmount = fromCents(toCents(input.amount));
+
   const [created] = await db
     .insert(milestone)
     .values({
@@ -288,7 +355,7 @@ export async function createContractMilestone(
       contractId,
       title,
       description: input.description?.trim() || null,
-      amount: input.amount,
+      amount: normalizedAmount,
       currency,
       sortOrder: input.sortOrder ?? 0,
       dueDate: input.dueDate ? new Date(input.dueDate) : null,

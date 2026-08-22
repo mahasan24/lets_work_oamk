@@ -113,6 +113,9 @@ export function MessagingWorkspace({ basePath, conversationId, role }: Messaging
   const currentUserId = session?.user.id;
   const messageListRef = useRef<HTMLDivElement | null>(null);
   const typingTimerRef = useRef<number | null>(null);
+  const seenMessageIdsRef = useRef(new Set<string>());
+  const conversationIdRef = useRef(conversationId);
+  conversationIdRef.current = conversationId;
   const [isLoadingConversations, setIsLoadingConversations] = useState(false);
   const [isLoadingMessages, setIsLoadingMessages] = useState(false);
   const [isSending, setIsSending] = useState(false);
@@ -135,6 +138,14 @@ export function MessagingWorkspace({ basePath, conversationId, role }: Messaging
   const contractsPath =
     role === "hirer" ? "/dashboard/hirer/contracts" : "/dashboard/freelancer/contracts";
 
+  const appendMessage = useCallback((incoming: ChatMessage) => {
+    if (seenMessageIdsRef.current.has(incoming.id)) return;
+    seenMessageIdsRef.current.add(incoming.id);
+    setMessages((current) =>
+      current.some((entry) => entry.id === incoming.id) ? current : [...current, incoming],
+    );
+  }, []);
+
   const loadConversations = useCallback(async () => {
     setIsLoadingConversations(true);
     try {
@@ -144,7 +155,7 @@ export function MessagingWorkspace({ basePath, conversationId, role }: Messaging
         unreadOnly: isUnreadOnly || undefined,
       });
       setConversations(result.items);
-      if (!conversationId && result.items.length > 0) {
+      if (!conversationIdRef.current && result.items.length > 0) {
         void navigate({
           search: (current) => ({ ...current, conversationId: result.items[0].id }),
           replace: true,
@@ -155,7 +166,7 @@ export function MessagingWorkspace({ basePath, conversationId, role }: Messaging
     } finally {
       setIsLoadingConversations(false);
     }
-  }, [conversationId, isUnreadOnly, navigate, search]);
+  }, [isUnreadOnly, navigate, search]);
 
   const loadMessages = useCallback(
     async (targetConversationId: string) => {
@@ -166,35 +177,37 @@ export function MessagingWorkspace({ basePath, conversationId, role }: Messaging
           chatApi.listMessages(targetConversationId, { limit: 100 }),
         ]);
         setMessages(messageResult.items);
+        seenMessageIdsRef.current = new Set(messageResult.items.map((item) => item.id));
+
         const otherParticipant =
           conversation.participants.find((participant) => participant.userId !== currentUserId) ??
           conversation.participants[0] ??
           null;
-        setActiveConversation(
-          conversations.find((entry) => entry.id === targetConversationId) ?? {
-            id: conversation.id,
-            jobId: conversation.jobId,
-            contractId: conversation.contractId,
-            updatedAt: conversation.updatedAt,
-            lastReadAt: null,
-            unreadCount: 0,
-            participant: otherParticipant,
-            lastMessage: null,
-          },
-        );
-        await chatApi.markRead(targetConversationId);
+
+        setActiveConversation((current) => ({
+          id: conversation.id,
+          jobId: conversation.jobId,
+          contractId: conversation.contractId,
+          updatedAt: conversation.updatedAt,
+          lastReadAt: null,
+          unreadCount: 0,
+          participant: otherParticipant,
+          lastMessage: current?.id === targetConversationId ? (current.lastMessage ?? null) : null,
+        }));
         setConversations((current) =>
           current.map((entry) =>
             entry.id === targetConversationId ? { ...entry, unreadCount: 0 } : entry,
           ),
         );
+
+        await chatApi.markRead(targetConversationId);
       } catch (error) {
         toast.error(error instanceof Error ? error.message : "Failed to load messages");
       } finally {
         setIsLoadingMessages(false);
       }
     },
-    [conversations, currentUserId],
+    [currentUserId],
   );
 
   useEffect(() => {
@@ -204,6 +217,7 @@ export function MessagingWorkspace({ basePath, conversationId, role }: Messaging
   useEffect(() => {
     if (!conversationId) {
       setMessages([]);
+      seenMessageIdsRef.current.clear();
       setActiveConversation(null);
       setEditingMessageId(null);
       setComposer("");
@@ -249,15 +263,13 @@ export function MessagingWorkspace({ basePath, conversationId, role }: Messaging
       );
 
       if (isActive) {
-        setMessages((current) =>
-          current.some((entry) => entry.id === incoming.id) ? current : [...current, incoming],
-        );
+        appendMessage(incoming);
         if (!isOwn) {
           void chatApi.markRead(incoming.conversationId).catch(() => undefined);
         }
       }
     });
-  }, [conversationId, currentUserId]);
+  }, [appendMessage, conversationId, currentUserId]);
 
   useEffect(() => {
     return subscribeToRealtime("chat:message:updated", (payload) => {
@@ -390,7 +402,26 @@ export function MessagingWorkspace({ basePath, conversationId, role }: Messaging
           body: composer.trim() || null,
           attachments: pendingAttachments,
         });
-        setMessages((current) => [...current, created]);
+        appendMessage(created);
+        setConversations((current) =>
+          current.map((entry) =>
+            entry.id === conversationId
+              ? {
+                  ...entry,
+                  updatedAt: created.createdAt,
+                  lastMessage: {
+                    id: created.id,
+                    senderId: created.senderId,
+                    body: created.body,
+                    createdAt: created.createdAt,
+                    readAt: created.readAt,
+                    editedAt: created.editedAt,
+                    deletedAt: created.deletedAt,
+                  },
+                }
+              : entry,
+          ),
+        );
       }
       setComposer("");
       setPendingAttachments([]);

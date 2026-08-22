@@ -107,6 +107,8 @@ export type JobListResponse = {
     total: number;
     totalPages: number;
   };
+  statusCounts?: Partial<Record<JobStatus, number>>;
+  allJobsCount?: number;
 };
 
 export type JobPublishReadiness = {

@@ -65,6 +65,8 @@ export type PublicJobListQuery = {
 };
 
 const PUBLIC_JOB_STATUSES: JobStatus[] = ["open", "in_review"];
+/** Detail-by-slug: allow viewing after hire so applicants can reopen accepted jobs. */
+const PUBLIC_JOB_DETAIL_STATUSES: JobStatus[] = ["open", "in_review", "paused", "filled", "closed"];
 
 function postedWithinToDate(value: PublicJobListQuery["postedWithin"]) {
   if (!value) return null;
@@ -313,6 +315,7 @@ export async function listHirerJobs(hirerUserId: string, query: HirerJobListQuer
   const { page, limit, offset } = resolvePagination(query, { maxLimit: 100 });
 
   const conditions = [eq(job.hirerUserId, hirerUserId)];
+  const countConditions = [eq(job.hirerUserId, hirerUserId)];
 
   if (query.status) {
     conditions.push(eq(job.status, query.status));
@@ -320,12 +323,15 @@ export async function listHirerJobs(hirerUserId: string, query: HirerJobListQuer
 
   if (query.search?.trim()) {
     const term = `%${query.search.trim()}%`;
-    conditions.push(or(ilike(job.title, term), ilike(job.description, term))!);
+    const searchClause = or(ilike(job.title, term), ilike(job.description, term))!;
+    conditions.push(searchClause);
+    countConditions.push(searchClause);
   }
 
   const whereClause = and(...conditions);
+  const countWhereClause = and(...countConditions);
 
-  const [rows, countRows] = await Promise.all([
+  const [rows, countRows, jobStatusRows] = await Promise.all([
     db
       .select()
       .from(job)
@@ -337,13 +343,27 @@ export async function listHirerJobs(hirerUserId: string, query: HirerJobListQuer
       .select({ count: sql<number>`count(*)::int` })
       .from(job)
       .where(whereClause),
+    db
+      .select({ status: job.status, count: sql<number>`count(*)::int` })
+      .from(job)
+      .where(countWhereClause)
+      .groupBy(job.status),
   ]);
 
   const total = countRows[0]?.count ?? 0;
 
+  const statusCounts = jobStatusRows.reduce<Partial<Record<JobStatus, number>>>((acc, row) => {
+    acc[row.status] = row.count;
+    return acc;
+  }, {});
+
+  const allJobsCount = Object.values(statusCounts).reduce((sum, value) => sum + (value ?? 0), 0);
+
   return {
     items: rows.map(serializeJob),
     pagination: buildPaginationMeta(page, limit, total),
+    statusCounts,
+    allJobsCount,
   };
 }
 
@@ -669,7 +689,7 @@ export async function getPublicJobBySlug(slug: string) {
     .from(job)
     .innerJoin(user, eq(user.id, job.hirerUserId))
     .leftJoin(marketplaceUserProfile, eq(marketplaceUserProfile.userId, job.hirerUserId))
-    .where(and(eq(job.slug, slug), inArray(job.status, PUBLIC_JOB_STATUSES)))
+    .where(and(eq(job.slug, slug), inArray(job.status, PUBLIC_JOB_DETAIL_STATUSES)))
     .limit(1);
 
   if (!row) {

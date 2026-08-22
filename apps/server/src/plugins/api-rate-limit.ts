@@ -2,8 +2,14 @@ import { getRedis } from "@lets_work/auth";
 import { Elysia } from "elysia";
 
 const WINDOW_SECONDS = 60;
-const MAX_REQUESTS = 180;
+const MAX_REQUESTS = 300;
 const AUTH_PREFIX = "/api/auth";
+/** High-churn reads that should not burn the shared API budget. */
+const RELAXED_GET_PREFIXES = [
+  "/api/notifications/unread-count",
+  "/api/chat/conversations",
+  "/api/contracts/",
+];
 
 function clientIp(request: Request) {
   const forwarded = request.headers.get("x-forwarded-for");
@@ -22,6 +28,14 @@ export const apiRateLimitPlugin = new Elysia({ name: "api-rate-limit" }).onBefor
   async ({ request, set }) => {
     const path = new URL(request.url).pathname;
     if (!path.startsWith("/api/") || path.startsWith(AUTH_PREFIX)) {
+      return;
+    }
+
+    // Authenticated contract/chat/notification GETs are chatty on dashboards.
+    if (
+      request.method === "GET" &&
+      RELAXED_GET_PREFIXES.some((prefix) => path === prefix || path.startsWith(prefix))
+    ) {
       return;
     }
 

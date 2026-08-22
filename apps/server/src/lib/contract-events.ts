@@ -1,12 +1,9 @@
 import { db } from "@lets_work/db";
-import {
-  contractEvent,
-  type contractEventTypeEnum,
-} from "@lets_work/db/schema/contract-events";
+import { contractEvent, type contractEventTypeEnum } from "@lets_work/db/schema/contract-events";
 import { contract } from "@lets_work/db/schema/contracts";
 import { desc, eq } from "drizzle-orm";
 
-import { ContractForbiddenError, ContractNotFoundError } from "./contracts";
+import { ForbiddenError, NotFoundError } from "./errors";
 
 type ContractEventType = (typeof contractEventTypeEnum.enumValues)[number];
 
@@ -21,6 +18,12 @@ export type RecordContractEventInput = {
 };
 
 type DbExecutor = Pick<typeof db, "insert">;
+
+function toIso(value: Date | string | null | undefined) {
+  if (!value) return null;
+  if (typeof value === "string") return value;
+  return value.toISOString();
+}
 
 export async function recordContractEvent(
   input: RecordContractEventInput,
@@ -77,7 +80,7 @@ function serializeContractEvent(row: typeof contractEvent.$inferSelect) {
     description: row.description,
     milestoneId: row.milestoneId,
     metadata: row.metadata,
-    createdAt: row.createdAt,
+    createdAt: toIso(row.createdAt) ?? new Date().toISOString(),
   };
 }
 
@@ -85,11 +88,11 @@ async function assertContractAccess(contractId: string, userId: string) {
   const [row] = await db.select().from(contract).where(eq(contract.id, contractId)).limit(1);
 
   if (!row) {
-    throw new ContractNotFoundError();
+    throw new NotFoundError("Contract not found", "CONTRACT_NOT_FOUND");
   }
 
   if (row.hirerUserId !== userId && row.freelancerUserId !== userId) {
-    throw new ContractForbiddenError();
+    throw new ForbiddenError("You do not have access to this contract", "CONTRACT_FORBIDDEN");
   }
 
   return row;

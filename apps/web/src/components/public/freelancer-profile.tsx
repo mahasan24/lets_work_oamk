@@ -1,12 +1,11 @@
 import { Avatar, AvatarFallback, AvatarImage } from "@lets_work/ui/components/avatar";
 import { Badge } from "@lets_work/ui/components/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@lets_work/ui/components/card";
-import { Separator } from "@lets_work/ui/components/separator";
 import { ExternalLink, Star } from "lucide-react";
 
-import { VerifiedBadge } from "@/components/public/verified-badge";
-import { PublicReviewsList } from "@/components/public/public-reviews-list";
 import { ReportButton } from "@/components/moderation/report-dialog";
+import { WorkHistoryWithReviews } from "@/components/public/public-reviews-list";
+import { VerifiedBadge } from "@/components/public/verified-badge";
 import {
   formatDateRange,
   formatHourlyRate,
@@ -22,6 +21,17 @@ export function FreelancerPublicProfile({ profile }: { profile: PublicFreelancer
   const rating = formatRating(profile.avgRating);
   const location = formatLocation(profile.country, profile.city);
   const memberSince = formatMonthYear(profile.memberSince);
+
+  const experience = profile.experience.map((item) => ({
+    id: item.id,
+    title: item.title,
+    company: item.company,
+    description: item.description,
+    startDate: item.startDate,
+    endDate: item.endDate,
+    isCurrent: item.isCurrent,
+    dateLabel: formatDateRange(item.startDate, item.endDate, item.isCurrent),
+  }));
 
   return (
     <div className="flex flex-col gap-6">
@@ -145,31 +155,7 @@ export function FreelancerPublicProfile({ profile }: { profile: PublicFreelancer
         </Card>
       ) : null}
 
-      {profile.experience.length > 0 ? (
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base">Work history</CardTitle>
-          </CardHeader>
-          <CardContent className="flex flex-col gap-4">
-            {profile.experience.map((item, index) => (
-              <div key={item.id} className="flex flex-col gap-1">
-                {index > 0 ? <Separator className="mb-4" /> : null}
-                <p className="font-medium">{item.title}</p>
-                <p className="text-sm text-muted-foreground">
-                  {[item.company, formatDateRange(item.startDate, item.endDate, item.isCurrent)]
-                    .filter(Boolean)
-                    .join(" · ")}
-                </p>
-                {item.description ? (
-                  <p className="text-sm whitespace-pre-wrap text-muted-foreground">
-                    {item.description}
-                  </p>
-                ) : null}
-              </div>
-            ))}
-          </CardContent>
-        </Card>
-      ) : null}
+      <WorkHistoryWithReviews userId={profile.userId} experience={experience} />
 
       {profile.certifications.length > 0 ? (
         <Card>
@@ -199,8 +185,6 @@ export function FreelancerPublicProfile({ profile }: { profile: PublicFreelancer
           </CardContent>
         </Card>
       ) : null}
-
-      <PublicReviewsList userId={profile.userId} />
     </div>
   );
 }

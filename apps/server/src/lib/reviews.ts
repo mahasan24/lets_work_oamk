@@ -38,6 +38,7 @@ async function notifyQuietly(input: Parameters<typeof createNotification>[0]) {
 function serializeReview(
   row: typeof review.$inferSelect,
   reviewer?: { id: string; name: string; image: string | null } | null,
+  contractMeta?: { id: string; title: string } | null,
 ) {
   return {
     id: row.id,
@@ -50,6 +51,7 @@ function serializeReview(
     createdAt: row.createdAt,
     updatedAt: row.updatedAt,
     reviewer: reviewer ? { id: reviewer.id, name: reviewer.name, image: reviewer.image } : null,
+    contract: contractMeta ? { id: contractMeta.id, title: contractMeta.title } : null,
   };
 }
 
@@ -181,7 +183,7 @@ export async function createContractReview(
     type: "review",
     title: "New review received",
     body: `You received a ${rating}-star review.`,
-    actionUrl: isHirer ? `/freelancers/${revieweeId}` : `/clients/${revieweeId}`,
+    actionUrl: isHirer ? `/freelancers/${revieweeId}#job-history` : `/clients/${revieweeId}`,
   });
 
   const [reviewer] = await db
@@ -257,9 +259,12 @@ export async function listPublicReviewsForUser(
         reviewerId: user.id,
         reviewerName: user.name,
         reviewerImage: user.image,
+        contractId: contract.id,
+        contractTitle: contract.title,
       })
       .from(review)
       .innerJoin(user, eq(user.id, review.reviewerId))
+      .leftJoin(contract, eq(contract.id, review.contractId))
       .where(whereClause)
       .orderBy(desc(review.createdAt))
       .limit(limit)
@@ -267,11 +272,15 @@ export async function listPublicReviewsForUser(
   ]);
 
   const items = rows.map((row) =>
-    serializeReview(row.review, {
-      id: row.reviewerId,
-      name: row.reviewerName,
-      image: row.reviewerImage,
-    }),
+    serializeReview(
+      row.review,
+      {
+        id: row.reviewerId,
+        name: row.reviewerName,
+        image: row.reviewerImage,
+      },
+      row.contractId && row.contractTitle ? { id: row.contractId, title: row.contractTitle } : null,
+    ),
   );
 
   return {

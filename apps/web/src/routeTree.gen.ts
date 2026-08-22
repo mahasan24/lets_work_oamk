@@ -65,6 +65,7 @@ import { Route as DashboardHirerContractsContractIdRouteImport } from './routes/
 import { Route as DashboardFreelancerJobsSlugRouteImport } from './routes/dashboard/freelancer/jobs/$slug'
 import { Route as DashboardFreelancerDisputesDisputeIdRouteImport } from './routes/dashboard/freelancer/disputes/$disputeId'
 import { Route as DashboardFreelancerContractsContractIdRouteImport } from './routes/dashboard/freelancer/contracts/$contractId'
+import { Route as DashboardHirerJobsJobIdIndexRouteImport } from './routes/dashboard/hirer/jobs/$jobId.index'
 import { Route as DashboardHirerJobsJobIdProposalsRouteImport } from './routes/dashboard/hirer/jobs/$jobId.proposals'
 
 const SuccessRouteRoute = SuccessRouteRouteImport.update({
@@ -370,6 +371,12 @@ const DashboardFreelancerContractsContractIdRoute =
     path: '/contracts/$contractId',
     getParentRoute: () => DashboardFreelancerRouteRoute,
   } as any)
+const DashboardHirerJobsJobIdIndexRoute =
+  DashboardHirerJobsJobIdIndexRouteImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => DashboardHirerJobsJobIdRoute,
+  } as any)
 const DashboardHirerJobsJobIdProposalsRoute =
   DashboardHirerJobsJobIdProposalsRouteImport.update({
     id: '/proposals',
@@ -435,6 +442,7 @@ export interface FileRoutesByFullPath {
   '/dashboard/hirer/payments/': typeof DashboardHirerPaymentsIndexRoute
   '/dashboard/onboarding/role/': typeof DashboardOnboardingRoleIndexRoute
   '/dashboard/hirer/jobs/$jobId/proposals': typeof DashboardHirerJobsJobIdProposalsRoute
+  '/dashboard/hirer/jobs/$jobId/': typeof DashboardHirerJobsJobIdIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -468,7 +476,6 @@ export interface FileRoutesByTo {
   '/dashboard/freelancer/jobs/$slug': typeof DashboardFreelancerJobsSlugRoute
   '/dashboard/hirer/contracts/$contractId': typeof DashboardHirerContractsContractIdRoute
   '/dashboard/hirer/disputes/$disputeId': typeof DashboardHirerDisputesDisputeIdRoute
-  '/dashboard/hirer/jobs/$jobId': typeof DashboardHirerJobsJobIdRouteWithChildren
   '/dashboard/hirer/jobs/new': typeof DashboardHirerJobsNewRoute
   '/dashboard/admin/disputes': typeof DashboardAdminDisputesIndexRoute
   '/dashboard/admin/reports': typeof DashboardAdminReportsIndexRoute
@@ -484,6 +491,7 @@ export interface FileRoutesByTo {
   '/dashboard/hirer/payments': typeof DashboardHirerPaymentsIndexRoute
   '/dashboard/onboarding/role': typeof DashboardOnboardingRoleIndexRoute
   '/dashboard/hirer/jobs/$jobId/proposals': typeof DashboardHirerJobsJobIdProposalsRoute
+  '/dashboard/hirer/jobs/$jobId': typeof DashboardHirerJobsJobIdIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -544,6 +552,7 @@ export interface FileRoutesById {
   '/dashboard/hirer/payments/': typeof DashboardHirerPaymentsIndexRoute
   '/dashboard/onboarding/role/': typeof DashboardOnboardingRoleIndexRoute
   '/dashboard/hirer/jobs/$jobId/proposals': typeof DashboardHirerJobsJobIdProposalsRoute
+  '/dashboard/hirer/jobs/$jobId/': typeof DashboardHirerJobsJobIdIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -605,6 +614,7 @@ export interface FileRouteTypes {
     | '/dashboard/hirer/payments/'
     | '/dashboard/onboarding/role/'
     | '/dashboard/hirer/jobs/$jobId/proposals'
+    | '/dashboard/hirer/jobs/$jobId/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -638,7 +648,6 @@ export interface FileRouteTypes {
     | '/dashboard/freelancer/jobs/$slug'
     | '/dashboard/hirer/contracts/$contractId'
     | '/dashboard/hirer/disputes/$disputeId'
-    | '/dashboard/hirer/jobs/$jobId'
     | '/dashboard/hirer/jobs/new'
     | '/dashboard/admin/disputes'
     | '/dashboard/admin/reports'
@@ -654,6 +663,7 @@ export interface FileRouteTypes {
     | '/dashboard/hirer/payments'
     | '/dashboard/onboarding/role'
     | '/dashboard/hirer/jobs/$jobId/proposals'
+    | '/dashboard/hirer/jobs/$jobId'
   id:
     | '__root__'
     | '/'
@@ -713,6 +723,7 @@ export interface FileRouteTypes {
     | '/dashboard/hirer/payments/'
     | '/dashboard/onboarding/role/'
     | '/dashboard/hirer/jobs/$jobId/proposals'
+    | '/dashboard/hirer/jobs/$jobId/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -1121,6 +1132,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardFreelancerContractsContractIdRouteImport
       parentRoute: typeof DashboardFreelancerRouteRoute
     }
+    '/dashboard/hirer/jobs/$jobId/': {
+      id: '/dashboard/hirer/jobs/$jobId/'
+      path: '/'
+      fullPath: '/dashboard/hirer/jobs/$jobId/'
+      preLoaderRoute: typeof DashboardHirerJobsJobIdIndexRouteImport
+      parentRoute: typeof DashboardHirerJobsJobIdRoute
+    }
     '/dashboard/hirer/jobs/$jobId/proposals': {
       id: '/dashboard/hirer/jobs/$jobId/proposals'
       path: '/proposals'
@@ -1228,12 +1246,14 @@ const DashboardFreelancerRouteRouteWithChildren =
 
 interface DashboardHirerJobsJobIdRouteChildren {
   DashboardHirerJobsJobIdProposalsRoute: typeof DashboardHirerJobsJobIdProposalsRoute
+  DashboardHirerJobsJobIdIndexRoute: typeof DashboardHirerJobsJobIdIndexRoute
 }
 
 const DashboardHirerJobsJobIdRouteChildren: DashboardHirerJobsJobIdRouteChildren =
   {
     DashboardHirerJobsJobIdProposalsRoute:
       DashboardHirerJobsJobIdProposalsRoute,
+    DashboardHirerJobsJobIdIndexRoute: DashboardHirerJobsJobIdIndexRoute,
   }
 
 const DashboardHirerJobsJobIdRouteWithChildren =

@@ -23,7 +23,9 @@ import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 
 import { DeleteAccountSection } from "@/components/account/delete-account-section";
+import { JobHistoryReviews } from "@/components/public/public-reviews-list";
 import { uploadToCloudinary } from "@/lib/cloudinary-upload";
+import { authClient } from "@/lib/auth-client";
 import {
   AVAILABILITY_OPTIONS,
   COUNTRIES,
@@ -48,6 +50,7 @@ const inputClassName = "h-10";
 
 export default function ProfileEditor() {
   const router = useRouter();
+  const { data: session } = authClient.useSession();
   const timezoneOptions = useMemo(() => getTimezoneOptions(), []);
 
   const [data, setData] = useState<ProfileBundle | null>(null);
@@ -546,6 +549,27 @@ export default function ProfileEditor() {
               Add certification
             </Button>
           </FieldGroup>
+        </CardContent>
+      </Card>
+
+      <Card id="job-history">
+        <CardHeader>
+          <CardTitle>Work history & reviews</CardTitle>
+          <CardDescription>
+            Reviews from completed Lets Work contracts appear here for clients who visit your public
+            profile.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          {session?.user.id ? (
+            <JobHistoryReviews
+              userId={session.user.id}
+              title="Reviews you received"
+              emptyMessage="No reviews yet. After a contract is completed and the client leaves a review, it shows up here and on your public profile."
+            />
+          ) : (
+            <p className="text-sm text-muted-foreground">Sign in to see your reviews.</p>
+          )}
         </CardContent>
       </Card>
 

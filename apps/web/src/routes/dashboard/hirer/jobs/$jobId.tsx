@@ -1,12 +1,9 @@
-import { createFileRoute } from "@tanstack/react-router";
-
-import JobFormWizard from "@/components/hirer/job-form-wizard";
+import { createFileRoute, Outlet } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/dashboard/hirer/jobs/$jobId")({
-  component: EditJobPage,
+  component: HirerJobLayout,
 });
 
-function EditJobPage() {
-  const { jobId } = Route.useParams();
-  return <JobFormWizard jobId={jobId} />;
+function HirerJobLayout() {
+  return <Outlet />;
 }
