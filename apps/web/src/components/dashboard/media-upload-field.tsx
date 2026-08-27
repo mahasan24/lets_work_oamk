@@ -1,6 +1,7 @@
 import { Button } from "@lets_work/ui/components/button";
 import { cn } from "@lets_work/ui/lib/utils";
 import { useRef, useState } from "react";
+import { toast } from "sonner";
 
 type PreviewVariant = "avatar" | "video" | "card";
 
@@ -31,6 +32,9 @@ export function MediaUploadField({
     setIsUploading(true);
     try {
       await onUpload(file);
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Upload failed");
+      throw error;
     } finally {
       setIsUploading(false);
       event.target.value = "";
@@ -114,6 +118,9 @@ export function MediaUploadDropzone({
     setIsUploading(true);
     try {
       await onUpload(file);
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Upload failed");
+      throw error;
     } finally {
       setIsUploading(false);
     }

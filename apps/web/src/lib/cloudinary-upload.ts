@@ -5,12 +5,18 @@ import { profileApi, type UploadSignature } from "./profile-api";
 
 type ProfileUploadFolder = "avatars" | "portfolio" | "certifications" | "videos" | "messages";
 
+function cloudinaryCloudName(signature: { cloudName?: string }) {
+  // Prefer the cloud name that signed the request (server) over the Vite env copy.
+  return signature.cloudName || env.VITE_CLOUDINARY_CLOUD_NAME;
+}
+
 export async function uploadToCloudinary(
   file: File,
   folder: ProfileUploadFolder,
 ): Promise<{ url: string; resourceType: "image" | "video" }> {
   const signature = await profileApi.getUploadSignature(folder);
   const resourceType = folder === "videos" ? "video" : "image";
+  const cloudName = cloudinaryCloudName(signature);
 
   const formData = new FormData();
   formData.append("file", file);
@@ -21,8 +27,8 @@ export async function uploadToCloudinary(
 
   const endpoint =
     resourceType === "video"
-      ? `https://api.cloudinary.com/v1_1/${env.VITE_CLOUDINARY_CLOUD_NAME}/video/upload`
-      : `https://api.cloudinary.com/v1_1/${env.VITE_CLOUDINARY_CLOUD_NAME}/image/upload`;
+      ? `https://api.cloudinary.com/v1_1/${cloudName}/video/upload`
+      : `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`;
 
   const response = await fetch(endpoint, {
     method: "POST",
@@ -46,7 +52,8 @@ async function uploadWithSignature(file: File, signature: UploadSignature | JobU
   formData.append("signature", signature.signature);
   formData.append("folder", signature.folder);
 
-  const endpoint = `https://api.cloudinary.com/v1_1/${env.VITE_CLOUDINARY_CLOUD_NAME}/auto/upload`;
+  const cloudName = cloudinaryCloudName(signature);
+  const endpoint = `https://api.cloudinary.com/v1_1/${cloudName}/auto/upload`;
 
   const response = await fetch(endpoint, {
     method: "POST",

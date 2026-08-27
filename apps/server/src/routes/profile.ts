@@ -16,10 +16,11 @@ import { betterAuthPlugin } from "../plugins/auth";
 import { COOKIE_AUTH_SECURITY } from "../lib/openapi-tags";
 
 const profileUpdateSchema = t.Object({
-  headline: t.Optional(t.String()),
-  bio: t.Optional(t.String()),
-  skills: t.Optional(t.Array(t.String())),
-  jobCategories: t.Optional(t.Array(t.String())),
+  // Clients clear fields with `null` (e.g. company hirers set bio: null) — Optional alone rejects null.
+  headline: t.Optional(t.Nullable(t.String())),
+  bio: t.Optional(t.Nullable(t.String())),
+  skills: t.Optional(t.Nullable(t.Array(t.String()))),
+  jobCategories: t.Optional(t.Nullable(t.Array(t.String()))),
   hourlyRate: t.Optional(t.Nullable(t.String())),
   currency: t.Optional(t.String()),
   country: t.Optional(t.Nullable(t.String())),
@@ -86,8 +87,9 @@ export const profileRoutes = new Elysia({
         .update(marketplaceUserProfile)
         .set({
           ...body,
-          skills: body.skills ?? undefined,
-          jobCategories: body.jobCategories ?? undefined,
+          skills: body.skills === undefined ? undefined : body.skills,
+          jobCategories: body.jobCategories === undefined ? undefined : body.jobCategories,
+          currency: body.currency ?? undefined,
         })
         .where(eq(marketplaceUserProfile.userId, user.id));
 

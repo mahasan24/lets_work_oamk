@@ -14,7 +14,17 @@ async function apiFetch<T>(path: string, init?: RequestInit): Promise<T> {
 
   if (!response.ok) {
     const error = await response.json().catch(() => ({ error: response.statusText }));
-    throw new Error(error.error ?? "Request failed");
+    const message =
+      typeof error.error === "string"
+        ? error.error
+        : error.error != null
+          ? JSON.stringify(error.error)
+          : "Request failed";
+    // Prefer a short readable hint for validation payloads
+    if (error.code === "VALIDATION" || message.includes("validation")) {
+      throw new Error("Invalid profile data. Check required fields and try again.");
+    }
+    throw new Error(message);
   }
 
   return response.json() as Promise<T>;

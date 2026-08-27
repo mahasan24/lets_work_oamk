@@ -159,52 +159,64 @@ export default function ProfileEditor() {
 
   const addProject = async () => {
     if (!projectTitle.trim()) return;
-    const bundle = await profileApi.addPortfolio({
-      title: projectTitle,
-      description: projectDescription || null,
-      projectUrl: projectUrl || null,
-      imageUrl: projectImageUrl,
-    });
-    setProjectTitle("");
-    setProjectDescription("");
-    setProjectUrl("");
-    setProjectImageUrl(null);
-    await refreshContext(bundle);
-    toast.success("Project added");
+    try {
+      const bundle = await profileApi.addPortfolio({
+        title: projectTitle,
+        description: projectDescription || null,
+        projectUrl: projectUrl || null,
+        imageUrl: projectImageUrl,
+      });
+      setProjectTitle("");
+      setProjectDescription("");
+      setProjectUrl("");
+      setProjectImageUrl(null);
+      await refreshContext(bundle);
+      toast.success("Project added");
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Failed to add project");
+    }
   };
 
   const addCertification = async () => {
     if (!certName.trim()) return;
-    const bundle = await profileApi.addCertification({
-      name: certName,
-      issuer: certIssuer || null,
-      imageUrl: certImageUrl,
-    });
-    setCertName("");
-    setCertIssuer("");
-    setCertImageUrl(null);
-    await refreshContext(bundle);
-    toast.success("Certification added");
+    try {
+      const bundle = await profileApi.addCertification({
+        name: certName,
+        issuer: certIssuer || null,
+        imageUrl: certImageUrl,
+      });
+      setCertName("");
+      setCertIssuer("");
+      setCertImageUrl(null);
+      await refreshContext(bundle);
+      toast.success("Certification added");
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Failed to add certification");
+    }
   };
 
   const addExperience = async () => {
     if (!expTitle.trim()) return;
-    const bundle = await profileApi.addExperience({
-      title: expTitle,
-      company: expCompany || null,
-      description: expDescription || null,
-      isCurrent: expIsCurrent,
-      startDate: expStartDate || null,
-      endDate: expIsCurrent ? null : expEndDate || null,
-    });
-    setExpTitle("");
-    setExpCompany("");
-    setExpDescription("");
-    setExpStartDate("");
-    setExpEndDate("");
-    setExpIsCurrent(false);
-    await refreshContext(bundle);
-    toast.success("Experience added");
+    try {
+      const bundle = await profileApi.addExperience({
+        title: expTitle,
+        company: expCompany || null,
+        description: expDescription || null,
+        isCurrent: expIsCurrent,
+        startDate: expStartDate || null,
+        endDate: expIsCurrent ? null : expEndDate || null,
+      });
+      setExpTitle("");
+      setExpCompany("");
+      setExpDescription("");
+      setExpStartDate("");
+      setExpEndDate("");
+      setExpIsCurrent(false);
+      await refreshContext(bundle);
+      toast.success("Experience added");
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Failed to add experience");
+    }
   };
 
   if (isLoading || !data) {
